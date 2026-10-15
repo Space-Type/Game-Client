@@ -18,6 +18,13 @@ set(CMAKE_CXX_STANDARD 23)
 add_subdirectory(lib/wrecks)
 
 set(SOURCES
+    src/components/ComponentManager.hpp
+    src/components/Physics.hpp
+    src/components/Transform.hpp
+    src/game/Engine.hpp
+    src/systems/Physics/Physics.cpp
+    src/systems/Physics/Physics.hpp
+    src/systems/Systems.hpp
     src/main.cpp)
 
 
