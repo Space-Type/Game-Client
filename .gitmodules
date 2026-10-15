@@ -1,3 +1,6 @@
 [submodule "wrecks"]
     path = lib/wrecks
     url = git@github.com:Space-Type/Wrecks.git
+[submodule "lib/raylib"]
+	path = lib/raylib
+	url = git@github.com:raysan5/raylib.git
