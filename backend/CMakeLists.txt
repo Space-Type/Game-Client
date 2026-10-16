@@ -22,8 +22,13 @@ set(BACKEND_SOURCES
     include/backend/Types.hpp
     include/backend/Window.hpp
 
+    # Common
+    src/Log.hpp
+
     # Graphics
     src/Letterbox/Letterbox.cpp
+    src/Convert.hpp
+    src/Window/Window.cpp
 
 
     # Input & audio
