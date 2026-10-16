@@ -54,3 +54,6 @@ target_link_libraries(rtype_backend PUBLIC wrecks
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     add_subdirectory(tests)
 endif()
+
+# Manual test program (needs a display): cmake --build build --target backend_manual_test
+add_subdirectory(manual-test)
