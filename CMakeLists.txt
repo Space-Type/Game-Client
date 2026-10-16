@@ -15,6 +15,7 @@ project(RType-Client VERSION 1.0
 
 set(CMAKE_CXX_STANDARD 23)
 
+add_subdirectory(lib/raylib)
 add_subdirectory(lib/wrecks)
 
 set(SOURCES
@@ -29,10 +30,11 @@ set(SOURCES
     src/systems/Systems.hpp
     src/main.cpp)
 
-
 add_executable(r-type_client ${SOURCES})
 
 target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include)
+                                         PUBLIC lib/wrecks/include
+                                         PUBLIC lib/raylib/src)
 
-target_link_libraries(r-type_client wrecks)
+target_link_libraries(r-type_client PUBLIC wrecks
+                                    PUBLIC raylib)
