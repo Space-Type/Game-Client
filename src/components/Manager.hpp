@@ -8,11 +8,13 @@
 
 #pragma once
 
+#include "Transform.hpp"
 #include <rtype/components/types.hpp>
 #include <wrecks/ecs.hpp>
 
 
 namespace RType::Components {
-    using Manager = Wrecks::ECS::ComponentManager<Transform,
-                                                  Physics>;
+    using Manager = Wrecks::ECS::ComponentManager<Physics,
+                                                  Sprite,
+                                                  Transform>;
 }
