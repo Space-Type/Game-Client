@@ -53,6 +53,10 @@ namespace Backend {
             bool isDown(int gamepad, GamepadButton button) const noexcept;
             bool isPressed(int gamepad, GamepadButton button) const noexcept;
             bool isReleased(int gamepad, GamepadButton button) const noexcept;
-            float axis(int gamepad, GamepadAxis axis) const noexcept;  // [-1, 1]
+            /**
+             * Sticks are in [-1, 1], triggers in [0, 1]
+             * (0 when released). 0 if the gamepad is unavailable.
+             */
+            float axis(int gamepad, GamepadAxis axis) const noexcept;
     };
 }

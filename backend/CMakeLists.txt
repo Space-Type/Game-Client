@@ -35,6 +35,8 @@ set(BACKEND_SOURCES
 
 
     # Input & audio
+    src/Input/KeyNames.cpp
+    src/Input/Input.cpp
 
 
     )
