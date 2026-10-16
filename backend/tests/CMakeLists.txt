@@ -37,10 +37,5 @@ target_link_libraries(backend_tests PRIVATE rtype_backend
 
 set_target_properties(backend_tests PROPERTIES MAP_IMPORTED_CONFIG_DEBUGTESTS Debug)
 
-# Wrecks objects are built with --coverage in DebugTests: link libgcov
-if (NOT WIN32)
-    target_link_options(backend_tests PRIVATE --coverage)
-endif()
-
 include(GoogleTest)
 gtest_discover_tests(backend_tests)

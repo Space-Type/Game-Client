@@ -33,13 +33,22 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release;MinSizeRel;RelWithDebInfo;DebugTest
 set(CMAKE_CXX_FLAGS_DEBUGTESTS "${CMAKE_CXX_FLAGS_DEBUG}"
                                CACHE STRING "Flags used by the C++ compiler during DebugTests builds.")
 
-# Lets `ctest --test-dir build` find the tests of every subproject
+# Lets `ctest --test-dir build` find the tests of subdirectories
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     enable_testing()
 endif()
 
 add_subdirectory(lib/raylib)
+
+# Wrecks builds its own tests (with coverage) in DebugTests:
+# they belong to the Wrecks repository, not to this build
+set(RTYPE_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
+if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
 add_subdirectory(lib/wrecks)
+set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
+
 add_subdirectory(backend)
 
 set(SOURCES
@@ -52,8 +61,3 @@ target_include_directories(r-type_client PUBLIC include
                                          PUBLIC lib/wrecks/include)
 
 target_link_libraries(r-type_client wrecks)
-
-# Wrecks objects are built with --coverage in DebugTests: link libgcov
-if (CMAKE_BUILD_TYPE STREQUAL "DebugTests" AND NOT WIN32)
-    target_link_options(r-type_client PRIVATE --coverage)
-endif()
