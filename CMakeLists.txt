@@ -17,6 +17,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_subdirectory(lib/raylib)
 add_subdirectory(lib/wrecks)
+add_subdirectory(backend)
 
 set(SOURCES
     src/main.cpp)
