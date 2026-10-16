@@ -50,3 +50,7 @@ target_include_directories(rtype_backend PUBLIC include
 # raylib stays private: game code cannot include it
 target_link_libraries(rtype_backend PUBLIC wrecks
                                     PRIVATE raylib)
+
+if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
+    add_subdirectory(tests)
+endif()
