@@ -10,6 +10,7 @@
 
 #include "Concepts.hpp"
 #include "InputTypes.hpp"
+#include <algorithm>
 #include <type_traits>
 #include <unordered_map>
 #include <variant>
@@ -52,7 +53,8 @@ namespace Backend {
             // Removes every binding of the action
             void clear(A action);
 
-            // Bindings of the action, empty if none
+            // Bindings of the action, empty if none.
+            // The reference is invalidated by bind / unbind / clear
             const std::vector<Binding>& bindings(A action) const noexcept;
 
             inline void setGamepad(int gamepad) noexcept { m_Gamepad = gamepad; }
@@ -70,4 +72,113 @@ namespace Backend {
             template <InputBackend I>
             bool isReleased(A action, const I& input) const;
     };
+}
+
+
+/////////////////////////////////////////////////////////
+//                                                     //
+//                 TEMPLATE DEFINITIONS                //
+//                                                     //
+/////////////////////////////////////////////////////////
+
+template <typename A>
+requires (std::is_enum_v<A>)
+void Backend::ActionMap<A>::bind(A action, Binding binding)
+{
+    std::vector<Binding>& list = m_Bindings[action];
+
+    if (std::find(list.begin(), list.end(), binding) == list.end())
+        list.push_back(binding);
+}
+
+template <typename A>
+requires (std::is_enum_v<A>)
+void Backend::ActionMap<A>::unbind(A action, Binding binding)
+{
+    auto it = m_Bindings.find(action);
+
+    if (it == m_Bindings.end())
+        return;
+    std::erase(it->second, binding);
+    if (it->second.empty())
+        m_Bindings.erase(it);
+}
+
+template <typename A>
+requires (std::is_enum_v<A>)
+void Backend::ActionMap<A>::clear(A action)
+{
+    m_Bindings.erase(action);
+}
+
+template <typename A>
+requires (std::is_enum_v<A>)
+const std::vector<Backend::Binding>& Backend::ActionMap<A>::bindings(A action) const noexcept
+{
+    static const std::vector<Binding> s_Empty;
+    auto it = m_Bindings.find(action);
+
+    return it == m_Bindings.end() ? s_Empty : it->second;
+}
+
+template <typename A>
+requires (std::is_enum_v<A>)
+template <Backend::InputBackend I>
+bool Backend::ActionMap<A>::isDown(A action, const I& input) const
+{
+    return std::ranges::any_of(bindings(action), [&](const Binding& binding) {
+        return std::visit([&](const auto& value) -> bool {
+            using T = std::decay_t<decltype(value)>;
+
+            if constexpr (std::is_same_v<T, GamepadButton>) {
+                return input.isDown(m_Gamepad, value);
+            } else if constexpr (std::is_same_v<T, AxisBinding>) {
+                if (value.threshold > 0.0F)
+                    return input.axis(m_Gamepad, value.axis) >= value.threshold;
+                if (value.threshold < 0.0F)
+                    return input.axis(m_Gamepad, value.axis) <= value.threshold;
+                return false;
+            } else {
+                return input.isDown(value);
+            }
+        }, binding);
+    });
+}
+
+template <typename A>
+requires (std::is_enum_v<A>)
+template <Backend::InputBackend I>
+bool Backend::ActionMap<A>::isPressed(A action, const I& input) const
+{
+    return std::ranges::any_of(bindings(action), [&](const Binding& binding) {
+        return std::visit([&](const auto& value) -> bool {
+            using T = std::decay_t<decltype(value)>;
+
+            if constexpr (std::is_same_v<T, GamepadButton>)
+                return input.isPressed(m_Gamepad, value);
+            else if constexpr (std::is_same_v<T, AxisBinding>)
+                return false;
+            else
+                return input.isPressed(value);
+        }, binding);
+    });
+}
+
+template <typename A>
+requires (std::is_enum_v<A>)
+template <Backend::InputBackend I>
+bool Backend::ActionMap<A>::isReleased(A action, const I& input) const
+{
+    return std::ranges::any_of(bindings(action), [&](const Binding& binding) {
+        return std::visit([&](const auto& value) -> bool {
+            using T = std::decay_t<decltype(value)>;
+
+            if constexpr (std::is_same_v<T, GamepadButton>)
+                return input.isReleased(m_Gamepad, value);
+            else if constexpr (std::is_same_v<T, AxisBinding>)
+                return false;
+            else
+                return input.isReleased(value);
+        }, binding);
+    });
 }
