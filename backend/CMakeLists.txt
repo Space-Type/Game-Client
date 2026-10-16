@@ -28,6 +28,9 @@ set(BACKEND_SOURCES
     # Graphics
     src/Letterbox/Letterbox.cpp
     src/Convert.hpp
+    src/Renderer/Renderer.cpp
+    src/Resources/Resources.cpp
+    src/Resources/ResourcesImpl.hpp
     src/Window/Window.cpp
 
 

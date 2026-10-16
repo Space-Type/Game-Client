@@ -87,7 +87,7 @@ namespace Backend {
         std::optional<Rect> source = {}; // Texture region (sprite-sheet frame), whole texture if empty
         Vec2 origin = {};               // Normalized pivot: {0, 0} top-left, {0.5, 0.5} center
         float rotation = 0.0F;          // Degrees, clockwise, around the pivot
-        Vec2 scale = {1.0F, 1.0F};
+        Vec2 scale = {1.0F, 1.0F};      // Must be positive: mirror with flipX / flipY
         Color tint = Colors::WHITE;
         bool flipX = false;
         bool flipY = false;
