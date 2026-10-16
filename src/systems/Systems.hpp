@@ -13,5 +13,6 @@
 
 
 namespace RType::Systems {
-    using Systems = std::tuple<Physics>;
+    using Systems = std::tuple<Physics,
+                               Render>;
 }

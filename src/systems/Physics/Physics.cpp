@@ -8,8 +8,9 @@
 
 #include "Physics.hpp"
 #include <rtype/game.hpp>
+#include <raylib.h>
 
-static constexpr float FRICTION_FACTOR_X = 0.9f;
+static constexpr float FRICTION_FACTOR_X = 0.89f;
 static constexpr float FRICTION_FACTOR_Y = FRICTION_FACTOR_X;
 
 RType::Systems::Physics::Physics() noexcept
@@ -17,7 +18,6 @@ RType::Systems::Physics::Physics() noexcept
 
 }
 
-#include <iostream>  // TODO: Remove
 void RType::Systems::Physics::operator()(Wrecks::ECS::Entity entity)
 {
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
@@ -25,15 +25,15 @@ void RType::Systems::Physics::operator()(Wrecks::ECS::Entity entity)
     auto& physicsState = engine.get<Components::Physics>()[entity];
     auto& transforms = engine.get<Components::Transform>()[entity];
 
+    physicsState.velocityX += 3.f * (IsKeyDown(KEY_RIGHT) - IsKeyDown(KEY_LEFT));
+    physicsState.velocityY += 3.f * (IsKeyDown(KEY_DOWN) - IsKeyDown(KEY_UP));
+
+    physicsState.velocityX = std::clamp(physicsState.velocityX, -2.f, 2.f);
+    physicsState.velocityY = std::clamp(physicsState.velocityY, -2.f, 2.f);
+
     transforms.x += physicsState.velocityX;
     transforms.y += physicsState.velocityY;
 
     physicsState.velocityX *= FRICTION_FACTOR_X;
     physicsState.velocityY *= FRICTION_FACTOR_Y;
-
-    std::cout << "{ "
-              << ".x = " << transforms.x << ", "
-              << ".y = " << transforms.y << ", "
-              << ".rotation = " << transforms.rotation
-              << " }" << std::endl;
 }
