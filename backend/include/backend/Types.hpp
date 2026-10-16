@@ -57,7 +57,7 @@ namespace Backend {
         inline constexpr Color YELLOW = {253, 249, 0, 255};
         inline constexpr Color ORANGE = {255, 161, 0, 255};
         inline constexpr Color PURPLE = {200, 122, 255, 255};
-        inline constexpr Color TRANSPARENT = {0, 0, 0, 0};
+        inline constexpr Color INVISIBLE = {0, 0, 0, 0};  // Not TRANSPARENT: macro in wingdi.h
     }
 
 
