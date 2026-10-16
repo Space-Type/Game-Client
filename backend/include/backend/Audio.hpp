@@ -25,12 +25,16 @@ namespace Backend {
      * (Music or Effects), each clamped to [0, 1].
      * Loads are cached by path; everything is released
      * by the destructor. Independent from Window.
+     *
+     * Only one Audio may exist at a time (the
+     * underlying library has a single global device).
      */
     class Audio {
         struct Impl;
         std::unique_ptr<Impl> m_Impl;
 
         public:
+            // Throws Backend::Error if an Audio already exists
             Audio();
             ~Audio();
 
