@@ -11,7 +11,8 @@
 
 Backend::Rect Backend::computeViewport(Vec2 windowSize, Vec2 virtualSize) noexcept
 {
-    if (windowSize.x <= 0.0F || windowSize.y <= 0.0F || virtualSize.x <= 0.0F || virtualSize.y <= 0.0F)
+    // Negated comparisons so NaN sizes are rejected too
+    if (!(windowSize.x > 0.0F) || !(windowSize.y > 0.0F) || !(virtualSize.x > 0.0F) || !(virtualSize.y > 0.0F))
         return {};
 
     float scale = std::min(windowSize.x / virtualSize.x, windowSize.y / virtualSize.y);
