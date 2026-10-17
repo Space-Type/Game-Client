@@ -83,15 +83,28 @@ target_link_libraries(rtype_render PUBLIC wrecks
                                    PRIVATE raylib)
 
 set(SOURCES
+    src/components/Manager.hpp
+    src/components/Physics.hpp
+    src/components/Sprite.hpp
+    src/components/Transform.hpp
+    src/game/Game/Game.cpp
+    src/game/Game/Game.hpp
+    src/game/Engine.hpp
+    src/systems/Physics/Physics.cpp
+    src/systems/Physics/Physics.hpp
+    src/systems/Render/Render.cpp
+    src/systems/Render/Render.hpp
+    src/systems/Systems.hpp
     src/main.cpp)
-
 
 add_executable(r-type_client ${SOURCES})
 
 target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include)
+                                         PUBLIC lib/wrecks/include
+                                         PUBLIC lib/raylib/src)
 
 target_link_libraries(r-type_client PUBLIC wrecks
+                                    PUBLIC raylib
                                     PUBLIC rtype_render)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
