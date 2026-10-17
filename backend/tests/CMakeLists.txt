@@ -8,14 +8,8 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-include(FetchContent)
-
-# Same declaration as Wrecks: the first one wins, no second download
-FetchContent_Declare(googletest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
-
-FetchContent_MakeAvailable(googletest)
+# Provided by vcpkg ("tests" feature of vcpkg.json)
+find_package(GTest CONFIG REQUIRED)
 
 # Only headless tests: nothing here opens a window or an audio device
 set(BACKEND_TEST_SOURCES
@@ -36,11 +30,6 @@ target_link_libraries(backend_tests PRIVATE rtype_backend
                                     PRIVATE GTest::gtest_main)
 
 set_target_properties(backend_tests PROPERTIES MAP_IMPORTED_CONFIG_DEBUGTESTS Debug)
-
-# Wrecks objects are built with --coverage in DebugTests: link libgcov
-if (NOT WIN32)
-    target_link_options(backend_tests PRIVATE --coverage)
-endif()
 
 include(GoogleTest)
 gtest_discover_tests(backend_tests)

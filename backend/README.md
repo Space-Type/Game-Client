@@ -155,16 +155,40 @@ for systems that draw or play sounds.
 - raylib logs go through a callback (`src/Log.hpp`). It also stops raylib from
   calling `exit()` on fatal errors, so failures surface as `Backend::Error`.
 
+## Dependencies
+
+| Dependency | Provided by |
+|---|---|
+| raylib, Wrecks | git submodules (`lib/raylib`, `lib/wrecks`) |
+| GoogleTest | vcpkg (`lib/vcpkg` submodule, `tests` feature of `vcpkg.json`), DebugTests builds only |
+| OpenGL, X11 | the system |
+
+vcpkg needs no installation: the first `cmake` bootstraps it from the submodule and
+installs the manifest dependencies (cached in `~/.cache/vcpkg` afterwards).
+
+OpenGL and X11 stay system libraries, as the subject allows for low-level
+platform libraries. OpenGL is the graphics driver itself, and raylib's GLFW loads
+the system X11 libraries at runtime anyway, so vcpkg could only provide headers
+(and building them needs autotools on the system). On Linux, install the
+development headers once:
+
+```sh
+sudo dnf install mesa-libGL-devel libX11-devel libXrandr-devel libXinerama-devel libXcursor-devel libXi-devel   # Fedora
+sudo apt install libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev              # Ubuntu
+```
+
 ## Build and test
 
 ```sh
+git submodule update --init
+
 # Library only
 cmake -S . -B build && cmake --build build --parallel
 
 # Unit tests (headless: no window, no audio device)
 cmake -DCMAKE_BUILD_TYPE=DebugTests -S . -B build-tests
 cmake --build build-tests --parallel
-ctest --test-dir build-tests -R '^backend_' --output-on-failure
+ctest --test-dir build-tests --output-on-failure
 
 # Manual test program (window, rendering, input, audio)
 cmake --build build --target backend_manual_test
