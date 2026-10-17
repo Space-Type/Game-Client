@@ -15,7 +15,6 @@
 namespace RType::Render {
 
     class Window;
-    class Renderer;
 
     /**
      * Owns graphical resources (textures, fonts) and
@@ -28,10 +27,16 @@ namespace RType::Render {
      * Requires a live Window, which must outlive it.
      */
     class Resources {
-        struct Impl;
-        std::unique_ptr<Impl> m_Impl;
+        public:
+            /**
+             * Handle tables. Opaque: only defined in the
+             * private ResourcesImpl.hpp, so only the render
+             * module itself (the Renderer) can use them.
+             */
+            struct Impl;
 
-        friend class Renderer;
+        private:
+            std::unique_ptr<Impl> m_Impl;
 
         public:
             explicit Resources(const Window& window);
@@ -57,5 +62,8 @@ namespace RType::Render {
 
             // {0, 0} for unknown handles
             Vec2 textureSize(TextureId texture) const noexcept;
+
+            // Read-only access to the handle tables (see Impl)
+            const Impl& impl() const noexcept;
     };
 }
