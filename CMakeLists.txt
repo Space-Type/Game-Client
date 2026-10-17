@@ -46,6 +46,7 @@ set(RTYPE_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     set(CMAKE_BUILD_TYPE Debug)
 endif()
+
 add_subdirectory(lib/wrecks)
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
