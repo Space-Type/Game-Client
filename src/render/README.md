@@ -1,8 +1,8 @@
-# Backend
+# Render
 
-`rtype_backend` is the client's platform layer: window, 2D rendering, input and
+`rtype_render` (namespace `RType::Render`) is the client's platform layer: window, 2D rendering, input and
 audio, implemented with [raylib](https://www.raylib.com/) but exposed through our
-own API. Game code includes `<backend.hpp>` and never `raylib.h` (raylib is linked
+own API. Game code includes `<rtype/render.hpp>` and never `raylib.h` (raylib is linked
 `PRIVATE`, so its headers are not even reachable).
 
 The library knows nothing about R-Type or the ECS, so it can later move into the
@@ -10,31 +10,36 @@ engine (Wrecks) as an optional module.
 
 ## Layout
 
+Same layout as the rest of the client and Wrecks: one class per folder, headers
+next to their sources, and an aggregate header in `include/`.
+
 ```
-backend/
-  include/backend.hpp        aggregate header (the only include game code needs)
-  include/backend/*.hpp      public API: the contract
-  src/<Class>/<Class>.cpp    raylib implementation (the only place raylib.h appears)
-  tests/                     headless unit tests (GoogleTest, DebugTests build)
-  manual-test/main.cpp       manual test program (needs a display)
+include/rtype/render.hpp             aggregate header (the only include game code needs)
+src/render/<Class>/<Class>.{hpp,cpp} one class per folder (Window, Renderer, Input...)
+src/render/*.hpp                     header-only parts (Types, InputTypes, Concepts, ActionMap, Error)
+src/render/Convert.hpp, Log.hpp,     private headers, they include raylib.h: never
+  Input/KeyMap.hpp,                  include them from game code or from a public header
+  Resources/ResourcesImpl.hpp
+tests/render/                        headless unit tests (GoogleTest, DebugTests build)
+tests/render/manual/main.cpp         manual test program (needs a display)
 ```
 
 ## Quick start
 
 ```cpp
-#include <backend.hpp>
+#include <rtype/render.hpp>
 #include <chrono>
 
 int main()
 {
-    Backend::Window window({.title = "R-Type", .virtualWidth = 1920, .virtualHeight = 1080});
-    Backend::Resources resources(window);   // after Window, destroyed before it
-    Backend::Renderer renderer(resources);
-    Backend::Input input(window);
-    Backend::Audio audio;                   // independent from Window
+    RType::Render::Window window({.title = "R-Type", .virtualWidth = 1920, .virtualHeight = 1080});
+    RType::Render::Resources resources(window);   // after Window, destroyed before it
+    RType::Render::Renderer renderer(resources);
+    RType::Render::Input input(window);
+    RType::Render::Audio audio;                   // independent from Window
 
-    Backend::TextureId ship = resources.loadTexture("assets/ship.png");
-    Backend::Vec2 position = {200.0F, 540.0F};
+    RType::Render::TextureId ship = resources.loadTexture("assets/ship.png");
+    RType::Render::Vec2 position = {200.0F, 540.0F};
 
     auto previous = std::chrono::steady_clock::now();
     while (!window.shouldClose()) {
@@ -42,13 +47,13 @@ int main()
         float delta = std::chrono::duration<float>(now - previous).count();
         previous = now;
 
-        if (input.isDown(Backend::Key::Right))
+        if (input.isDown(RType::Render::Key::Right))
             position.x += 500.0F * delta;     // speed in virtual pixels per second
-        if (input.isPressed(Backend::Key::Escape))
+        if (input.isPressed(RType::Render::Key::Escape))
             window.close();
         audio.update();
 
-        window.beginFrame(Backend::Colors::BLACK);
+        window.beginFrame(RType::Render::Colors::BLACK);
         renderer.drawSprite(ship, {.position = position, .origin = {0.5F, 0.5F}});
         window.endFrame();
     }
@@ -74,10 +79,10 @@ plain handles (`TextureId`, `FontId`, `SoundId`, `MusicId`). Handles are trivial
 copyable, so they are what ECS components store:
 
 ```cpp
-struct Sprite {                       // an ECS component
-    Backend::TextureId texture;
-    Backend::Rect frame;              // sprite-sheet frame
-    Backend::Color tint;              // e.g. one color per player
+struct Sprite {                     // an ECS component
+    RType::Render::TextureId texture;
+    RType::Render::Rect frame;        // sprite-sheet frame
+    RType::Render::Color tint;        // e.g. one color per player
 };
 
 // In a render system:
@@ -90,7 +95,7 @@ component: components are moved and copied around by their containers.
 
 ### Timing
 
-The backend never paces time (there is no FPS cap). The game loop measures time
+The render module never paces time (there is no FPS cap). The game loop measures time
 itself with `std::chrono::steady_clock` and moves things by `speed * delta`, so
 gameplay does not depend on the frame rate (a subject requirement).
 
@@ -103,28 +108,28 @@ buttons and gamepad axes. Bindings can be changed at runtime, for a remapping me
 ```cpp
 enum class Action { Up, Shoot };
 
-Backend::ActionMap<Action> controls;
-controls.bind(Action::Up, Backend::Key::Up);
-controls.bind(Action::Up, Backend::AxisBinding{Backend::GamepadAxis::LeftY, -0.5F});
-controls.bind(Action::Shoot, Backend::Key::Space);
-controls.bind(Action::Shoot, Backend::GamepadButton::A);
+RType::Render::ActionMap<Action> controls;
+controls.bind(Action::Up, RType::Render::Key::Up);
+controls.bind(Action::Up, RType::Render::AxisBinding{RType::Render::GamepadAxis::LeftY, -0.5F});
+controls.bind(Action::Shoot, RType::Render::Key::Space);
+controls.bind(Action::Shoot, RType::Render::GamepadButton::A);
 
 if (controls.isPressed(Action::Shoot, input))
     audio.play(shootSound);
 ```
 
-`ActionMap` only needs something satisfying the `InputBackend` concept, so it can
-be unit-tested with a fake input. `RendererBackend` and `AudioBackend` do the same
+`ActionMap` only needs something satisfying the `InputType` concept, so it can
+be unit-tested with a fake input. `RendererType` and `AudioType` do the same
 for systems that draw or play sounds.
 
 ## Rules to know
 
 - **One `Window` and one `Audio` at a time.** Creating a second one throws
-  `Backend::Error`.
+  `RType::Render::Error`.
 - **Handles:** valid ids start at 1, and `0` is `Invalid`. `FontId::Default` (0) is
   the built-in font. Unknown or unloaded handles are ignored: nothing is drawn and
   nothing is played.
-- **Loading** a missing or unsupported file throws `Backend::Error`. Loading the
+- **Loading** a missing or unsupported file throws `RType::Render::Error`. Loading the
   same path twice returns the same handle.
 - **No audio device:** `Audio::isReady()` is false, loads return `Invalid`, and
   every call is a silent no-op. The game keeps running.
@@ -144,16 +149,17 @@ for systems that draw or play sounds.
 - **`ActionMap::bindings()`** returns a reference that `bind`, `unbind` and `clear`
   invalidate.
 
-## Working on the backend itself
+## Working on the render module itself
 
-- raylib.h must only be included in `src/` files, **after** every backend header.
-  raylib `#define`s `WHITE`, `RED`... which clash with `Backend::Colors`. Inside
-  `namespace Backend`, write raylib types as `::Color`, `::Vector2`.
+- raylib.h must only be included in `.cpp` files and private headers, **after**
+  every render header.
+  raylib `#define`s `WHITE`, `RED`... which clash with `RType::Render::Colors`. Inside
+  `namespace RType::Render`, write raylib types as `::Color`, `::Vector2`.
 - Avoid names that are Windows macros in public headers (`TRANSPARENT`,
   `DrawText`, `ERROR`...). `windows.h` gets included through Wrecks' networking
   headers on Windows.
-- raylib logs go through a callback (`src/Log.hpp`). It also stops raylib from
-  calling `exit()` on fatal errors, so failures surface as `Backend::Error`.
+- raylib logs go through a callback (`src/render/Log.hpp`). It also stops raylib from
+  calling `exit()` on fatal errors, so failures surface as `RType::Render::Error`.
 
 ## Dependencies
 
@@ -182,7 +188,7 @@ sudo apt install libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcu
 ```sh
 git submodule update --init
 
-# Library only
+# Client and render library
 cmake -S . -B build && cmake --build build --parallel
 
 # Unit tests (headless: no window, no audio device)
@@ -191,8 +197,8 @@ cmake --build build-tests --parallel
 ctest --test-dir build-tests --output-on-failure
 
 # Manual test program (window, rendering, input, audio)
-cmake --build build --target backend_manual_test
-./build/backend/manual-test/backend_manual_test <texture> [sound] [music] [font]
+cmake --build build --target render_manual_test
+./build/tests/render/manual/render_manual_test <texture> [sound] [music] [font]
 ```
 
 The manual test shows a scrolling background, a sprite moved with the arrows or a
