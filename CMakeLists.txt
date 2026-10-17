@@ -49,15 +49,67 @@ endif()
 add_subdirectory(lib/wrecks)
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
-add_subdirectory(backend)
+# Render module: window, 2D rendering, input and audio over raylib
+set(RENDER_SOURCES
+    src/render/Audio/Audio.cpp
+    src/render/Audio/Audio.hpp
+    src/render/Input/Input.cpp
+    src/render/Input/Input.hpp
+    src/render/Input/KeyMap.hpp
+    src/render/Input/KeyNames.cpp
+    src/render/Letterbox/Letterbox.cpp
+    src/render/Letterbox/Letterbox.hpp
+    src/render/Renderer/Renderer.cpp
+    src/render/Renderer/Renderer.hpp
+    src/render/Resources/Resources.cpp
+    src/render/Resources/Resources.hpp
+    src/render/Resources/ResourcesImpl.hpp
+    src/render/Window/Window.cpp
+    src/render/Window/Window.hpp
+    src/render/ActionMap.hpp
+    src/render/Concepts.hpp
+    src/render/Convert.hpp
+    src/render/Error.hpp
+    src/render/InputTypes.hpp
+    src/render/Log.hpp
+    src/render/Types.hpp)
+
+add_library(rtype_render STATIC ${RENDER_SOURCES})
+
+target_include_directories(rtype_render PUBLIC include)
+
+# raylib stays private: game code cannot include it through the render module
+target_link_libraries(rtype_render PUBLIC wrecks
+                                   PRIVATE raylib)
 
 set(SOURCES
+    src/components/Manager.hpp
+    src/components/Physics.hpp
+    src/components/Sprite.hpp
+    src/components/Transform.hpp
+    src/game/Game/Game.cpp
+    src/game/Game/Game.hpp
+    src/game/Engine.hpp
+    src/systems/Physics/Physics.cpp
+    src/systems/Physics/Physics.hpp
+    src/systems/Render/Render.cpp
+    src/systems/Render/Render.hpp
+    src/systems/Systems.hpp
     src/main.cpp)
-
 
 add_executable(r-type_client ${SOURCES})
 
 target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include)
+                                         PUBLIC lib/wrecks/include
+                                         PUBLIC lib/raylib/src)
 
-target_link_libraries(r-type_client wrecks)
+target_link_libraries(r-type_client PUBLIC wrecks
+                                    PUBLIC raylib
+                                    PUBLIC rtype_render)
+
+if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
+    add_subdirectory(tests)
+endif()
+
+# Manual test program (needs a display): cmake --build build --target render_manual_test
+add_subdirectory(tests/render/manual)
