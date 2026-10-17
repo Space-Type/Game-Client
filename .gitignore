@@ -1,5 +1,6 @@
 # CMake build directory
 build/
+build-*/
 
 # Built files (just in case)
 libwrecks.a
