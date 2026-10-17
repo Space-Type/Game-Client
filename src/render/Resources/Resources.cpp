@@ -120,3 +120,8 @@ RType::Render::Vec2 RType::Render::Resources::textureSize(TextureId texture) con
 
     return {static_cast<float>(found->width), static_cast<float>(found->height)};
 }
+
+const RType::Render::Resources::Impl& RType::Render::Resources::impl() const noexcept
+{
+    return *m_Impl;
+}

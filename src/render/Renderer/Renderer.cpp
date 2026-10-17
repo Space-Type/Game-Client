@@ -43,7 +43,7 @@ RType::Render::Renderer::Renderer(Resources& resources) noexcept
 
 void RType::Render::Renderer::drawSprite(TextureId texture, const SpriteParams& params) const
 {
-    const Texture2D* found = m_Resources.m_Impl->texture(texture);
+    const Texture2D* found = m_Resources.impl().texture(texture);
     if (found == nullptr)
         return;
 
@@ -67,7 +67,7 @@ void RType::Render::Renderer::drawSprite(TextureId texture, const SpriteParams& 
 
 void RType::Render::Renderer::drawScrolling(TextureId texture, Rect dest, Vec2 offset, float scale, Color tint) const
 {
-    const Texture2D* found = m_Resources.m_Impl->texture(texture);
+    const Texture2D* found = m_Resources.impl().texture(texture);
     if (found == nullptr || scale <= 0.0F)
         return;
 
@@ -101,7 +101,7 @@ void RType::Render::Renderer::drawText(Wrecks::cstring_view text, Vec2 position,
                                  Color color, FontId font) const
 {
     Font resolved = {};
-    if (!resolveFont(font, m_Resources.m_Impl->font(font), resolved))
+    if (!resolveFont(font, m_Resources.impl().font(font), resolved))
         return;
 
     DrawTextEx(resolved, text.data(), Convert::toRaylib(position), size, spacing(size), Convert::toRaylib(color));
@@ -110,7 +110,7 @@ void RType::Render::Renderer::drawText(Wrecks::cstring_view text, Vec2 position,
 RType::Render::Vec2 RType::Render::Renderer::measureText(Wrecks::cstring_view text, float size, FontId font) const
 {
     Font resolved = {};
-    if (!resolveFont(font, m_Resources.m_Impl->font(font), resolved))
+    if (!resolveFont(font, m_Resources.impl().font(font), resolved))
         return {};
 
     return Convert::fromRaylib(MeasureTextEx(resolved, text.data(), size, spacing(size)));
