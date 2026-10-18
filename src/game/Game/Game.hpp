@@ -22,6 +22,7 @@ namespace RType::Game {
         Render::Resources m_Resources;
         Render::Renderer m_Renderer;
         Render::Input m_Input;
+        Render::Audio m_Audio;
         Engine m_Engine;
         bool m_IsRunning;
         Duration m_FrameDuration;

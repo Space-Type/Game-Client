@@ -13,6 +13,7 @@
 RType::Systems::Shoot::Shoot() noexcept
     : m_Engine(nullptr)
     , m_Resources(nullptr)
+    , m_Audio(nullptr)
     , m_DeltaTime(nullptr)
     , m_Pending()
 {
@@ -32,6 +33,7 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
     if (shooter.timer > 0 || !(shooter.wantsToShoot || shooter.autoFire))
         return;
     shooter.timer = shooter.cooldown;
+    m_Audio->play(shooter.shotSound);
 
     const RType::Render::Vec2 size = m_Resources->textureSize(shooter.bulletTexture);
 

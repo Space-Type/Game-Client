@@ -19,6 +19,7 @@ RType::Game::Game::Game()
     , m_Resources(m_Window)
     , m_Renderer(m_Resources)
     , m_Input(m_Window)
+    , m_Audio()
     , m_Engine()
     , m_IsRunning(false)
     , m_FrameDuration(std::chrono::duration<double>(1.0 / 120))  // 120 FPS
@@ -34,6 +35,7 @@ RType::Game::Game::Game()
     m_Engine.get<Systems::RandomMovement>().setResources(m_Resources);
     m_Engine.get<Systems::Shoot>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Shoot>().setResources(m_Resources);
+    m_Engine.get<Systems::Shoot>().setAudio(m_Audio);
     m_Engine.get<Systems::Projectile>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Projectile>().setWindow(m_Window);
     m_Engine.get<Systems::Starfield>().setDeltaTime(m_DeltaTime);
@@ -44,6 +46,7 @@ RType::Game::Game::Game()
 
     auto playerTexture = m_Resources.loadTexture(Render::assetPath("spaceship.png"));
     auto playerBulletTexture = m_Resources.loadTexture(Render::assetPath("blueshoot.png"));
+    auto playerShotSound = m_Audio.loadSound(Render::assetPath("sounds/shoot.wav"));
     const Render::Vec2 playerSize = m_Resources.textureSize(playerTexture);
     int playerCount = 1;
 
@@ -56,7 +59,7 @@ RType::Game::Game::Game()
         m_Engine.addComponent(player, RType::Components::Sprite{ .texture = playerTexture });
         m_Engine.addComponent(player, RType::Components::Hitbox{ .width = playerSize.x, .height = playerSize.y, .team = Components::Team::Player });
         m_Engine.addComponent(player, RType::Components::Health{ .hp = 3 });
-        m_Engine.addComponent(player, RType::Components::Shooter{ .bulletTexture = playerBulletTexture });
+        m_Engine.addComponent(player, RType::Components::Shooter{ .bulletTexture = playerBulletTexture, .shotSound = playerShotSound });
     }
 
     auto enemyTexture = m_Resources.loadTexture(Render::assetPath("ennemi.png"));
@@ -129,6 +132,7 @@ void RType::Game::Game::run()
         m_Window.beginFrame(Render::Colors::BLACK);
         m_Engine.render();
         m_Window.endFrame();
+        m_Audio.update();
         m_IsRunning = !m_Window.shouldClose();  // TODO: remove
 
         std::chrono::time_point frameEnd = std::chrono::steady_clock::now();
