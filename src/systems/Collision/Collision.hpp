@@ -20,6 +20,8 @@ namespace RType::Systems {
         RType::Render::Audio* m_Audio;
 
         public:
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::STATE };
+
             Collision() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept

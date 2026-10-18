@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../../src/render/ActionMap.hpp"
+#include "../../src/render/Assets/Assets.hpp"
 #include "../../src/render/Audio/Audio.hpp"
 #include "../../src/render/Concepts.hpp"
 #include "../../src/render/Error.hpp"

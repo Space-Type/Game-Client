@@ -16,3 +16,5 @@
 #include "../../../src/systems/Projectile/Projectile.hpp"
 #include "../../../src/systems/Collision/Collision.hpp"
 #include "../../../src/systems/Dead/Dead.hpp"
+#include "../../../src/systems/Starfield/Starfield.hpp"
+#include "../../../src/systems/StarRender/StarRender.hpp"

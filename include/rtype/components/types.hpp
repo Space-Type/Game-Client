@@ -18,3 +18,4 @@
 #include "../../../src/components/Hitbox.hpp"
 #include "../../../src/components/Projectile.hpp"
 #include "../../../src/components/Shooter.hpp"
+#include "../../../src/components/Star.hpp"

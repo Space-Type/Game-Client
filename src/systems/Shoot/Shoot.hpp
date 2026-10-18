@@ -30,6 +30,8 @@ namespace RType::Systems {
         std::vector<BulletRequest> m_Pending;
 
         public:
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::STATE };
+
             Shoot() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept

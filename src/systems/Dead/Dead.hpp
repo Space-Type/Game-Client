@@ -19,6 +19,8 @@ namespace RType::Systems {
         std::vector<Wrecks::ECS::Entity> m_Pending;
 
         public:
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::STATE };
+
             Dead() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept

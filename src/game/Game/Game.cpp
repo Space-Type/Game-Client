@@ -8,7 +8,9 @@
 
 #include "Game.hpp"
 #include <algorithm>
+#include <array>
 #include <chrono>
+#include <random>
 #include <thread>
 
 
@@ -37,11 +39,16 @@ RType::Game::Game::Game()
     m_Engine.get<Systems::Collision>().setAudio(m_Audio);
     m_Engine.get<Systems::Projectile>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Projectile>().setWindow(m_Window);
+    m_Engine.get<Systems::Starfield>().setDeltaTime(m_DeltaTime);
+    m_Engine.get<Systems::Starfield>().setWindow(m_Window);
+    m_Engine.get<Systems::StarRender>().setRenderer(m_Renderer);
 
-    auto playerTexture = m_Resources.loadTexture("../assets/spaceship.png");
-    auto playerBulletTexture = m_Resources.loadTexture("../assets/blueshoot.png");
-    auto playerShootSound = m_Audio.loadSound("../assets/sounds/playershoot.wav");
-    auto enemyHitSound = m_Audio.loadSound("../assets/sounds/enemy_hit.wav");
+    createStarfield();
+
+    auto playerTexture = m_Resources.loadTexture(Render::assetPath("spaceship.png"));
+    auto playerBulletTexture = m_Resources.loadTexture(Render::assetPath("blueshoot.png"));
+    auto playerShootSound = m_Audio.loadSound(Render::assetPath("sounds/playershoot.wav"));
+    auto enemyHitSound = m_Audio.loadSound(Render::assetPath("sounds/enemy_hit.wav"));
     const Render::Vec2 playerSize = m_Resources.textureSize(playerTexture);
     int playerCount = 1;
 
@@ -61,9 +68,9 @@ RType::Game::Game::Game()
         });
     }
 
-    auto enemyTexture = m_Resources.loadTexture("../assets/ennemi.png");
-    auto enemyBulletTexture = m_Resources.loadTexture("../assets/orangeshoot.png");
-    auto enemyShootSound = m_Audio.loadSound("../assets/sounds/enemy_shoot.wav");
+    auto enemyTexture = m_Resources.loadTexture(Render::assetPath("ennemi.png"));
+    auto enemyBulletTexture = m_Resources.loadTexture(Render::assetPath("orangeshoot.png"));
+    auto enemyShootSound = m_Audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav"));
     const Render::Vec2 enemySize = m_Resources.textureSize(enemyTexture);
     int enemyCount = 5;
 
@@ -86,6 +93,35 @@ RType::Game::Game::Game()
     }
 }
 
+void RType::Game::Game::createStarfield()
+{
+    struct Layer {
+        int count;
+        Components::Star star;
+    };
+
+    // Far layers: more stars, smaller, dimmer and slower (parallax)
+    static constexpr std::array<Layer, 3> LAYERS = {{
+        { .count = 70, .star = { .speed = 20.0f, .size = 1.0f, .color = {90, 90, 110, 255} } },
+        { .count = 35, .star = { .speed = 45.0f, .size = 2.0f, .color = {160, 160, 180, 255} } },
+        { .count = 15, .star = { .speed = 90.0f, .size = 3.0f, .color = {255, 255, 255, 255} } },
+    }};
+
+    std::mt19937 random{std::random_device{}()};
+    const Render::Vec2 screen = m_Window.virtualSize();
+    std::uniform_real_distribution<float> randomX(0.0f, screen.x);
+    std::uniform_real_distribution<float> randomY(0.0f, screen.y);
+
+    for (const auto& layer : LAYERS) {
+        for (int i = 0; i < layer.count; ++i) {
+            auto star = m_Engine.createEntity();
+
+            m_Engine.addComponent(star, Components::Transform{ .x = randomX(random), .y = randomY(random), .rotation = 0.0f });
+            m_Engine.addComponent(star, Components::Star(layer.star));
+        }
+    }
+}
+
 void RType::Game::Game::run()
 {
     std::chrono::time_point frameStart = std::chrono::steady_clock::now();
@@ -99,10 +135,11 @@ void RType::Game::Game::run()
         lastFrame = now;
 
         m_Audio.update();
-        m_Window.beginFrame(Render::Colors::WHITE);
         m_Engine.update();
         m_Engine.get<Systems::Dead>().flush();
         m_Engine.get<Systems::Shoot>().flush();
+        m_Window.beginFrame(Render::Colors::BLACK);
+        m_Engine.render();
         m_Window.endFrame();
         m_IsRunning = !m_Window.shouldClose();  // TODO: remove
 

@@ -22,5 +22,6 @@ namespace RType::Components {
                                                   Health,
                                                   Projectile,
                                                   Shooter,
-                                                  Dead>;
+                                                  Dead,
+                                                  Star>;
 }

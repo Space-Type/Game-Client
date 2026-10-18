@@ -19,6 +19,8 @@ namespace RType::Systems {
         const RType::Render::Renderer* m_Renderer;
 
         public:
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::RENDER };
+
             Render() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept

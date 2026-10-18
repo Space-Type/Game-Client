@@ -35,5 +35,8 @@ namespace RType::Game {
             inline void setFPS(double targetFPS) noexcept { m_FrameDuration = std::chrono::duration<double>(1.0 / targetFPS); }
 
             void run();
+
+        private:
+            void createStarfield();
     };
 }
