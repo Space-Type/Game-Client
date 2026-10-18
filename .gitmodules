@@ -1,9 +1,9 @@
 [submodule "wrecks"]
     path = lib/wrecks
-    url = git@github.com:Space-Type/Wrecks.git
+    url = https://github.com/Space-Type/Wrecks.git
 [submodule "lib/raylib"]
 	path = lib/raylib
-	url = git@github.com:raysan5/raylib.git
+	url = https://github.com/raysan5/raylib.git
 [submodule "lib/vcpkg"]
 	path = lib/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
