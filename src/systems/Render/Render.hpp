@@ -9,14 +9,18 @@
 #pragma once
 
 #include <rtype/components.hpp>
+#include <rtype/render.hpp>
 #include <wrecks.hpp>
 
 
 namespace RType::Systems {
     class Render {
         void* m_Engine;
+        const RType::Render::Renderer* m_Renderer;
 
         public:
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::RENDER };
+
             Render() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept
@@ -27,6 +31,7 @@ namespace RType::Systems {
             }
 
             inline void setEngine(void* engine) noexcept { m_Engine = engine; }
+            inline void setRenderer(const RType::Render::Renderer& renderer) noexcept { m_Renderer = &renderer; }
 
             void operator()(Wrecks::ECS::Entity entity);
     };

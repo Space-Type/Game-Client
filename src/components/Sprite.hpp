@@ -9,21 +9,11 @@
 #pragma once
 
 #include <string_view>
-#include <raylib.h>
+#include <rtype/render.hpp>
 
 
 namespace RType::Components {
     struct Sprite {
-        Texture2D texture;
-
-        Sprite(std::string_view path)
-            : texture(LoadTexture(path.data()))
-        {
-        }
-
-        ~Sprite()
-        {
-            UnloadTexture(texture);
-        }
+        Render::TextureId texture;
     };
 }

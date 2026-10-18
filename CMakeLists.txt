@@ -40,18 +40,21 @@ endif()
 
 add_subdirectory(lib/raylib)
 
-# Wrecks builds its own tests (with coverage) in DebugTests:
-# they belong to the Wrecks repository, not to this build
+# Wrecks and Protecs build their own tests (with coverage) in DebugTests:
+# they belong to their repositories, not to this build
 set(RTYPE_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 add_subdirectory(lib/wrecks)
+add_subdirectory(lib/protecs)
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 # Render module: window, 2D rendering, input and audio over raylib
 set(RENDER_SOURCES
+    src/render/Assets/Assets.cpp
+    src/render/Assets/Assets.hpp
     src/render/Audio/Audio.cpp
     src/render/Audio/Audio.hpp
     src/render/Input/Input.cpp
@@ -88,6 +91,14 @@ set(SOURCES
     src/components/Physics.hpp
     src/components/Sprite.hpp
     src/components/Transform.hpp
+    src/components/HasRandomMovement.hpp
+    src/components/Controllable.hpp
+    src/components/Dead.hpp
+    src/components/Health.hpp
+    src/components/Hitbox.hpp
+    src/components/Projectile.hpp
+    src/components/Shooter.hpp
+    src/components/Star.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Engine.hpp
@@ -96,22 +107,37 @@ set(SOURCES
     src/systems/Render/Render.cpp
     src/systems/Render/Render.hpp
     src/systems/Systems.hpp
+    src/systems/RandomMovement/RandomMovement.cpp
+    src/systems/RandomMovement/RandomMovement.hpp
+    src/systems/Controllable/Controllable.cpp
+    src/systems/Controllable/Controllable.hpp
+    src/systems/Shoot/Shoot.cpp
+    src/systems/Shoot/Shoot.hpp
+    src/systems/Projectile/Projectile.cpp
+    src/systems/Projectile/Projectile.hpp
+    src/systems/Collision/Collision.cpp
+    src/systems/Collision/Collision.hpp
+    src/systems/Dead/Dead.cpp
+    src/systems/Dead/Dead.hpp
+    src/systems/Starfield/Starfield.cpp
+    src/systems/Starfield/Starfield.hpp
+    src/systems/StarRender/StarRender.cpp
+    src/systems/StarRender/StarRender.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})
 
-# windows.h (included by the Wrecks networking headers) clashes with raylib
+# windows.h (included by the Protecs networking headers) clashes with raylib
 # (CloseWindow, ShowCursor, Rectangle...) and defines min / max macros
 if (WIN32)
     target_compile_definitions(r-type_client PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX NOGDI NOUSER)
 endif()
 
 target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include
-                                         PUBLIC lib/raylib/src)
+                                         PUBLIC lib/wrecks/include)
 
 target_link_libraries(r-type_client PUBLIC wrecks
-                                    PUBLIC raylib
+                                    PUBLIC protecs
                                     PUBLIC rtype_render)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")

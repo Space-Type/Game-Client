@@ -11,7 +11,9 @@
 
 namespace RType::Components {
     struct Physics {
-        float velocityX;
-        float velocityY;
+        float velocityX = 0.0f;   // virtual pixels per second
+        float velocityY = 0.0f;
+        float maxSpeed = 240.0f;  // virtual pixels per second
+        float damping = 14.0f;    // higher = stops faster (velocity loses ~14x its value per second)
     };
 }
