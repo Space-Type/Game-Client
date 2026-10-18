@@ -92,6 +92,7 @@ set(SOURCES
     src/components/Sprite.hpp
     src/components/Transform.hpp
     src/components/HasRandomMovement.hpp
+    src/components/Star.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Engine.hpp
@@ -104,6 +105,10 @@ set(SOURCES
     src/systems/RandomMovement/RandomMovement.hpp
     src/systems/Controllable/Controllable.cpp
     src/systems/Controllable/Controllable.hpp
+    src/systems/Starfield/Starfield.cpp
+    src/systems/Starfield/Starfield.hpp
+    src/systems/StarRender/StarRender.cpp
+    src/systems/StarRender/StarRender.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})

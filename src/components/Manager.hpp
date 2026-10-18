@@ -17,5 +17,6 @@ namespace RType::Components {
                                                   Sprite,
                                                   Transform,
                                                   HasRandomMovement,
-                                                  Controllable>;
+                                                  Controllable,
+                                                  Star>;
 }

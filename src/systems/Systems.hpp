@@ -13,8 +13,11 @@
 
 
 namespace RType::Systems {
+    // Render systems draw in this order: stars behind the sprites
     using Systems = std::tuple<Controllable,
                                Physics,
-                               Render,
-                               RandomMovement>;
+                               RandomMovement,
+                               Starfield,
+                               StarRender,
+                               Render>;
 }

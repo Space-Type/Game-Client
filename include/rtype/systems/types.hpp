@@ -12,3 +12,5 @@
 #include "../../../src/systems/Render/Render.hpp"
 #include "../../../src/systems/RandomMovement/RandomMovement.hpp"
 #include "../../../src/systems/Controllable/Controllable.hpp"
+#include "../../../src/systems/Starfield/Starfield.hpp"
+#include "../../../src/systems/StarRender/StarRender.hpp"

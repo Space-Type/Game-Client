@@ -13,3 +13,4 @@
 #include "../../../src/components/Transform.hpp"
 #include "../../../src/components/HasRandomMovement.hpp"
 #include "../../../src/components/Controllable.hpp"
+#include "../../../src/components/Star.hpp"
