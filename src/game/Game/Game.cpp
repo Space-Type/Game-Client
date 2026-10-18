@@ -70,8 +70,9 @@ void RType::Game::Game::run()
         m_DeltaTime = std::min(std::chrono::duration<float>(now - lastFrame).count(), 0.1f);
         lastFrame = now;
 
-        m_Window.beginFrame(Render::Colors::WHITE);
         m_Engine.update();
+        m_Window.beginFrame(Render::Colors::WHITE);
+        m_Engine.render();
         m_Window.endFrame();
         m_IsRunning = !m_Window.shouldClose();  // TODO: remove
 

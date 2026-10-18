@@ -19,6 +19,8 @@ namespace RType::Systems {
         const float* m_DeltaTime;
 
         public:
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::STATE };
+
             Physics() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept
