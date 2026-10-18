@@ -12,6 +12,7 @@
 
 RType::Systems::Collision::Collision() noexcept
     : m_Engine(nullptr)
+    , m_Audio(nullptr)
 {
 
 }
@@ -49,6 +50,8 @@ void RType::Systems::Collision::operator()(Wrecks::ECS::Entity bullet)
         if (!overlaps)
             continue;
 
+        if (m_Audio)
+            m_Audio->play(projectile.hitSound);
         health.hp -= projectile.damage;
         if (health.hp <= 0)
             Dead::kill(engine, target);

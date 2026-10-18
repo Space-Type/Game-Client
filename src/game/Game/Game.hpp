@@ -20,6 +20,7 @@ namespace RType::Game {
 
         Render::Window m_Window;  // first: outlives everything that depends on it
         Render::Resources m_Resources;
+        Render::Audio m_Audio;
         Render::Renderer m_Renderer;
         Render::Input m_Input;
         Engine m_Engine;

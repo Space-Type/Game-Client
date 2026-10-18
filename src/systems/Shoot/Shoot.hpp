@@ -25,6 +25,7 @@ namespace RType::Systems {
 
         void* m_Engine;
         const RType::Render::Resources* m_Resources;
+        RType::Render::Audio* m_Audio;
         const float* m_DeltaTime;
         std::vector<BulletRequest> m_Pending;
 
@@ -42,6 +43,7 @@ namespace RType::Systems {
             inline void setEngine(void* engine) noexcept { m_Engine = engine; }
             inline void setDeltaTime(const float& deltaTime) noexcept { m_DeltaTime = &deltaTime; }
             inline void setResources(const RType::Render::Resources& resources) noexcept { m_Resources = &resources; }
+            inline void setAudio(RType::Render::Audio& audio) noexcept { m_Audio = &audio; }
 
             void operator()(Wrecks::ECS::Entity entity);
 

@@ -15,6 +15,7 @@
 RType::Game::Game::Game()
     : m_Window({.title = "Spaceship demo", .width = 800, .height = 450, .virtualWidth = 800, .virtualHeight = 450})
     , m_Resources(m_Window)
+    , m_Audio()
     , m_Renderer(m_Resources)
     , m_Input(m_Window)
     , m_Engine()
@@ -32,11 +33,15 @@ RType::Game::Game::Game()
     m_Engine.get<Systems::RandomMovement>().setResources(m_Resources);
     m_Engine.get<Systems::Shoot>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Shoot>().setResources(m_Resources);
+    m_Engine.get<Systems::Shoot>().setAudio(m_Audio);
+    m_Engine.get<Systems::Collision>().setAudio(m_Audio);
     m_Engine.get<Systems::Projectile>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Projectile>().setWindow(m_Window);
 
     auto playerTexture = m_Resources.loadTexture("../assets/spaceship.png");
     auto playerBulletTexture = m_Resources.loadTexture("../assets/blueshoot.png");
+    auto playerShootSound = m_Audio.loadSound("../assets/sounds/playershoot.wav");
+    auto enemyHitSound = m_Audio.loadSound("../assets/sounds/enemy_hit.wav");
     const Render::Vec2 playerSize = m_Resources.textureSize(playerTexture);
     int playerCount = 1;
 
@@ -49,11 +54,16 @@ RType::Game::Game::Game()
         m_Engine.addComponent(player, RType::Components::Sprite{ .texture = playerTexture });
         m_Engine.addComponent(player, RType::Components::Hitbox{ .width = playerSize.x, .height = playerSize.y, .team = Components::Team::Player });
         m_Engine.addComponent(player, RType::Components::Health{ .hp = 3 });
-        m_Engine.addComponent(player, RType::Components::Shooter{ .bulletTexture = playerBulletTexture });
+        m_Engine.addComponent(player, RType::Components::Shooter{
+            .bulletTexture = playerBulletTexture,
+            .shootSound = playerShootSound,
+            .hitSound = enemyHitSound,
+        });
     }
 
     auto enemyTexture = m_Resources.loadTexture("../assets/ennemi.png");
     auto enemyBulletTexture = m_Resources.loadTexture("../assets/orangeshoot.png");
+    auto enemyShootSound = m_Audio.loadSound("../assets/sounds/enemy_shoot.wav");
     const Render::Vec2 enemySize = m_Resources.textureSize(enemyTexture);
     int enemyCount = 5;
 
@@ -67,6 +77,7 @@ RType::Game::Game::Game()
         m_Engine.addComponent(enemy, RType::Components::Health{ .hp = 1 });
         m_Engine.addComponent(enemy, RType::Components::Shooter{
             .bulletTexture = enemyBulletTexture,
+            .shootSound = enemyShootSound,
             .cooldown = 1.5f,
             .timer = 1.0f + i * 0.3f,  // staggered so enemies don't all fire at once
             .bulletSpeed = -300.0f,
@@ -87,6 +98,7 @@ void RType::Game::Game::run()
         m_DeltaTime = std::min(std::chrono::duration<float>(now - lastFrame).count(), 0.1f);
         lastFrame = now;
 
+        m_Audio.update();
         m_Window.beginFrame(Render::Colors::WHITE);
         m_Engine.update();
         m_Engine.get<Systems::Dead>().flush();

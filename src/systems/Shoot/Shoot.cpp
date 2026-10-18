@@ -13,6 +13,7 @@
 RType::Systems::Shoot::Shoot() noexcept
     : m_Engine(nullptr)
     , m_Resources(nullptr)
+    , m_Audio(nullptr)
     , m_DeltaTime(nullptr)
     , m_Pending()
 {
@@ -33,6 +34,9 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
         return;
     shooter.timer = shooter.cooldown;
 
+    if (m_Audio)
+        m_Audio->play(shooter.shootSound);
+
     const RType::Render::Vec2 size = m_Resources->textureSize(shooter.bulletTexture);
 
     // Spawns in front of the shooter, vertically centered
@@ -42,7 +46,7 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
     m_Pending.push_back({
         .transform = { .x = x, .y = y, .rotation = 0.0f, .scale = 1.0f },
         .hitbox = { .width = size.x, .height = size.y, .team = hitbox.team },
-        .projectile = { .velocityX = shooter.bulletSpeed, .damage = shooter.damage },
+        .projectile = { .velocityX = shooter.bulletSpeed, .damage = shooter.damage, .hitSound = shooter.hitSound },
         .texture = shooter.bulletTexture,
     });
 }
