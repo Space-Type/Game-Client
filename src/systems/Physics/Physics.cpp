@@ -9,6 +9,7 @@
 #include "Physics.hpp"
 #include <rtype/game.hpp>
 #include <raylib.h>
+#include <algorithm>
 
 static constexpr float FRICTION_FACTOR_X = 0.89f;
 static constexpr float FRICTION_FACTOR_Y = FRICTION_FACTOR_X;
