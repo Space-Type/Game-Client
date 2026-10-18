@@ -100,6 +100,12 @@ set(SOURCES
 
 add_executable(r-type_client ${SOURCES})
 
+# windows.h (included by the Wrecks networking headers) clashes with raylib
+# (CloseWindow, ShowCursor, Rectangle...) and defines min / max macros
+if (WIN32)
+    target_compile_definitions(r-type_client PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX NOGDI NOUSER)
+endif()
+
 target_include_directories(r-type_client PUBLIC include
                                          PUBLIC lib/wrecks/include
                                          PUBLIC lib/raylib/src)
