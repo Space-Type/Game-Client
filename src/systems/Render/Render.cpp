@@ -8,10 +8,12 @@
 
 #include "Render.hpp"
 #include <rtype/game.hpp>
-#include <raylib.h>
+#include <rtype/render.hpp>
 
 
 RType::Systems::Render::Render() noexcept
+    : m_Engine(nullptr)
+    , m_Renderer(nullptr)
 {
 
 }
@@ -23,5 +25,5 @@ void RType::Systems::Render::operator()(Wrecks::ECS::Entity entity)
     auto& transform = engine.get<Components::Transform>()[entity];
     auto& sprite = engine.get<Components::Sprite>()[entity];
 
-    DrawTexture(sprite.texture, transform.x, transform.y, WHITE);
+    m_Renderer->drawSprite(sprite.texture, {.position = {transform.x, transform.y}});
 }

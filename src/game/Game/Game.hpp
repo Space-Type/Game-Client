@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Engine.hpp"
+#include <rtype/render.hpp>
 #include <chrono>
 #include <ctime>
 
@@ -17,6 +18,10 @@ namespace RType::Game {
     class Game {
         using Duration = std::chrono::duration<double, std::milli>;
 
+        Render::Window m_Window;  // first: outlives everything that depends on it
+        Render::Resources m_Resources;
+        Render::Renderer m_Renderer;
+        Render::Input m_Input;
         Engine m_Engine;
         bool m_IsRunning;
         Duration m_FrameDuration;

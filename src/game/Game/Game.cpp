@@ -9,20 +9,32 @@
 #include "Game.hpp"
 #include <chrono>
 #include <thread>
-#include <raylib.h>
 
 
 RType::Game::Game::Game()
-    : m_Engine()
+    : m_Window({.title = "Spaceship demo", .width = 800, .height = 450, .virtualWidth = 800, .virtualHeight = 450})
+    , m_Resources(m_Window)
+    , m_Renderer(m_Resources)
+    , m_Input(m_Window)
+    , m_Engine()
     , m_IsRunning(false)
     , m_FrameDuration(1.0 / 120)  // 120 FPS
 {
-    InitWindow(800, 450, "Spaceship demo");
+    m_Engine.get<Systems::Render>().setRenderer(m_Renderer);
+    m_Engine.get<Systems::Controllable>().setInput(m_Input);
+
     auto spaceship = m_Engine.createEntity();
+    auto ennemies = m_Engine.createEntity();
 
     m_Engine.addComponent(spaceship, RType::Components::Transform{ .x = 0.0, .y = 0.0, .rotation = 0.0 });
     m_Engine.addComponent(spaceship, RType::Components::Physics{ .velocityX = 1.0, .velocityY = 0.0 });
-    m_Engine.addComponent(spaceship, RType::Components::Sprite("assets/spaceships.gif"));
+    m_Engine.addComponent(spaceship, RType::Components::Controllable{});
+    m_Engine.addComponent(spaceship, RType::Components::Sprite{ .texture = m_Resources.loadTexture("../assets/images.png") });
+
+    m_Engine.addComponent(ennemies, RType::Components::Transform{.x = 800, .y = 200, .rotation = 2.0 });
+    m_Engine.addComponent(ennemies, RType::Components::HasRandomMovement{});
+    m_Engine.addComponent(ennemies, RType::Components::Sprite{ .texture = m_Resources.loadTexture("../assets/pizza.png") });
+
 }
 
 void RType::Game::Game::run()
@@ -31,11 +43,10 @@ void RType::Game::Game::run()
     m_IsRunning = true;
 
     while (m_IsRunning) {
-        BeginDrawing();
-            ClearBackground(RAYWHITE);
-            m_Engine.update();
-        EndDrawing();
-        m_IsRunning = !WindowShouldClose();  // TODO: remove
+        m_Window.beginFrame(Render::Colors::WHITE);
+        m_Engine.update();
+        m_Window.endFrame();
+        m_IsRunning = !m_Window.shouldClose();  // TODO: remove
 
         std::chrono::time_point frameEnd = std::chrono::steady_clock::now();
 
@@ -45,5 +56,4 @@ void RType::Game::Game::run()
         frameStart = frameEnd + std::chrono::duration_cast<std::chrono::nanoseconds>(sleepTime);
     }
 
-    CloseWindow();
 }

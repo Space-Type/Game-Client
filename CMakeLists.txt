@@ -88,6 +88,7 @@ set(SOURCES
     src/components/Physics.hpp
     src/components/Sprite.hpp
     src/components/Transform.hpp
+    src/components/HasRandomMovement.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Engine.hpp
@@ -96,16 +97,18 @@ set(SOURCES
     src/systems/Render/Render.cpp
     src/systems/Render/Render.hpp
     src/systems/Systems.hpp
+    src/systems/RandomMovement/RandomMovement.cpp
+    src/systems/RandomMovement/RandomMovement.hpp
+    src/systems/Controllable/Controllable.cpp
+    src/systems/Controllable/Controllable.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})
 
 target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include
-                                         PUBLIC lib/raylib/src)
+                                         PUBLIC lib/wrecks/include)
 
 target_link_libraries(r-type_client PUBLIC wrecks
-                                    PUBLIC raylib
                                     PUBLIC rtype_render)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
