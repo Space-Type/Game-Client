@@ -13,11 +13,16 @@
 
 
 namespace RType::Systems {
+    // Order matters: systems run in this order every frame.
     // Render systems draw in this order: stars behind the sprites
     using Systems = std::tuple<Controllable,
                                Physics,
                                RandomMovement,
+                               Shoot,
+                               Projectile,
+                               Collision,
                                Starfield,
                                StarRender,
-                               Render>;
+                               Render,
+                               Dead>;
 }

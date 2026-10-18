@@ -18,5 +18,10 @@ namespace RType::Components {
                                                   Transform,
                                                   HasRandomMovement,
                                                   Controllable,
+                                                  Hitbox,
+                                                  Health,
+                                                  Projectile,
+                                                  Shooter,
+                                                  Dead,
                                                   Star>;
 }
