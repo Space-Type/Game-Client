@@ -11,6 +11,6 @@
 
 namespace RType::Components {
     struct Health {
-        int hp = 1;
+        int hp;
     };
 }

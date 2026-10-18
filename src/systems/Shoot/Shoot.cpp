@@ -33,7 +33,9 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
     if (shooter.timer > 0 || !(shooter.wantsToShoot || shooter.autoFire))
         return;
     shooter.timer = shooter.cooldown;
-    m_Audio->play(shooter.shotSound);
+
+    if (m_Audio)
+        m_Audio->play(shooter.shootSound);
 
     const RType::Render::Vec2 size = m_Resources->textureSize(shooter.bulletTexture);
 
@@ -44,7 +46,7 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
     m_Pending.push_back({
         .transform = { .x = x, .y = y, .rotation = 0.0f, .scale = 1.0f },
         .hitbox = { .width = size.x, .height = size.y, .team = hitbox.team },
-        .projectile = { .velocityX = shooter.bulletSpeed, .damage = shooter.damage },
+        .projectile = { .velocityX = shooter.bulletSpeed, .damage = shooter.damage, .hitSound = shooter.hitSound },
         .texture = shooter.bulletTexture,
     });
 }

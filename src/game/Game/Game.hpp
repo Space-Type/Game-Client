@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Engine.hpp"
+#include "../Controls/Controls.hpp"
 #include <rtype/render.hpp>
 #include <chrono>
 #include <ctime>
@@ -20,9 +21,10 @@ namespace RType::Game {
 
         Render::Window m_Window;  // first: outlives everything that depends on it
         Render::Resources m_Resources;
+        Render::Audio m_Audio;
         Render::Renderer m_Renderer;
         Render::Input m_Input;
-        Render::Audio m_Audio;
+        Controls m_Controls;
         Engine m_Engine;
         bool m_IsRunning;
         Duration m_FrameDuration;

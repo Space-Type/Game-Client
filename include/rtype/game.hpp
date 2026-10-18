@@ -8,5 +8,6 @@
 
 #pragma once
 
+#include "../../src/game/Controls/Controls.hpp"
 #include "../../src/game/Game/Game.hpp"
 #include "../../src/game/Engine.hpp"

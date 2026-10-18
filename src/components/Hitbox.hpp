@@ -18,6 +18,6 @@ namespace RType::Components {
     struct Hitbox {
         float width;   // virtual pixels
         float height;
-        Team team;     // bullets never hit entities of their own team
+        Team team;
     };
 }

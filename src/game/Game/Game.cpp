@@ -17,9 +17,10 @@
 RType::Game::Game::Game()
     : m_Window({.title = "Spaceship demo", .width = 800, .height = 450, .virtualWidth = 800, .virtualHeight = 450})
     , m_Resources(m_Window)
+    , m_Audio()
     , m_Renderer(m_Resources)
     , m_Input(m_Window)
-    , m_Audio()
+    , m_Controls(defaultControls())
     , m_Engine()
     , m_IsRunning(false)
     , m_FrameDuration(std::chrono::duration<double>(1.0 / 120))  // 120 FPS
@@ -27,6 +28,7 @@ RType::Game::Game::Game()
 {
     m_Engine.get<Systems::Render>().setRenderer(m_Renderer);
     m_Engine.get<Systems::Controllable>().setInput(m_Input);
+    m_Engine.get<Systems::Controllable>().setControls(m_Controls);
     m_Engine.get<Systems::Controllable>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Physics>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Physics>().setWindow(m_Window);
@@ -36,6 +38,7 @@ RType::Game::Game::Game()
     m_Engine.get<Systems::Shoot>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Shoot>().setResources(m_Resources);
     m_Engine.get<Systems::Shoot>().setAudio(m_Audio);
+    m_Engine.get<Systems::Collision>().setAudio(m_Audio);
     m_Engine.get<Systems::Projectile>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Projectile>().setWindow(m_Window);
     m_Engine.get<Systems::Starfield>().setDeltaTime(m_DeltaTime);
@@ -46,7 +49,8 @@ RType::Game::Game::Game()
 
     auto playerTexture = m_Resources.loadTexture(Render::assetPath("spaceship.png"));
     auto playerBulletTexture = m_Resources.loadTexture(Render::assetPath("blueshoot.png"));
-    auto playerShotSound = m_Audio.loadSound(Render::assetPath("sounds/shoot.wav"));
+    auto playerShootSound = m_Audio.loadSound(Render::assetPath("sounds/playershoot.wav"));
+    auto enemyHitSound = m_Audio.loadSound(Render::assetPath("sounds/enemy_hit.wav"));
     const Render::Vec2 playerSize = m_Resources.textureSize(playerTexture);
     int playerCount = 1;
 
@@ -59,11 +63,16 @@ RType::Game::Game::Game()
         m_Engine.addComponent(player, RType::Components::Sprite{ .texture = playerTexture });
         m_Engine.addComponent(player, RType::Components::Hitbox{ .width = playerSize.x, .height = playerSize.y, .team = Components::Team::Player });
         m_Engine.addComponent(player, RType::Components::Health{ .hp = 3 });
-        m_Engine.addComponent(player, RType::Components::Shooter{ .bulletTexture = playerBulletTexture, .shotSound = playerShotSound });
+        m_Engine.addComponent(player, RType::Components::Shooter{
+            .bulletTexture = playerBulletTexture,
+            .shootSound = playerShootSound,
+            .hitSound = enemyHitSound,
+        });
     }
 
     auto enemyTexture = m_Resources.loadTexture(Render::assetPath("ennemi.png"));
     auto enemyBulletTexture = m_Resources.loadTexture(Render::assetPath("orangeshoot.png"));
+    auto enemyShootSound = m_Audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav"));
     const Render::Vec2 enemySize = m_Resources.textureSize(enemyTexture);
     int enemyCount = 5;
 
@@ -77,6 +86,7 @@ RType::Game::Game::Game()
         m_Engine.addComponent(enemy, RType::Components::Health{ .hp = 1 });
         m_Engine.addComponent(enemy, RType::Components::Shooter{
             .bulletTexture = enemyBulletTexture,
+            .shootSound = enemyShootSound,
             .cooldown = 1.5f,
             .timer = 1.0f + i * 0.3f,  // staggered so enemies don't all fire at once
             .bulletSpeed = -300.0f,
@@ -126,13 +136,13 @@ void RType::Game::Game::run()
         m_DeltaTime = std::min(std::chrono::duration<float>(now - lastFrame).count(), 0.1f);
         lastFrame = now;
 
+        m_Audio.update();
         m_Engine.update();
         m_Engine.get<Systems::Dead>().flush();
         m_Engine.get<Systems::Shoot>().flush();
         m_Window.beginFrame(Render::Colors::BLACK);
         m_Engine.render();
         m_Window.endFrame();
-        m_Audio.update();
         m_IsRunning = !m_Window.shouldClose();  // TODO: remove
 
         std::chrono::time_point frameEnd = std::chrono::steady_clock::now();
