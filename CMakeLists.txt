@@ -40,14 +40,15 @@ endif()
 
 add_subdirectory(lib/raylib)
 
-# Wrecks builds its own tests (with coverage) in DebugTests:
-# they belong to the Wrecks repository, not to this build
+# Wrecks and Protecs build their own tests (with coverage) in DebugTests:
+# they belong to their repositories, not to this build
 set(RTYPE_BUILD_TYPE "${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 add_subdirectory(lib/wrecks)
+add_subdirectory(lib/protecs)
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 # Render module: window, 2D rendering, input and audio over raylib
@@ -109,6 +110,7 @@ target_include_directories(r-type_client PUBLIC include
                                          PUBLIC lib/wrecks/include)
 
 target_link_libraries(r-type_client PUBLIC wrecks
+                                    PUBLIC protecs
                                     PUBLIC rtype_render)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
