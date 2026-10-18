@@ -53,6 +53,8 @@ set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 # Render module: window, 2D rendering, input and audio over raylib
 set(RENDER_SOURCES
+    src/render/Assets/Assets.cpp
+    src/render/Assets/Assets.hpp
     src/render/Audio/Audio.cpp
     src/render/Audio/Audio.hpp
     src/render/Input/Input.cpp

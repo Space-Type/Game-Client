@@ -34,7 +34,7 @@ RType::Game::Game::Game()
     auto spaceship = m_Engine.createEntity();
     auto ennemies = m_Engine.createEntity();
 
-    auto playerTexture = m_Resources.loadTexture("../assets/spaceship.png");
+    auto playerTexture = m_Resources.loadTexture(Render::assetPath("spaceship.png"));
     int playerCount = 1;
 
     for (int i = 0; i < playerCount; ++i) {
@@ -46,7 +46,7 @@ RType::Game::Game::Game()
         m_Engine.addComponent(spaceship, RType::Components::Sprite{ .texture = playerTexture });
     }
 
-    auto enemyTexture = m_Resources.loadTexture("../assets/ennemi.png");
+    auto enemyTexture = m_Resources.loadTexture(Render::assetPath("ennemi.png"));
     int enemyCount = 5;
 
     for (int i = 0; i < enemyCount; ++i) {
