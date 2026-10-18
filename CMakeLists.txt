@@ -89,6 +89,12 @@ set(SOURCES
     src/components/Sprite.hpp
     src/components/Transform.hpp
     src/components/HasRandomMovement.hpp
+    src/components/Controllable.hpp
+    src/components/Dead.hpp
+    src/components/Health.hpp
+    src/components/Hitbox.hpp
+    src/components/Projectile.hpp
+    src/components/Shooter.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Engine.hpp
@@ -101,6 +107,14 @@ set(SOURCES
     src/systems/RandomMovement/RandomMovement.hpp
     src/systems/Controllable/Controllable.cpp
     src/systems/Controllable/Controllable.hpp
+    src/systems/Shoot/Shoot.cpp
+    src/systems/Shoot/Shoot.hpp
+    src/systems/Projectile/Projectile.cpp
+    src/systems/Projectile/Projectile.hpp
+    src/systems/Collision/Collision.cpp
+    src/systems/Collision/Collision.hpp
+    src/systems/Dead/Dead.cpp
+    src/systems/Dead/Dead.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})

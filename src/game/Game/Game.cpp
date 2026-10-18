@@ -30,31 +30,48 @@ RType::Game::Game::Game()
     m_Engine.get<Systems::RandomMovement>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::RandomMovement>().setWindow(m_Window);
     m_Engine.get<Systems::RandomMovement>().setResources(m_Resources);
-
-    auto spaceship = m_Engine.createEntity();
-    auto ennemies = m_Engine.createEntity();
+    m_Engine.get<Systems::Shoot>().setDeltaTime(m_DeltaTime);
+    m_Engine.get<Systems::Shoot>().setResources(m_Resources);
+    m_Engine.get<Systems::Projectile>().setDeltaTime(m_DeltaTime);
+    m_Engine.get<Systems::Projectile>().setWindow(m_Window);
 
     auto playerTexture = m_Resources.loadTexture("../assets/spaceship.png");
+    auto playerBulletTexture = m_Resources.loadTexture("../assets/blueshoot.png");
+    const Render::Vec2 playerSize = m_Resources.textureSize(playerTexture);
     int playerCount = 1;
 
     for (int i = 0; i < playerCount; ++i) {
         auto player = m_Engine.createEntity();
 
-        m_Engine.addComponent(spaceship, RType::Components::Transform{ .x = 0.0, .y = 0.0, .rotation = 0.0 });
-        m_Engine.addComponent(spaceship, RType::Components::Physics{});
-        m_Engine.addComponent(spaceship, RType::Components::Controllable{});
-        m_Engine.addComponent(spaceship, RType::Components::Sprite{ .texture = playerTexture });
+        m_Engine.addComponent(player, RType::Components::Transform{ .x = 0.0f, .y = 0.0f, .rotation = 0.0f, .scale = 1.0f });
+        m_Engine.addComponent(player, RType::Components::Physics{});
+        m_Engine.addComponent(player, RType::Components::Controllable{});
+        m_Engine.addComponent(player, RType::Components::Sprite{ .texture = playerTexture });
+        m_Engine.addComponent(player, RType::Components::Hitbox{ .width = playerSize.x, .height = playerSize.y, .team = Components::Team::Player });
+        m_Engine.addComponent(player, RType::Components::Health{ .hp = 3 });
+        m_Engine.addComponent(player, RType::Components::Shooter{ .bulletTexture = playerBulletTexture });
     }
 
     auto enemyTexture = m_Resources.loadTexture("../assets/ennemi.png");
+    auto enemyBulletTexture = m_Resources.loadTexture("../assets/orangeshoot.png");
+    const Render::Vec2 enemySize = m_Resources.textureSize(enemyTexture);
     int enemyCount = 5;
 
     for (int i = 0; i < enemyCount; ++i) {
         auto enemy = m_Engine.createEntity();
 
-        m_Engine.addComponent(enemy, RType::Components::Transform{ .x = m_Window.virtualSize().x + i * 60.0f, .y = 50.0f + i * 70.0f, .rotation = 0.0f });
+        m_Engine.addComponent(enemy, RType::Components::Transform{ .x = m_Window.virtualSize().x + i * 60.0f, .y = 50.0f + i * 70.0f, .rotation = 0.0f, .scale = 1.0f });
         m_Engine.addComponent(enemy, RType::Components::HasRandomMovement{ .directionY = 0, .timer = i * 0.2f });
         m_Engine.addComponent(enemy, RType::Components::Sprite{ .texture = enemyTexture });
+        m_Engine.addComponent(enemy, RType::Components::Hitbox{ .width = enemySize.x, .height = enemySize.y, .team = Components::Team::Enemy });
+        m_Engine.addComponent(enemy, RType::Components::Health{ .hp = 1 });
+        m_Engine.addComponent(enemy, RType::Components::Shooter{
+            .bulletTexture = enemyBulletTexture,
+            .cooldown = 1.5f,
+            .timer = 1.0f + i * 0.3f,  // staggered so enemies don't all fire at once
+            .bulletSpeed = -300.0f,
+            .autoFire = true,
+        });
     }
 }
 
@@ -72,6 +89,8 @@ void RType::Game::Game::run()
 
         m_Window.beginFrame(Render::Colors::WHITE);
         m_Engine.update();
+        m_Engine.get<Systems::Dead>().flush();
+        m_Engine.get<Systems::Shoot>().flush();
         m_Window.endFrame();
         m_IsRunning = !m_Window.shouldClose();  // TODO: remove
 

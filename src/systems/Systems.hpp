@@ -13,8 +13,13 @@
 
 
 namespace RType::Systems {
+    // Order matters: systems run in this order every frame
     using Systems = std::tuple<Controllable,
                                Physics,
+                               RandomMovement,
+                               Shoot,
+                               Projectile,
+                               Collision,
                                Render,
-                               RandomMovement>;
+                               Dead>;
 }

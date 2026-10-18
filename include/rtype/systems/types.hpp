@@ -12,3 +12,7 @@
 #include "../../../src/systems/Render/Render.hpp"
 #include "../../../src/systems/RandomMovement/RandomMovement.hpp"
 #include "../../../src/systems/Controllable/Controllable.hpp"
+#include "../../../src/systems/Shoot/Shoot.hpp"
+#include "../../../src/systems/Projectile/Projectile.hpp"
+#include "../../../src/systems/Collision/Collision.hpp"
+#include "../../../src/systems/Dead/Dead.hpp"

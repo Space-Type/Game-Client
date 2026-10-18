@@ -17,5 +17,10 @@ namespace RType::Components {
                                                   Sprite,
                                                   Transform,
                                                   HasRandomMovement,
-                                                  Controllable>;
+                                                  Controllable,
+                                                  Hitbox,
+                                                  Health,
+                                                  Projectile,
+                                                  Shooter,
+                                                  Dead>;
 }
