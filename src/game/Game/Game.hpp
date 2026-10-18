@@ -25,6 +25,7 @@ namespace RType::Game {
         Engine m_Engine;
         bool m_IsRunning;
         Duration m_FrameDuration;
+        float m_DeltaTime;  // seconds elapsed since the previous frame
 
         public:
             Game();

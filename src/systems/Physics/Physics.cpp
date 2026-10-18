@@ -9,9 +9,7 @@
 #include "Physics.hpp"
 #include <rtype/game.hpp>
 #include <algorithm>
-
-static constexpr float FRICTION_FACTOR_X = 0.89f;
-static constexpr float FRICTION_FACTOR_Y = FRICTION_FACTOR_X;
+#include <cmath>
 
 RType::Systems::Physics::Physics() noexcept
 {
@@ -25,12 +23,27 @@ void RType::Systems::Physics::operator()(Wrecks::ECS::Entity entity)
     auto& physicsState = engine.get<Components::Physics>()[entity];
     auto& transforms = engine.get<Components::Transform>()[entity];
 
-    physicsState.velocityX = std::clamp(physicsState.velocityX, -2.f, 2.f);
-    physicsState.velocityY = std::clamp(physicsState.velocityY, -2.f, 2.f);
+    const float dt = *m_DeltaTime;
 
-    transforms.x += physicsState.velocityX;
-    transforms.y += physicsState.velocityY;
+    const float maxSpeed = physicsState.maxSpeed;
 
-    physicsState.velocityX *= FRICTION_FACTOR_X;
-    physicsState.velocityY *= FRICTION_FACTOR_Y;
+    physicsState.velocityX = std::clamp(physicsState.velocityX, -maxSpeed, maxSpeed);
+    physicsState.velocityY = std::clamp(physicsState.velocityY, -maxSpeed, maxSpeed);
+
+    transforms.x += physicsState.velocityX * dt;
+    transforms.y += physicsState.velocityY * dt;
+
+    if (transforms.x > m_Window->virtualSize().x)
+        transforms.x = m_Window->virtualSize().x;
+    if (transforms.x < 0)
+        transforms.x = 0;
+    if (transforms.y > m_Window->virtualSize().y)
+        transforms.y = m_Window->virtualSize().y;
+    if (transforms.y < 0)
+        transforms.y = 0;
+
+    // Exponential slowdown: gives the same result whatever the framerate
+    const float friction = std::exp(-physicsState.damping * dt);
+    physicsState.velocityX *= friction;
+    physicsState.velocityY *= friction;
 }

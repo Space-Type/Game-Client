@@ -5,6 +5,7 @@
 RType::Systems::Controllable::Controllable() noexcept
     : m_Engine(nullptr)
     , m_Input(nullptr)
+    , m_DeltaTime(nullptr)
 {
 
 }
@@ -16,6 +17,10 @@ void RType::Systems::Controllable::operator()(Wrecks::ECS::Entity entity)
     auto& controllable = engine.get<Components::Controllable>()[entity];
     auto& physicsState = engine.get<Components::Physics>()[entity];
 
-    physicsState.velocityX += 3.f * (m_Input->isDown(RType::Render::Key::Right) - m_Input->isDown(RType::Render::Key::Left));
-    physicsState.velocityY += 3.f * (m_Input->isDown(RType::Render::Key::Down) - m_Input->isDown(RType::Render::Key::Up));
+    const float dt = *m_DeltaTime;
+
+    physicsState.velocityX += controllable.acceleration * dt * (m_Input->isDown(RType::Render::Key::Right) - m_Input->isDown(RType::Render::Key::Left));
+    physicsState.velocityY += controllable.acceleration * dt * (m_Input->isDown(RType::Render::Key::Down) - m_Input->isDown(RType::Render::Key::Up));
+
+    
 }

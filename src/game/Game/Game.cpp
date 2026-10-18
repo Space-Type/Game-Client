@@ -7,6 +7,7 @@
 */
 
 #include "Game.hpp"
+#include <algorithm>
 #include <chrono>
 #include <thread>
 
@@ -18,31 +19,57 @@ RType::Game::Game::Game()
     , m_Input(m_Window)
     , m_Engine()
     , m_IsRunning(false)
-    , m_FrameDuration(1.0 / 120)  // 120 FPS
+    , m_FrameDuration(std::chrono::duration<double>(1.0 / 120))  // 120 FPS
+    , m_DeltaTime(0.0f)
 {
     m_Engine.get<Systems::Render>().setRenderer(m_Renderer);
     m_Engine.get<Systems::Controllable>().setInput(m_Input);
+    m_Engine.get<Systems::Controllable>().setDeltaTime(m_DeltaTime);
+    m_Engine.get<Systems::Physics>().setDeltaTime(m_DeltaTime);
+    m_Engine.get<Systems::Physics>().setWindow(m_Window);
+    m_Engine.get<Systems::RandomMovement>().setDeltaTime(m_DeltaTime);
+    m_Engine.get<Systems::RandomMovement>().setWindow(m_Window);
+    m_Engine.get<Systems::RandomMovement>().setResources(m_Resources);
 
     auto spaceship = m_Engine.createEntity();
     auto ennemies = m_Engine.createEntity();
 
-    m_Engine.addComponent(spaceship, RType::Components::Transform{ .x = 0.0, .y = 0.0, .rotation = 0.0 });
-    m_Engine.addComponent(spaceship, RType::Components::Physics{ .velocityX = 1.0, .velocityY = 0.0 });
-    m_Engine.addComponent(spaceship, RType::Components::Controllable{});
-    m_Engine.addComponent(spaceship, RType::Components::Sprite{ .texture = m_Resources.loadTexture("../assets/images.png") });
+    auto playerTexture = m_Resources.loadTexture("../assets/spaceship.png");
+    int playerCount = 1;
 
-    m_Engine.addComponent(ennemies, RType::Components::Transform{.x = 800, .y = 200, .rotation = 2.0 });
-    m_Engine.addComponent(ennemies, RType::Components::HasRandomMovement{});
-    m_Engine.addComponent(ennemies, RType::Components::Sprite{ .texture = m_Resources.loadTexture("../assets/pizza.png") });
+    for (int i = 0; i < playerCount; ++i) {
+        auto player = m_Engine.createEntity();
 
+        m_Engine.addComponent(spaceship, RType::Components::Transform{ .x = 0.0, .y = 0.0, .rotation = 0.0 });
+        m_Engine.addComponent(spaceship, RType::Components::Physics{});
+        m_Engine.addComponent(spaceship, RType::Components::Controllable{});
+        m_Engine.addComponent(spaceship, RType::Components::Sprite{ .texture = playerTexture });
+    }
+
+    auto enemyTexture = m_Resources.loadTexture("../assets/ennemi.png");
+    int enemyCount = 5;
+
+    for (int i = 0; i < enemyCount; ++i) {
+        auto enemy = m_Engine.createEntity();
+
+        m_Engine.addComponent(enemy, RType::Components::Transform{ .x = m_Window.virtualSize().x + i * 60.0f, .y = 50.0f + i * 70.0f, .rotation = 0.0f });
+        m_Engine.addComponent(enemy, RType::Components::HasRandomMovement{ .directionY = 0, .timer = i * 0.2f });
+        m_Engine.addComponent(enemy, RType::Components::Sprite{ .texture = enemyTexture });
+    }
 }
 
 void RType::Game::Game::run()
 {
     std::chrono::time_point frameStart = std::chrono::steady_clock::now();
+    std::chrono::time_point lastFrame = frameStart;
     m_IsRunning = true;
 
     while (m_IsRunning) {
+        std::chrono::time_point now = std::chrono::steady_clock::now();
+        // Capped so a long stall (window drag, breakpoint) doesn't teleport entities
+        m_DeltaTime = std::min(std::chrono::duration<float>(now - lastFrame).count(), 0.1f);
+        lastFrame = now;
+
         m_Window.beginFrame(Render::Colors::WHITE);
         m_Engine.update();
         m_Window.endFrame();
