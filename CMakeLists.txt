@@ -99,6 +99,8 @@ set(SOURCES
     src/components/Projectile.hpp
     src/components/Shooter.hpp
     src/components/Star.hpp
+    src/game/Controls/Controls.cpp
+    src/game/Controls/Controls.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Engine.hpp

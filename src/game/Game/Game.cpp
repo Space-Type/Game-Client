@@ -20,6 +20,7 @@ RType::Game::Game::Game()
     , m_Audio()
     , m_Renderer(m_Resources)
     , m_Input(m_Window)
+    , m_Controls(defaultControls())
     , m_Engine()
     , m_IsRunning(false)
     , m_FrameDuration(std::chrono::duration<double>(1.0 / 120))  // 120 FPS
@@ -27,6 +28,7 @@ RType::Game::Game::Game()
 {
     m_Engine.get<Systems::Render>().setRenderer(m_Renderer);
     m_Engine.get<Systems::Controllable>().setInput(m_Input);
+    m_Engine.get<Systems::Controllable>().setControls(m_Controls);
     m_Engine.get<Systems::Controllable>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Physics>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::Physics>().setWindow(m_Window);

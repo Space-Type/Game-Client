@@ -5,6 +5,7 @@
 RType::Systems::Controllable::Controllable() noexcept
     : m_Engine(nullptr)
     , m_Input(nullptr)
+    , m_Controls(nullptr)
     , m_DeltaTime(nullptr)
 {
 
@@ -19,9 +20,11 @@ void RType::Systems::Controllable::operator()(Wrecks::ECS::Entity entity)
 
     const float dt = *m_DeltaTime;
 
-    physicsState.velocityX += controllable.acceleration * dt * (m_Input->isDown(RType::Render::Key::Right) - m_Input->isDown(RType::Render::Key::Left));
-    physicsState.velocityY += controllable.acceleration * dt * (m_Input->isDown(RType::Render::Key::Down) - m_Input->isDown(RType::Render::Key::Up));
+    const auto isDown = [&](Game::Action action) { return m_Controls->isDown(action, *m_Input); };
+
+    physicsState.velocityX += controllable.acceleration * dt * (isDown(Game::Action::Right) - isDown(Game::Action::Left));
+    physicsState.velocityY += controllable.acceleration * dt * (isDown(Game::Action::Down) - isDown(Game::Action::Up));
 
     if (engine.entitySignature(entity).test(Components::Manager::index<Components::Shooter>()))
-        engine.get<Components::Shooter>()[entity].wantsToShoot = m_Input->isDown(RType::Render::Key::Space);
+        engine.get<Components::Shooter>()[entity].wantsToShoot = isDown(Game::Action::Shoot);
 }
