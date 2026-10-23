@@ -21,8 +21,8 @@ void RType::Systems::StarRender::operator()(Wrecks::ECS::Entity entity)
 {
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
 
-    const auto& transform = engine.get<Components::Transform>()[entity];
+    const auto& transform = engine.get<Protecs::Components::Transform>()[entity];
     const auto& star = engine.get<Components::Star>()[entity];
 
-    m_Renderer->drawRect({.x = transform.x, .y = transform.y, .width = star.size, .height = star.size}, star.color);
+    m_Renderer->drawRect({.x = transform.position.x, .y = transform.position.y, .width = star.size, .height = star.size}, star.color);
 }

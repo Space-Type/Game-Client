@@ -17,7 +17,7 @@
 namespace RType::Systems {
     class Shoot {
         struct BulletRequest {
-            Components::Transform transform;
+            Protecs::Components::Transform transform;
             Components::Hitbox hitbox;
             Components::Projectile projectile;
             RType::Render::TextureId texture;
@@ -37,7 +37,7 @@ namespace RType::Systems {
             static constexpr Wrecks::Signature signature() noexcept
             {
                 return Wrecks::Signature()
-                    .set(Components::Manager::index<Components::Transform>())
+                    .set(Components::Manager::index<Protecs::Components::Transform>())
                     .set(Components::Manager::index<Components::Hitbox>())
                     .set(Components::Manager::index<Components::Shooter>());
             }

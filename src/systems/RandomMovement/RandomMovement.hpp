@@ -20,7 +20,7 @@ namespace RType::Systems {
             static constexpr Wrecks::Signature signature() noexcept
             {
                 return Wrecks::Signature()
-                    .set(Components::Manager::index<Components::Transform>())
+                    .set(Components::Manager::index<Protecs::Components::Transform>())
                     .set(Components::Manager::index<Components::HasRandomMovement>())
                     .set(Components::Manager::index<Components::Sprite>());
             }

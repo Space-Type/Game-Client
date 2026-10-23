@@ -26,14 +26,14 @@ namespace RType::Game {
         Render::Input m_Input;
         Controls m_Controls;
         Engine m_Engine;
-        bool m_IsRunning;
         Duration m_FrameDuration;
         float m_DeltaTime;  // seconds elapsed since the previous frame
 
         public:
             Game();
+            ~Game();
 
-            inline void stop() noexcept { m_IsRunning = false; }
+            inline void stop() noexcept { m_Window.close(); }
             inline void setFPS(double targetFPS) noexcept { m_FrameDuration = std::chrono::duration<double>(1.0 / targetFPS); }
 
             void run();

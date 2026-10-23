@@ -14,5 +14,5 @@
 
 
 namespace RType::Game {
-    using Engine = Wrecks::ECS::Engine<Systems::Systems, Components::Manager>;
+    using Engine = Wrecks::ECS::Engine<Systems::Tuple, Components::Manager>;
 }

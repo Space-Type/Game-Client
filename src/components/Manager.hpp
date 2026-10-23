@@ -9,19 +9,21 @@
 #pragma once
 
 #include <rtype/components/types.hpp>
+#include <protecs/components.hpp>
 #include <wrecks/ecs.hpp>
 
 
 namespace RType::Components {
-    using Manager = Wrecks::ECS::ComponentManager<Physics,
-                                                  Sprite,
-                                                  Transform,
-                                                  HasRandomMovement,
-                                                  Controllable,
-                                                  Hitbox,
-                                                  Health,
-                                                  Projectile,
-                                                  Shooter,
-                                                  Dead,
-                                                  Star>;
+    using Manager = Wrecks::Utils::concat_types_t<
+        Protecs::Components::Manager,
+        Wrecks::ECS::ComponentManager<Controllable,
+                                      Dead,
+                                      HasRandomMovement,
+                                      Health,
+                                      Hitbox,
+                                      Projectile,
+                                      Shooter,
+                                      Sprite,
+                                      Star>
+    >;
 }

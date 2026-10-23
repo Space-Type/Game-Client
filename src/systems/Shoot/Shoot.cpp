@@ -25,7 +25,7 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
 
     auto& shooter = engine.get<Components::Shooter>()[entity];
-    const auto& transform = engine.get<Components::Transform>()[entity];
+    const auto& transform = engine.get<Protecs::Components::Transform>()[entity];
     const auto& hitbox = engine.get<Components::Hitbox>()[entity];
 
     if (shooter.timer > 0)
@@ -40,11 +40,11 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
     const RType::Render::Vec2 size = m_Resources->textureSize(shooter.bulletTexture);
 
     // Spawns in front of the shooter, vertically centered
-    const float x = shooter.bulletSpeed > 0 ? transform.x + hitbox.width : transform.x - size.x;
-    const float y = transform.y + (hitbox.height - size.y) / 2;
+    const float x = shooter.bulletSpeed > 0 ? transform.position.x + hitbox.width : transform.position.x - size.x;
+    const float y = transform.position.y + (hitbox.height - size.y) / 2;
 
     m_Pending.push_back({
-        .transform = { .x = x, .y = y, .rotation = 0.0f, .scale = 1.0f },
+        .transform = { { x, y }, 0.f, 1.f },
         .hitbox = { .width = size.x, .height = size.y, .team = hitbox.team },
         .projectile = { .velocityX = shooter.bulletSpeed, .damage = shooter.damage, .hitSound = shooter.hitSound },
         .texture = shooter.bulletTexture,

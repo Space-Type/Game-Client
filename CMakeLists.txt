@@ -87,28 +87,23 @@ target_link_libraries(rtype_render PUBLIC wrecks
                                    PRIVATE raylib)
 
 set(SOURCES
-    src/components/Manager.hpp
-    src/components/Physics.hpp
-    src/components/Sprite.hpp
-    src/components/Transform.hpp
-    src/components/HasRandomMovement.hpp
     src/components/Controllable.hpp
     src/components/Dead.hpp
+    src/components/HasRandomMovement.hpp
     src/components/Health.hpp
     src/components/Hitbox.hpp
+    src/components/Manager.hpp
     src/components/Projectile.hpp
     src/components/Shooter.hpp
+    src/components/Sprite.hpp
     src/components/Star.hpp
     src/game/Controls/Controls.cpp
     src/game/Controls/Controls.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Engine.hpp
-    src/systems/Physics/Physics.cpp
-    src/systems/Physics/Physics.hpp
     src/systems/Render/Render.cpp
     src/systems/Render/Render.hpp
-    src/systems/Systems.hpp
     src/systems/RandomMovement/RandomMovement.cpp
     src/systems/RandomMovement/RandomMovement.hpp
     src/systems/Controllable/Controllable.cpp
@@ -125,6 +120,7 @@ set(SOURCES
     src/systems/Starfield/Starfield.hpp
     src/systems/StarRender/StarRender.cpp
     src/systems/StarRender/StarRender.hpp
+    src/systems/Tuple.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})

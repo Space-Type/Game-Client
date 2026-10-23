@@ -12,7 +12,7 @@ void RType::Systems::RandomMovement::operator()(Wrecks::ECS::Entity entity)
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
 
     auto& randomMovement = engine.get<Components::HasRandomMovement>()[entity];
-    auto& transforms = engine.get<Components::Transform>()[entity];
+    auto& transforms = engine.get<Protecs::Components::Transform>()[entity];
     auto& sprite = engine.get<Components::Sprite>()[entity];
 
     const float dt = *m_DeltaTime;
@@ -24,21 +24,21 @@ void RType::Systems::RandomMovement::operator()(Wrecks::ECS::Entity entity)
         randomMovement.timer = 1.0f;                       // garde la direction 1 seconde
     }
 
-    transforms.x -= randomMovement.speed * dt;
-    transforms.y += randomMovement.directionY * randomMovement.speed * dt;
+    transforms.position.x -= randomMovement.speed * dt;
+    transforms.position.y += randomMovement.directionY * randomMovement.speed * dt;
 
     const float height = m_Window->virtualSize().y - m_Resources->textureSize(sprite.texture).y;
 
-    if (transforms.y < 0) {
-        transforms.y = 0;
+    if (transforms.position.y < 0) {
+        transforms.position.y = 0;
         randomMovement.directionY = 1;
-    } else if (transforms.y > height) {
-        transforms.y = height;
+    } else if (transforms.position.y > height) {
+        transforms.position.y = height;
         randomMovement.directionY = -1;
     }
 
-    if (transforms.x < 0)
-        transforms.x = m_Window->virtualSize().x;
+    if (transforms.position.x < 0)
+        transforms.position.x = m_Window->virtualSize().x;
 
 }
 

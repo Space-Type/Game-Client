@@ -22,7 +22,6 @@ RType::Game::Game::Game()
     , m_Input(m_Window)
     , m_Controls(defaultControls())
     , m_Engine()
-    , m_IsRunning(false)
     , m_FrameDuration(std::chrono::duration<double>(1.0 / 120))  // 120 FPS
     , m_DeltaTime(0.0f)
 {
@@ -30,8 +29,6 @@ RType::Game::Game::Game()
     m_Engine.get<Systems::Controllable>().setInput(m_Input);
     m_Engine.get<Systems::Controllable>().setControls(m_Controls);
     m_Engine.get<Systems::Controllable>().setDeltaTime(m_DeltaTime);
-    m_Engine.get<Systems::Physics>().setDeltaTime(m_DeltaTime);
-    m_Engine.get<Systems::Physics>().setWindow(m_Window);
     m_Engine.get<Systems::RandomMovement>().setDeltaTime(m_DeltaTime);
     m_Engine.get<Systems::RandomMovement>().setWindow(m_Window);
     m_Engine.get<Systems::RandomMovement>().setResources(m_Resources);
@@ -57,13 +54,13 @@ RType::Game::Game::Game()
     for (int i = 0; i < playerCount; ++i) {
         auto player = m_Engine.createEntity();
 
-        m_Engine.addComponent(player, RType::Components::Transform{ .x = 0.0f, .y = 0.0f, .rotation = 0.0f, .scale = 1.0f });
-        m_Engine.addComponent(player, RType::Components::Physics{});
-        m_Engine.addComponent(player, RType::Components::Controllable{});
-        m_Engine.addComponent(player, RType::Components::Sprite{ .texture = playerTexture });
-        m_Engine.addComponent(player, RType::Components::Hitbox{ .width = playerSize.x, .height = playerSize.y, .team = Components::Team::Player });
-        m_Engine.addComponent(player, RType::Components::Health{ .hp = 3 });
-        m_Engine.addComponent(player, RType::Components::Shooter{
+        m_Engine.addComponent(player, Protecs::Components::Transform{ { 0.0f, 0.0f }, 0.f, 1.0f });
+        m_Engine.addComponent(player, Protecs::Components::Velocity{});
+        m_Engine.addComponent(player, Components::Controllable{});
+        m_Engine.addComponent(player, Components::Sprite{ .texture = playerTexture });
+        m_Engine.addComponent(player, Components::Hitbox{ .width = playerSize.x, .height = playerSize.y, .team = Components::Team::Player });
+        m_Engine.addComponent(player, Components::Health{ .hp = 3 });
+        m_Engine.addComponent(player, Components::Shooter{
             .bulletTexture = playerBulletTexture,
             .shootSound = playerShootSound,
             .hitSound = enemyHitSound,
@@ -79,12 +76,12 @@ RType::Game::Game::Game()
     for (int i = 0; i < enemyCount; ++i) {
         auto enemy = m_Engine.createEntity();
 
-        m_Engine.addComponent(enemy, RType::Components::Transform{ .x = m_Window.virtualSize().x + i * 60.0f, .y = 50.0f + i * 70.0f, .rotation = 0.0f, .scale = 1.0f });
-        m_Engine.addComponent(enemy, RType::Components::HasRandomMovement{ .directionY = 0, .timer = i * 0.2f });
-        m_Engine.addComponent(enemy, RType::Components::Sprite{ .texture = enemyTexture });
-        m_Engine.addComponent(enemy, RType::Components::Hitbox{ .width = enemySize.x, .height = enemySize.y, .team = Components::Team::Enemy });
-        m_Engine.addComponent(enemy, RType::Components::Health{ .hp = 1 });
-        m_Engine.addComponent(enemy, RType::Components::Shooter{
+        m_Engine.addComponent(enemy, Protecs::Components::Transform{ { m_Window.virtualSize().x + i * 60.0f, 50.0f + i * 70.0f }, 0.0f, 1.0f });
+        m_Engine.addComponent(enemy, Components::HasRandomMovement{ .directionY = 0, .timer = i * 0.2f });
+        m_Engine.addComponent(enemy, Components::Sprite{ .texture = enemyTexture });
+        m_Engine.addComponent(enemy, Components::Hitbox{ .width = enemySize.x, .height = enemySize.y, .team = Components::Team::Enemy });
+        m_Engine.addComponent(enemy, Components::Health{ .hp = 1 });
+        m_Engine.addComponent(enemy, Components::Shooter{
             .bulletTexture = enemyBulletTexture,
             .shootSound = enemyShootSound,
             .cooldown = 1.5f,
@@ -93,6 +90,11 @@ RType::Game::Game::Game()
             .autoFire = true,
         });
     }
+}
+
+RType::Game::Game::~Game()
+{
+
 }
 
 void RType::Game::Game::createStarfield()
@@ -118,7 +120,7 @@ void RType::Game::Game::createStarfield()
         for (int i = 0; i < layer.count; ++i) {
             auto star = m_Engine.createEntity();
 
-            m_Engine.addComponent(star, Components::Transform{ .x = randomX(random), .y = randomY(random), .rotation = 0.0f });
+            m_Engine.addComponent(star, Protecs::Components::Transform{ { randomX(random), randomY(random) }, 0.0f, 1.f });
             m_Engine.addComponent(star, Components::Star(layer.star));
         }
     }
@@ -128,9 +130,8 @@ void RType::Game::Game::run()
 {
     std::chrono::time_point frameStart = std::chrono::steady_clock::now();
     std::chrono::time_point lastFrame = frameStart;
-    m_IsRunning = true;
 
-    while (m_IsRunning) {
+    while (!m_Window.shouldClose()) {
         std::chrono::time_point now = std::chrono::steady_clock::now();
         // Capped so a long stall (window drag, breakpoint) doesn't teleport entities
         m_DeltaTime = std::min(std::chrono::duration<float>(now - lastFrame).count(), 0.1f);
@@ -143,7 +144,6 @@ void RType::Game::Game::run()
         m_Window.beginFrame(Render::Colors::BLACK);
         m_Engine.render();
         m_Window.endFrame();
-        m_IsRunning = !m_Window.shouldClose();  // TODO: remove
 
         std::chrono::time_point frameEnd = std::chrono::steady_clock::now();
 

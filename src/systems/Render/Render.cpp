@@ -22,8 +22,8 @@ void RType::Systems::Render::operator()(Wrecks::ECS::Entity entity)
 {
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
 
-    auto& transform = engine.get<Components::Transform>()[entity];
+    auto& transform = engine.get<Protecs::Components::Transform>()[entity];
     auto& sprite = engine.get<Components::Sprite>()[entity];
 
-    m_Renderer->drawSprite(sprite.texture, {.position = {transform.x, transform.y}});
+    m_Renderer->drawSprite(sprite.texture, {.position = { transform.position.x, transform.position.y }});
 }

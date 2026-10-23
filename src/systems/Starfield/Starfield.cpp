@@ -25,15 +25,15 @@ void RType::Systems::Starfield::operator()(Wrecks::ECS::Entity entity)
 
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
 
-    auto& transform = engine.get<Components::Transform>()[entity];
+    auto& transform = engine.get<Protecs::Components::Transform>()[entity];
     const auto& star = engine.get<Components::Star>()[entity];
 
-    transform.x -= star.speed * *m_DeltaTime;
+    transform.position.x -= star.speed * *m_DeltaTime;
 
-    if (transform.x < -star.size) {
+    if (transform.position.x < -star.size) {
         const RType::Render::Vec2 screen = m_Window->virtualSize();
 
-        transform.x += screen.x + star.size;
-        transform.y = std::uniform_real_distribution<float>(0.0f, screen.y)(s_Random);
+        transform.position.x += screen.x + star.size;
+        transform.position.y = std::uniform_real_distribution<float>(0.0f, screen.y)(s_Random);
     }
 }
