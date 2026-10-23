@@ -136,7 +136,8 @@ if (WIN32)
 endif()
 
 target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include)
+                                         PUBLIC lib/wrecks/include
+                                         PUBLIC lib/protecs/include)
 
 target_link_libraries(r-type_client PUBLIC wrecks
                                     PUBLIC protecs
