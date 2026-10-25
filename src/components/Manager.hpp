@@ -17,13 +17,6 @@ namespace RType::Components {
     using Manager = Wrecks::Utils::concat_types_t<
         Protecs::Components::Manager,
         Wrecks::ECS::ComponentManager<Controllable,
-                                      Dead,
-                                      HasRandomMovement,
-                                      Health,
-                                      Hitbox,
-                                      Projectile,
-                                      Shooter,
-                                      Sprite,
-                                      Star>
+                                      Sprite>
     >;
 }

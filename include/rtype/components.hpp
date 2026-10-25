@@ -8,5 +8,5 @@
 
 #pragma once
 
-#include "../../src/components/Manager.hpp"
 #include "components/types.hpp"
+#include "../../src/components/Manager.hpp"

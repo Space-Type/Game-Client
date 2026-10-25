@@ -41,15 +41,8 @@ set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
     src/components/Controllable.hpp
-    src/components/Dead.hpp
-    src/components/HasRandomMovement.hpp
-    src/components/Health.hpp
-    src/components/Hitbox.hpp
     src/components/Manager.hpp
-    src/components/Projectile.hpp
-    src/components/Shooter.hpp
     src/components/Sprite.hpp
-    src/components/Star.hpp
     src/errors/Error/Error.cpp
     src/errors/Error/Error.hpp
     src/errors/GraphicsError/GraphicsError.cpp
@@ -83,14 +76,8 @@ set(SOURCES
     src/render/InputTypes.hpp
     src/render/Log.hpp
     src/render/Types.hpp
-    src/systems/Collision/Collision.cpp
-    src/systems/Collision/Collision.hpp
     src/systems/Controllable/Controllable.cpp
     src/systems/Controllable/Controllable.hpp
-    src/systems/Dead/Dead.cpp
-    src/systems/Dead/Dead.hpp
-    src/systems/RandomMovement/RandomMovement.cpp
-    src/systems/RandomMovement/RandomMovement.hpp
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
