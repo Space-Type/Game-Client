@@ -13,4 +13,5 @@
 #include "rtype/components.hpp"
 #include "rtype/errors.hpp"
 #include "rtype/systems.hpp"
+#include "rtype/threads.hpp"
 #include "rtype/game.hpp"

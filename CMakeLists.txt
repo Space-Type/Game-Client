@@ -51,6 +51,8 @@ set(SOURCES
     src/errors/NetworkError/NetworkError.hpp
     src/game/Controls/Controls.cpp
     src/game/Controls/Controls.hpp
+    src/game/Client/Client.cpp
+    src/game/Client/Client.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Engine.hpp
@@ -83,6 +85,7 @@ set(SOURCES
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
+    src/threads/ThreadQueue.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})
