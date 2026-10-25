@@ -97,6 +97,10 @@ set(SOURCES
     src/components/Shooter.hpp
     src/components/Sprite.hpp
     src/components/Star.hpp
+    src/errors/Error/Error.cpp
+    src/errors/Error/Error.hpp
+    src/errors/GraphicsError/GraphicsError.cpp
+    src/errors/GraphicsError/GraphicsError.hpp
     src/game/Controls/Controls.cpp
     src/game/Controls/Controls.hpp
     src/game/Game/Game.cpp
