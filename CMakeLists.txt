@@ -47,6 +47,8 @@ set(SOURCES
     src/errors/Error/Error.hpp
     src/errors/GraphicsError/GraphicsError.cpp
     src/errors/GraphicsError/GraphicsError.hpp
+    src/errors/NetworkError/NetworkError.cpp
+    src/errors/NetworkError/NetworkError.hpp
     src/game/Controls/Controls.cpp
     src/game/Controls/Controls.hpp
     src/game/Game/Game.cpp

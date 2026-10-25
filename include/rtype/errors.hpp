@@ -10,3 +10,4 @@
 
 #include "../../src/errors/Error/Error.hpp"
 #include "../../src/errors/GraphicsError/GraphicsError.hpp"
+#include "../../src/errors/NetworkError/NetworkError.hpp"
