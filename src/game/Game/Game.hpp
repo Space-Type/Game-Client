@@ -11,13 +11,13 @@
 #include "../Engine.hpp"
 #include "../Controls/Controls.hpp"
 #include <rtype/render.hpp>
-#include <chrono>
-#include <ctime>
 
 
 namespace RType::Game {
+    using std::chrono_literals::operator""ms;
+
     class Game {
-        using Duration = std::chrono::duration<double, std::milli>;
+        static constexpr double FIXED_UPDATES_PER_FPS = 2.0;
 
         Render::Window m_Window;  // first: outlives everything that depends on it
         Render::Resources m_Resources;
@@ -26,18 +26,21 @@ namespace RType::Game {
         Render::Input m_Input;
         Controls m_Controls;
         Engine m_Engine;
-        Duration m_FrameDuration;
-        float m_DeltaTime;  // seconds elapsed since the previous frame
+
+        Wrecks::DeltaTime m_TargetDuration;
+        Wrecks::DeltaTime m_FixedUpdateRate;
+        Wrecks::DeltaTime m_AccumulatedDelta;
 
         public:
             Game();
 
             inline void stop() noexcept { m_Window.close(); }
-            inline void setFPS(double targetFPS) noexcept { m_FrameDuration = std::chrono::duration<double>(1.0 / targetFPS); }
+            void setFPS(double targetFPS) noexcept;
 
             void run();
 
         private:
+            void update(Wrecks::DeltaTime delta);
             void createStarfield();
     };
 }
