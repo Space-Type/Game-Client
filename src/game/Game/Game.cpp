@@ -48,7 +48,7 @@ RType::Game::Game::Game()
     auto playerBulletTexture = m_Resources.loadTexture(Render::assetPath("blueshoot.png"));
     auto playerShootSound = m_Audio.loadSound(Render::assetPath("sounds/playershoot.wav"));
     auto enemyHitSound = m_Audio.loadSound(Render::assetPath("sounds/enemy_hit.wav"));
-    const Render::Vec2 playerSize = m_Resources.textureSize(playerTexture);
+    const Render::Vec2D playerSize = m_Resources.textureSize(playerTexture);
     int playerCount = 1;
 
     for (int i = 0; i < playerCount; ++i) {
@@ -70,7 +70,7 @@ RType::Game::Game::Game()
     auto enemyTexture = m_Resources.loadTexture(Render::assetPath("ennemi.png"));
     auto enemyBulletTexture = m_Resources.loadTexture(Render::assetPath("orangeshoot.png"));
     auto enemyShootSound = m_Audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav"));
-    const Render::Vec2 enemySize = m_Resources.textureSize(enemyTexture);
+    const Render::Vec2D enemySize = m_Resources.textureSize(enemyTexture);
     int enemyCount = 5;
 
     for (int i = 0; i < enemyCount; ++i) {
@@ -107,7 +107,7 @@ void RType::Game::Game::createStarfield()
     }};
 
     std::mt19937 random{std::random_device{}()};
-    const Render::Vec2 screen = m_Window.virtualSize();
+    const Render::Vec2D screen = m_Window.virtualSize();
     std::uniform_real_distribution<float> randomX(0.0f, screen.x);
     std::uniform_real_distribution<float> randomY(0.0f, screen.y);
 

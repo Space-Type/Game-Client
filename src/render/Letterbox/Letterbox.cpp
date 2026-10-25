@@ -9,7 +9,7 @@
 #include "Letterbox.hpp"
 #include <algorithm>
 
-RType::Render::Rect RType::Render::computeViewport(Vec2 windowSize, Vec2 virtualSize) noexcept
+RType::Render::Rect RType::Render::computeViewport(Vec2D windowSize, Vec2D virtualSize) noexcept
 {
     // Negated comparisons so NaN sizes are rejected too
     if (!(windowSize.x > 0.0F) || !(windowSize.y > 0.0F) || !(virtualSize.x > 0.0F) || !(virtualSize.y > 0.0F))
@@ -27,7 +27,7 @@ RType::Render::Rect RType::Render::computeViewport(Vec2 windowSize, Vec2 virtual
     };
 }
 
-RType::Render::Vec2 RType::Render::screenToVirtual(Vec2 screen, Rect viewport, Vec2 virtualSize) noexcept
+RType::Render::Vec2D RType::Render::screenToVirtual(Vec2D screen, Rect viewport, Vec2D virtualSize) noexcept
 {
     if (viewport.width <= 0.0F || viewport.height <= 0.0F)
         return {};

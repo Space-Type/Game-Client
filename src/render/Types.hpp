@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include <cstdint>
+#include <protecs/utils.hpp>
 #include <optional>
+#include <cstdint>
 
 namespace RType::Render {
 
@@ -19,15 +20,7 @@ namespace RType::Render {
     //                                                     //
     /////////////////////////////////////////////////////////
 
-    struct Vec2 {
-        float x = 0.0F;
-        float y = 0.0F;
-
-        constexpr bool operator==(const Vec2&) const noexcept = default;
-        constexpr Vec2 operator+(Vec2 other) const noexcept { return {x + other.x, y + other.y}; }
-        constexpr Vec2 operator-(Vec2 other) const noexcept { return {x - other.x, y - other.y}; }
-        constexpr Vec2 operator*(float factor) const noexcept { return {x * factor, y * factor}; }
-    };
+    using Vec2D = Protecs::Utils::Vec2D<float>;
 
     struct Rect {
         float x = 0.0F;
@@ -83,11 +76,11 @@ namespace RType::Render {
     /////////////////////////////////////////////////////////
 
     struct SpriteParams {
-        Vec2 position = {};             // Virtual coordinates of the pivot
+        Vec2D position = {};             // Virtual coordinates of the pivot
         std::optional<Rect> source = {}; // Texture region (sprite-sheet frame), whole texture if empty
-        Vec2 origin = {};               // Normalized pivot: {0, 0} top-left, {0.5, 0.5} center
+        Vec2D origin = {};               // Normalized pivot: {0, 0} top-left, {0.5, 0.5} center
         float rotation = 0.0F;          // Degrees, clockwise, around the pivot
-        Vec2 scale = {1.0F, 1.0F};      // Must be positive: mirror with flipX / flipY
+        Vec2D scale = {1.0F, 1.0F};      // Must be positive: mirror with flipX / flipY
         Color tint = Colors::WHITE;
         bool flipX = false;
         bool flipY = false;

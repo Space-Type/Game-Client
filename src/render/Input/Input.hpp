@@ -46,7 +46,7 @@ namespace RType::Render {
             bool isDown(MouseButton button) const noexcept;
             bool isPressed(MouseButton button) const noexcept;
             bool isReleased(MouseButton button) const noexcept;
-            Vec2 mousePosition() const noexcept;    // Virtual coordinates
+            Vec2D mousePosition() const noexcept;    // Virtual coordinates
             float mouseWheel() const noexcept;      // Vertical wheel movement this frame
 
             bool isGamepadAvailable(int gamepad) const noexcept;

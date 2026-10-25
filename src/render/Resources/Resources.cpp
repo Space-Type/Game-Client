@@ -112,7 +112,7 @@ bool RType::Render::Resources::isLoaded(FontId font) const noexcept
     return font == FontId::Default || m_Impl->font(font) != nullptr;
 }
 
-RType::Render::Vec2 RType::Render::Resources::textureSize(TextureId texture) const noexcept
+RType::Render::Vec2D RType::Render::Resources::textureSize(TextureId texture) const noexcept
 {
     const Texture2D* found = m_Impl->texture(texture);
     if (found == nullptr)

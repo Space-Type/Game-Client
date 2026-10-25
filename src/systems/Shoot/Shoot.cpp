@@ -37,7 +37,7 @@ void RType::Systems::Shoot::operator()(Wrecks::ECS::Entity entity)
     if (m_Audio)
         m_Audio->play(shooter.shootSound);
 
-    const RType::Render::Vec2 size = m_Resources->textureSize(shooter.bulletTexture);
+    const RType::Render::Vec2D size = m_Resources->textureSize(shooter.bulletTexture);
 
     // Spawns in front of the shooter, vertically centered
     const float x = shooter.bulletSpeed > 0 ? transform.position.x + hitbox.width : transform.position.x - size.x;

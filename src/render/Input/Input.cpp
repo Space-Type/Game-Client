@@ -87,7 +87,7 @@ bool RType::Render::Input::isReleased(MouseButton button) const noexcept
     return isValid(button) && IsMouseButtonReleased(Detail::toRaylib(button));
 }
 
-RType::Render::Vec2 RType::Render::Input::mousePosition() const noexcept
+RType::Render::Vec2D RType::Render::Input::mousePosition() const noexcept
 {
     ::Vector2 position = GetMousePosition();
 

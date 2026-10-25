@@ -11,9 +11,9 @@
 #include <limits>
 
 namespace {
-    constexpr RType::Render::Vec2 VIRTUAL = {1920.0F, 1080.0F};
+    constexpr RType::Render::Vec2D VIRTUAL = {1920.0F, 1080.0F};
 
-    void expectNear(RType::Render::Vec2 actual, RType::Render::Vec2 expected)
+    void expectNear(RType::Render::Vec2D actual, RType::Render::Vec2D expected)
     {
         EXPECT_NEAR(actual.x, expected.x, 1e-3F);
         EXPECT_NEAR(actual.y, expected.y, 1e-3F);
@@ -68,7 +68,7 @@ TEST(render_Letterbox, squareWindowKeepsAspect)
 
 TEST(render_Letterbox, viewportIsCentered)
 {
-    RType::Render::Vec2 window = {1000.0F, 300.0F};
+    RType::Render::Vec2D window = {1000.0F, 300.0F};
     RType::Render::Rect viewport = RType::Render::computeViewport(window, VIRTUAL);
 
     EXPECT_FLOAT_EQ(viewport.x * 2.0F + viewport.width, window.x);
@@ -127,14 +127,14 @@ TEST(render_Letterbox, scaledViewportMapsToVirtual)
 
 TEST(render_Letterbox, roundTripFromVirtual)
 {
-    const RType::Render::Vec2 windows[] = {{1280.0F, 720.0F}, {2560.0F, 1080.0F}, {1920.0F, 1440.0F}, {333.0F, 777.0F}};
-    const RType::Render::Vec2 points[] = {{0.0F, 0.0F}, {1920.0F, 1080.0F}, {123.5F, 987.25F}, {1500.0F, 20.0F}};
+    const RType::Render::Vec2D windows[] = {{1280.0F, 720.0F}, {2560.0F, 1080.0F}, {1920.0F, 1440.0F}, {333.0F, 777.0F}};
+    const RType::Render::Vec2D points[] = {{0.0F, 0.0F}, {1920.0F, 1080.0F}, {123.5F, 987.25F}, {1500.0F, 20.0F}};
 
-    for (RType::Render::Vec2 window : windows) {
+    for (RType::Render::Vec2D window : windows) {
         RType::Render::Rect viewport = RType::Render::computeViewport(window, VIRTUAL);
 
-        for (RType::Render::Vec2 point : points) {
-            RType::Render::Vec2 screen = {
+        for (RType::Render::Vec2D point : points) {
+            RType::Render::Vec2D screen = {
                 viewport.x + point.x * viewport.width / VIRTUAL.x,
                 viewport.y + point.y * viewport.height / VIRTUAL.y,
             };
@@ -148,8 +148,8 @@ TEST(render_Letterbox, outsideViewportIsNotClamped)
 {
     RType::Render::Rect viewport = RType::Render::computeViewport({2560.0F, 1080.0F}, VIRTUAL);
 
-    RType::Render::Vec2 left = RType::Render::screenToVirtual({0.0F, 540.0F}, viewport, VIRTUAL);
-    RType::Render::Vec2 right = RType::Render::screenToVirtual({2560.0F, 540.0F}, viewport, VIRTUAL);
+    RType::Render::Vec2D left = RType::Render::screenToVirtual({0.0F, 540.0F}, viewport, VIRTUAL);
+    RType::Render::Vec2D right = RType::Render::screenToVirtual({2560.0F, 540.0F}, viewport, VIRTUAL);
 
     expectNear(left, {-320.0F, 540.0F});
     expectNear(right, {2240.0F, 540.0F});
@@ -165,7 +165,7 @@ TEST(render_Letterbox, outsideViewportVertically)
 
 TEST(render_Letterbox, emptyViewportGivesOrigin)
 {
-    const RType::Render::Vec2 origin = {};
+    const RType::Render::Vec2D origin = {};
 
     EXPECT_EQ(RType::Render::screenToVirtual({10.0F, 20.0F}, RType::Render::Rect{}, VIRTUAL), origin);
     EXPECT_EQ(RType::Render::screenToVirtual({10.0F, 20.0F}, {5.0F, 5.0F, 0.0F, 100.0F}, VIRTUAL), origin);
