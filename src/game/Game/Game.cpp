@@ -92,11 +92,6 @@ RType::Game::Game::Game()
     }
 }
 
-RType::Game::Game::~Game()
-{
-
-}
-
 void RType::Game::Game::createStarfield()
 {
     struct Layer {
