@@ -23,7 +23,7 @@ namespace RType::Render::Convert {
         return {color.r, color.g, color.b, color.a};
     }
 
-    inline ::Vector2 toRaylib(Vec2 vec) noexcept
+    inline ::Vector2 toRaylib(Vec2D vec) noexcept
     {
         return {vec.x, vec.y};
     }
@@ -33,7 +33,7 @@ namespace RType::Render::Convert {
         return {rect.x, rect.y, rect.width, rect.height};
     }
 
-    inline Vec2 fromRaylib(::Vector2 vec) noexcept
+    inline Vec2D fromRaylib(::Vector2 vec) noexcept
     {
         return {vec.x, vec.y};
     }

@@ -20,7 +20,7 @@ static_assert(static_cast<std::uint32_t>(RType::Render::MusicId::Invalid) == 0);
 
 TEST(render_Types, vec2Defaults)
 {
-    RType::Render::Vec2 vec;
+    RType::Render::Vec2D vec;
 
     EXPECT_EQ(vec.x, 0.0F);
     EXPECT_EQ(vec.y, 0.0F);
@@ -28,8 +28,8 @@ TEST(render_Types, vec2Defaults)
 
 TEST(render_Types, vec2Operators)
 {
-    RType::Render::Vec2 a = {1.5F, -2.0F};
-    RType::Render::Vec2 b = {0.5F, 4.0F};
+    RType::Render::Vec2D a = {1.5F, -2.0F};
+    RType::Render::Vec2D b = {0.5F, 4.0F};
 
     EXPECT_EQ(a + b, (RType::Render::Vec2{2.0F, 2.0F}));
     EXPECT_EQ(a - b, (RType::Render::Vec2{1.0F, -6.0F}));

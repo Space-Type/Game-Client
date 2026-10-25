@@ -61,7 +61,7 @@ namespace RType::Render {
             bool isLoaded(FontId font) const noexcept;  // True for FontId::Default
 
             // {0, 0} for unknown handles
-            Vec2 textureSize(TextureId texture) const noexcept;
+            Vec2D textureSize(TextureId texture) const noexcept;
 
             // Read-only access to the handle tables (see Impl)
             const Impl& impl() const noexcept;

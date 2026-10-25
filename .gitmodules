@@ -1,12 +1,9 @@
-[submodule "wrecks"]
-    path = lib/wrecks
-    url = https://github.com/Space-Type/Wrecks.git
 [submodule "lib/raylib"]
 	path = lib/raylib
 	url = https://github.com/raysan5/raylib.git
-[submodule "lib/vcpkg"]
-	path = lib/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
+[submodule "wrecks"]
+    path = lib/wrecks
+    url = https://github.com/Space-Type/Wrecks.git
 [submodule "lib/protecs"]
 	path = lib/protecs
 	url = https://github.com/Space-Type/Protecs.git

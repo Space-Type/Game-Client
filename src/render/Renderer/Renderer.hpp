@@ -37,18 +37,18 @@ namespace RType::Render {
              * Increasing `offset.x` over time scrolls the texture
              * left: used for the star-field background.
              */
-            void drawScrolling(TextureId texture, Rect dest, Vec2 offset,
+            void drawScrolling(TextureId texture, Rect dest, Vec2D offset,
                                float scale = 1.0F, Color tint = Colors::WHITE) const;
 
             void drawRect(Rect rect, Color color) const;
             void drawRectLines(Rect rect, float thickness, Color color) const;
-            void drawCircle(Vec2 center, float radius, Color color) const;
-            void drawLine(Vec2 start, Vec2 end, float thickness, Color color) const;
+            void drawCircle(Vec2D center, float radius, Color color) const;
+            void drawLine(Vec2D start, Vec2D end, float thickness, Color color) const;
 
             // `position` is the top-left corner, `size` the font height
-            void drawText(Wrecks::cstring_view text, Vec2 position, float size,
+            void drawText(Wrecks::cstring_view text, Vec2D position, float size,
                           Color color, FontId font = FontId::Default) const;
-            Vec2 measureText(Wrecks::cstring_view text, float size,
+            Vec2D measureText(Wrecks::cstring_view text, float size,
                              FontId font = FontId::Default) const;
     };
 }

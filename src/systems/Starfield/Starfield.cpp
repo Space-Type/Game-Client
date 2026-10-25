@@ -31,7 +31,7 @@ void RType::Systems::Starfield::operator()(Wrecks::ECS::Entity entity)
     transform.position.x -= star.speed * *m_DeltaTime;
 
     if (transform.position.x < -star.size) {
-        const RType::Render::Vec2 screen = m_Window->virtualSize();
+        const RType::Render::Vec2D screen = m_Window->virtualSize();
 
         transform.position.x += screen.x + star.size;
         transform.position.y = std::uniform_real_distribution<float>(0.0f, screen.y)(s_Random);

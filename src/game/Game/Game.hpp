@@ -31,7 +31,6 @@ namespace RType::Game {
 
         public:
             Game();
-            ~Game();
 
             inline void stop() noexcept { m_Window.close(); }
             inline void setFPS(double targetFPS) noexcept { m_FrameDuration = std::chrono::duration<double>(1.0 / targetFPS); }
