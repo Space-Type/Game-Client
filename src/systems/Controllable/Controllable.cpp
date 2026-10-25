@@ -6,25 +6,24 @@ RType::Systems::Controllable::Controllable() noexcept
     : m_Engine(nullptr)
     , m_Input(nullptr)
     , m_Controls(nullptr)
-    , m_DeltaTime(nullptr)
 {
 
 }
 
-void RType::Systems::Controllable::operator()(Wrecks::ECS::Entity entity)
+void RType::Systems::Controllable::operator()(Wrecks::ECS::Entity entity, Wrecks::DeltaTime dt)
 {
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
 
     auto& controllable = engine.get<Components::Controllable>()[entity];
-    auto& velocity = engine.get<Protecs::Components::Velocity>()[entity];
+    auto& velocity     = engine.get<Protecs::Components::Velocity>()[entity];
 
-    const float dt = *m_DeltaTime;
+    #define isDown(action) m_Controls->isDown(Game::Action::action, *m_Input)
+    Render::Vec2D input = {
+        .x = static_cast<float>(controllable.acceleration * dt.count() * (isDown(Right) - isDown(Left))),
+        .y = static_cast<float>(controllable.acceleration * dt.count() * (isDown(Down) - isDown(Up))),
+    };
+    #undef isDown
 
-    const auto isDown = [&](Game::Action action) { return m_Controls->isDown(action, *m_Input); };
-
-    velocity.position.x += controllable.acceleration * dt * (isDown(Game::Action::Right) - isDown(Game::Action::Left));
-    velocity.position.y += controllable.acceleration * dt * (isDown(Game::Action::Down) - isDown(Game::Action::Up));
-
-    if (engine.entitySignature(entity).test(Components::Manager::index<Components::Shooter>()))
-        engine.get<Components::Shooter>()[entity].wantsToShoot = isDown(Game::Action::Shoot);
+    input.normalize();
+    velocity.position += input;
 }

@@ -12,10 +12,12 @@ namespace RType::Systems {
         void* m_Engine;
         const RType::Render::Input* m_Input;
         const Game::Controls* m_Controls;
-        const float* m_DeltaTime;
 
         public:
-            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::STATE };
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
+                .stage = Wrecks::ECS::SystemAttributes::UPDATE,
+                .order = 0,
+            };
 
             Controllable() noexcept;
 
@@ -27,10 +29,9 @@ namespace RType::Systems {
             }
 
             inline void setEngine(void* engine) noexcept { m_Engine = engine; }
-            inline void setDeltaTime(const float& deltaTime) noexcept { m_DeltaTime = &deltaTime; }
             inline void setInput(const RType::Render::Input& input) noexcept { m_Input = &input; }
             inline void setControls(const Game::Controls& controls) noexcept { m_Controls = &controls; }
 
-            void operator()(Wrecks::ECS::Entity entity);
+            void operator()(Wrecks::ECS::Entity entity, Wrecks::DeltaTime dt);
     };
 }
