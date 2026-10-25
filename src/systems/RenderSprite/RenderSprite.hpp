@@ -3,7 +3,7 @@
 ** Project - RType
 ** File description:
 ** Header file for
-** Render System
+** RenderSprite System
 */
 
 #pragma once
@@ -14,14 +14,17 @@
 
 
 namespace RType::Systems {
-    class Render {
+    class RenderSprite {
         void* m_Engine;
         const RType::Render::Renderer* m_Renderer;
 
         public:
-            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::RENDER };
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
+                .stage = Wrecks::ECS::SystemAttributes::RENDER,
+                .order = 1,
+            };
 
-            Render() noexcept;
+            RenderSprite() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept
             {
@@ -33,6 +36,6 @@ namespace RType::Systems {
             inline void setEngine(void* engine) noexcept { m_Engine = engine; }
             inline void setRenderer(const RType::Render::Renderer& renderer) noexcept { m_Renderer = &renderer; }
 
-            void operator()(Wrecks::ECS::Entity entity);
+            void operator()(Wrecks::ECS::Entity entity, Wrecks::DeltaTime);
     };
 }
