@@ -8,18 +8,6 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-# Third-party dependencies come from vcpkg (submodule lib/vcpkg, manifest
-# vcpkg.json), bootstrapped automatically on the first configure.
-# OpenGL and X11 stay system libraries, as the subject allows.
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        CACHE STRING "vcpkg toolchain file")
-endif()
-
-if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
-    list(APPEND VCPKG_MANIFEST_FEATURES "tests")
-endif()
-
 project(RType-Client VERSION 1.0
                      DESCRIPTION "R-Type Game Client - R-Type project"
                      HOMEPAGE_URL "https://github.com/Space-Type/Game-Client"
@@ -124,9 +112,9 @@ if (WIN32)
     target_compile_definitions(r-type_client PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX NOGDI NOUSER)
 endif()
 
-target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include
-                                         PUBLIC lib/protecs/include
+target_include_directories(r-type_client PUBLIC  include
+                                         PUBLIC  lib/wrecks/include
+                                         PUBLIC  lib/protecs/include
                                          PRIVATE lib/raylib/src)
 
 target_link_libraries(r-type_client PUBLIC wrecks
