@@ -20,8 +20,14 @@ RType::Game::Game::Game()
     , m_Input(m_Window)
     , m_Controls(defaultControls())
     , m_Engine()
-    , m_TargetDuration(std::chrono::duration<double>(1.0 / 120))  // 120 FPS
+    , m_TargetDuration()
+    , m_FixedUpdateRate()
+    , m_AccumulatedDelta()
+    , m_EntityMap()
+    , m_Client()
 {
+    setFPS(120);
+
     m_Engine.get<Systems::RenderSprite>().setRenderer(m_Renderer);
     m_Engine.get<Systems::Controllable>().setInput(m_Input);
     m_Engine.get<Systems::Controllable>().setControls(m_Controls);
@@ -61,6 +67,8 @@ void RType::Game::Game::run()
     std::chrono::time_point frameStart = std::chrono::steady_clock::now();
     Wrecks::DeltaTime prevDelta = m_TargetDuration;
 
+    m_Client.connect("John Doe");  // TODO: make this the player's ign
+
     while (!m_Window.shouldClose()) {
         update(prevDelta);
         std::chrono::time_point frameEnd = std::chrono::steady_clock::now();
@@ -74,6 +82,8 @@ void RType::Game::Game::run()
         frameStart = frameEnd + std::chrono::duration_cast<std::chrono::nanoseconds>(sleepTime);
         prevDelta = delta + sleepTime;
     }
+
+    m_Client.disconnect();
 }
 
 /**
@@ -101,6 +111,8 @@ void RType::Game::Game::run()
  */
 void RType::Game::Game::update(Wrecks::DeltaTime dt)
 {
+    handleEvents();
+
     m_AccumulatedDelta += dt;
     while (m_AccumulatedDelta >= m_FixedUpdateRate) {
         m_Engine.fixedUpdate(m_FixedUpdateRate);
@@ -117,4 +129,85 @@ void RType::Game::Game::update(Wrecks::DeltaTime dt)
     // m_Audio.update();
     // m_Engine.get<Systems::Dead>().flush();
     // m_Engine.get<Systems::Shoot>().flush();
+}
+
+void RType::Game::Game::handleEvents()
+{
+    auto event = m_Client.receive();
+
+    while (event) {
+        std::visit(EventHandler{ *this }, *event);
+        event = m_Client.receive();
+    }
+}
+
+
+////////////////////////////////////////////////////////////////
+//                                                            //
+//                       Network Events                       //
+//                                                            //
+////////////////////////////////////////////////////////////////
+
+namespace Packets = Protecs::Networking::Packets;
+
+void RType::Game::Game::EventHandler::operator()(const Packets::EntityAddComponent& data)
+{
+
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::EntityComponentData& data)
+{
+
+}
+
+#include <iostream>
+void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& data)
+{
+    std::cout << "creating new entity" << std::endl;
+    auto entity = game.m_Engine.createEntity();
+    game.m_EntityMap.bind(data.id, entity);
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::EntityDelete& data)
+{
+    auto localEntity = game.m_EntityMap.toLocal(data.id);
+    game.m_Engine.deleteEntity(localEntity);
+    game.m_EntityMap.removeNetwork(data.id);
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::EntityRemoveComponent& data)
+{
+
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::EntitySyncComponents& data)
+{
+
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::Ping& data)
+{
+    // reply with a ping to tell the
+    // server you're still alive
+    game.m_Client.send(Packets::Ping{});
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::PlayerId& data)
+{
+
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::PlayerInput& data)
+{
+
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::PlayerJoin& data)
+{
+
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::PlayerLeave& data)
+{
+    game.m_Client.disconnect();
 }

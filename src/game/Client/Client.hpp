@@ -9,7 +9,7 @@
 #pragma once
 
 #include <protecs/networking.hpp>
-#include <rtype/threads.hpp>
+#include <rtype/utils.hpp>
 #include <thread>
 
 
@@ -22,8 +22,8 @@ namespace RType::Game {
         Protecs::Networking::Address m_ServerAddr;
         Protecs::NetworkEntity m_PlayerId;
 
-        Threads::ThreadQueue<Protecs::Networking::Packets::PacketData> m_OutgoingPackets;
-        Threads::ThreadQueue<Protecs::Networking::Packets::PacketData> m_IncomingPackets;
+        Utils::ThreadQueue<Protecs::Networking::Packets::PacketData> m_OutgoingPackets;
+        Utils::ThreadQueue<Protecs::Networking::Packets::PacketData> m_IncomingPackets;
         std::thread m_NetworkThread;
 
         public:

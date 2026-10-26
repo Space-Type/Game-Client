@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Engine.hpp"
+#include "../Client/Client.hpp"
 #include "../Controls/Controls.hpp"
 #include <rtype/render.hpp>
 
@@ -31,6 +32,9 @@ namespace RType::Game {
         Wrecks::DeltaTime m_FixedUpdateRate;
         Wrecks::DeltaTime m_AccumulatedDelta;
 
+        Utils::EntityMap m_EntityMap;
+        Client m_Client;
+
         public:
             Game();
 
@@ -41,6 +45,23 @@ namespace RType::Game {
 
         private:
             void update(Wrecks::DeltaTime delta);
-            void createStarfield();
+            void handleEvents();
+
+        private:
+            struct EventHandler {
+                Game& game;
+
+                void operator()(const Protecs::Networking::Packets::EntityAddComponent& data);
+                void operator()(const Protecs::Networking::Packets::EntityComponentData& data);
+                void operator()(const Protecs::Networking::Packets::EntityCreate& data);
+                void operator()(const Protecs::Networking::Packets::EntityDelete& data);
+                void operator()(const Protecs::Networking::Packets::EntityRemoveComponent& data);
+                void operator()(const Protecs::Networking::Packets::EntitySyncComponents& data);
+                void operator()(const Protecs::Networking::Packets::Ping& data);
+                void operator()(const Protecs::Networking::Packets::PlayerId& data);
+                void operator()(const Protecs::Networking::Packets::PlayerInput& data);
+                void operator()(const Protecs::Networking::Packets::PlayerJoin& data);
+                void operator()(const Protecs::Networking::Packets::PlayerLeave& data);
+            };
     };
 }
