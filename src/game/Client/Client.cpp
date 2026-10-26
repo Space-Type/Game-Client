@@ -46,7 +46,7 @@ auto RType::Game::Client::player() const -> Protecs::NetworkEntity
 
 void RType::Game::Client::connect(std::string_view name)
 {
-    auto joinRequest = Packet::serialize(Packets::PlayerJoin());
+    auto joinRequest = Packet::serialize(Packets::PlayerJoin::fromStr(name));
     if (!m_Client.send(joinRequest, m_ServerAddr))
         throw Errors::NetworkError("failed to send join request to server");
 
