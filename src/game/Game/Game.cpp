@@ -157,13 +157,19 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityAddCompone
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityComponentData& data)
 {
+    auto localEntity = game.m_EntityMap.toLocal(data.entity);
 
+    std::visit([&, localEntity](auto& data){
+        using Component = std::decay_t<decltype(data)>;
+        if (!game.m_Engine.hasComponent<Component>(localEntity))
+            game.m_Engine.addComponent(localEntity, Component{});
+
+        game.m_Engine.get<Component>()[localEntity] = std::move(data);
+    }, data.component);
 }
 
-#include <iostream>
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& data)
 {
-    std::cout << "creating new entity" << std::endl;
     auto entity = game.m_Engine.createEntity();
     game.m_EntityMap.bind(data.id, entity);
 }
