@@ -8,5 +8,5 @@
 
 #pragma once
 
-#include "../../src/utils/BidirectionalMap.hpp"
+#include "../../src/utils/EntityMap/EntityMap.hpp"
 #include "../../src/utils/ThreadQueue.hpp"

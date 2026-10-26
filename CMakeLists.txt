@@ -85,7 +85,8 @@ set(SOURCES
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
-    src/utils/BidirectionalMap.hpp
+    src/utils/EntityMap/EntityMap.cpp
+    src/utils/EntityMap/EntityMap.hpp
     src/utils/ThreadQueue.hpp
     src/main.cpp)
 
