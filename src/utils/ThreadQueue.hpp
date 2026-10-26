@@ -13,7 +13,7 @@
 #include <mutex>
 
 
-namespace RType::Threads {
+namespace RType::Utils {
     /**
      * Note:
      * This queue is not ordered.

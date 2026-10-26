@@ -85,7 +85,8 @@ set(SOURCES
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
-    src/threads/ThreadQueue.hpp
+    src/utils/BidirectionalMap.hpp
+    src/utils/ThreadQueue.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})
