@@ -141,6 +141,17 @@ void RType::Game::Game::handleEvents()
     }
 }
 
+void RType::Game::Game::initPlayer(Wrecks::ECS::Entity entity)
+{
+    m_Engine.addComponent(entity, Components::Controllable{});
+    m_Engine.addComponent(entity, Components::Sprite{ m_Resources.loadTexture(Render::assetPath("spaceship.png"))});
+}
+
+void RType::Game::Game::initEnemyPataPata(Wrecks::ECS::Entity entity)
+{
+
+}
+
 
 ////////////////////////////////////////////////////////////////
 //                                                            //
@@ -167,6 +178,12 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& da
 {
     auto entity = game.m_Engine.createEntity();
     game.m_EntityMap.bind(data.id, entity);
+
+    switch (data.type) {
+        case Packets::EntityCreate::PLAYER: game.initPlayer(entity); return;
+        case Packets::EntityCreate::ENEMY_PATA_PATA: game.initEnemyPataPata(entity); return;
+        default: return;
+    }
 }
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityDelete& data)

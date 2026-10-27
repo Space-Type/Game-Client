@@ -47,6 +47,9 @@ namespace RType::Game {
             void update(Wrecks::DeltaTime delta);
             void handleEvents();
 
+            void initPlayer(Wrecks::ECS::Entity entity);
+            void initEnemyPataPata(Wrecks::ECS::Entity entity);
+
         private:
             struct EventHandler {
                 Game& game;
