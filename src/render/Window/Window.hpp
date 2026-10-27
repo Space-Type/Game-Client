@@ -63,10 +63,10 @@ namespace RType::Render {
             void close() noexcept;
             void toggleFullscreen() noexcept;
 
-            Vec2 size() const noexcept;             // Current window size, screen pixels
-            Vec2 virtualSize() const noexcept;
+            Vec2D size() const noexcept;             // Current window size, screen pixels
+            Vec2D virtualSize() const noexcept;
             Rect viewport() const noexcept;         // Letterboxed area, screen pixels
-            Vec2 screenToVirtual(Vec2 screen) const noexcept;
+            Vec2D screenToVirtual(Vec2D screen) const noexcept;
 
             // Starts drawing into the virtual frame, cleared with `clear`
             void beginFrame(Color clear = Colors::BLACK);

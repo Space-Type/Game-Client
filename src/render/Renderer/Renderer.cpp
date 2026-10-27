@@ -65,7 +65,7 @@ void RType::Render::Renderer::drawSprite(TextureId texture, const SpriteParams& 
                    params.rotation, Convert::toRaylib(params.tint));
 }
 
-void RType::Render::Renderer::drawScrolling(TextureId texture, Rect dest, Vec2 offset, float scale, Color tint) const
+void RType::Render::Renderer::drawScrolling(TextureId texture, Rect dest, Vec2D offset, float scale, Color tint) const
 {
     const Texture2D* found = m_Resources.impl().texture(texture);
     if (found == nullptr || scale <= 0.0F)
@@ -87,17 +87,17 @@ void RType::Render::Renderer::drawRectLines(Rect rect, float thickness, Color co
     DrawRectangleLinesEx(Convert::toRaylib(rect), thickness, Convert::toRaylib(color));
 }
 
-void RType::Render::Renderer::drawCircle(Vec2 center, float radius, Color color) const
+void RType::Render::Renderer::drawCircle(Vec2D center, float radius, Color color) const
 {
     DrawCircleV(Convert::toRaylib(center), radius, Convert::toRaylib(color));
 }
 
-void RType::Render::Renderer::drawLine(Vec2 start, Vec2 end, float thickness, Color color) const
+void RType::Render::Renderer::drawLine(Vec2D start, Vec2D end, float thickness, Color color) const
 {
     DrawLineEx(Convert::toRaylib(start), Convert::toRaylib(end), thickness, Convert::toRaylib(color));
 }
 
-void RType::Render::Renderer::drawText(Wrecks::cstring_view text, Vec2 position, float size,
+void RType::Render::Renderer::drawText(Wrecks::cstring_view text, Vec2D position, float size,
                                  Color color, FontId font) const
 {
     Font resolved = {};
@@ -107,7 +107,7 @@ void RType::Render::Renderer::drawText(Wrecks::cstring_view text, Vec2 position,
     DrawTextEx(resolved, text.data(), Convert::toRaylib(position), size, spacing(size), Convert::toRaylib(color));
 }
 
-RType::Render::Vec2 RType::Render::Renderer::measureText(Wrecks::cstring_view text, float size, FontId font) const
+RType::Render::Vec2D RType::Render::Renderer::measureText(Wrecks::cstring_view text, float size, FontId font) const
 {
     Font resolved = {};
     if (!resolveFont(font, m_Resources.impl().font(font), resolved))

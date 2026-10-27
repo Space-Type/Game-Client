@@ -39,7 +39,7 @@ int main()
     RType::Render::Audio audio;                   // independent from Window
 
     RType::Render::TextureId ship = resources.loadTexture(RType::Render::assetPath("ship.png"));
-    RType::Render::Vec2 position = {200.0F, 540.0F};
+    RType::Render::Vec2D position = {200.0F, 540.0F};
 
     auto previous = std::chrono::steady_clock::now();
     while (!window.shouldClose()) {

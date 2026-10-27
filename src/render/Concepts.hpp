@@ -23,7 +23,7 @@ namespace RType::Render {
     template <typename T>
     concept RendererType =
         requires (const T& renderer, TextureId texture, FontId font, const SpriteParams& params,
-                  Rect rect, Vec2 point, Color color, float value, Wrecks::cstring_view text)
+                  Rect rect, Vec2D point, Color color, float value, Wrecks::cstring_view text)
         {
             { renderer.drawSprite(texture, params) } -> std::same_as<void>;
             { renderer.drawScrolling(texture, rect, point, value, color) } -> std::same_as<void>;
@@ -32,7 +32,7 @@ namespace RType::Render {
             { renderer.drawCircle(point, value, color) } -> std::same_as<void>;
             { renderer.drawLine(point, point, value, color) } -> std::same_as<void>;
             { renderer.drawText(text, point, value, color, font) } -> std::same_as<void>;
-            { renderer.measureText(text, value, font) } -> std::same_as<Vec2>;
+            { renderer.measureText(text, value, font) } -> std::same_as<Vec2D>;
         };
 
     /**

@@ -9,15 +9,16 @@
 #pragma once
 
 #include "../Engine.hpp"
+#include "../Client/Client.hpp"
 #include "../Controls/Controls.hpp"
 #include <rtype/render.hpp>
-#include <chrono>
-#include <ctime>
 
 
 namespace RType::Game {
+    using std::chrono_literals::operator""ms;
+
     class Game {
-        using Duration = std::chrono::duration<double, std::milli>;
+        static constexpr double FIXED_UPDATES_PER_FPS = 2.0;
 
         Render::Window m_Window;  // first: outlives everything that depends on it
         Render::Resources m_Resources;
@@ -26,19 +27,44 @@ namespace RType::Game {
         Render::Input m_Input;
         Controls m_Controls;
         Engine m_Engine;
-        bool m_IsRunning;
-        Duration m_FrameDuration;
-        float m_DeltaTime;  // seconds elapsed since the previous frame
+
+        Wrecks::DeltaTime m_TargetDuration;
+        Wrecks::DeltaTime m_FixedUpdateRate;
+        Wrecks::DeltaTime m_AccumulatedDelta;
+
+        Utils::EntityMap m_EntityMap;
+        Client m_Client;
 
         public:
             Game();
 
-            inline void stop() noexcept { m_IsRunning = false; }
-            inline void setFPS(double targetFPS) noexcept { m_FrameDuration = std::chrono::duration<double>(1.0 / targetFPS); }
+            inline void stop() noexcept { m_Window.close(); }
+            void setFPS(double targetFPS) noexcept;
 
             void run();
 
         private:
-            void createStarfield();
+            void update(Wrecks::DeltaTime delta);
+            void handleEvents();
+
+            void initPlayer(Wrecks::ECS::Entity entity);
+            void initEnemyPataPata(Wrecks::ECS::Entity entity);
+
+        private:
+            struct EventHandler {
+                Game& game;
+
+                void operator()(const Protecs::Networking::Packets::EntityComponentData& data);
+                void operator()(const Protecs::Networking::Packets::EntityCreate& data);
+                void operator()(const Protecs::Networking::Packets::EntityDelete& data);
+                void operator()(const Protecs::Networking::Packets::EntityList& data);
+                void operator()(const Protecs::Networking::Packets::EntityRemoveComponent& data);
+                void operator()(const Protecs::Networking::Packets::EntitySyncComponents& data);
+                void operator()(const Protecs::Networking::Packets::Ping& data);
+                void operator()(const Protecs::Networking::Packets::PlayerId& data);
+                void operator()(const Protecs::Networking::Packets::PlayerInput& data);
+                void operator()(const Protecs::Networking::Packets::PlayerJoin& data);
+                void operator()(const Protecs::Networking::Packets::PlayerLeave& data);
+            };
     };
 }

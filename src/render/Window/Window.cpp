@@ -20,7 +20,7 @@ namespace {
 
 struct RType::Render::Window::Impl {
     RenderTexture2D target = {};
-    Vec2 virtualSize = {};
+    Vec2D virtualSize = {};
     bool closeRequested = false;
 };
 
@@ -88,12 +88,12 @@ void RType::Render::Window::toggleFullscreen() noexcept
     ToggleFullscreen();
 }
 
-RType::Render::Vec2 RType::Render::Window::size() const noexcept
+RType::Render::Vec2D RType::Render::Window::size() const noexcept
 {
     return {static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())};
 }
 
-RType::Render::Vec2 RType::Render::Window::virtualSize() const noexcept
+RType::Render::Vec2D RType::Render::Window::virtualSize() const noexcept
 {
     return m_Impl->virtualSize;
 }
@@ -103,7 +103,7 @@ RType::Render::Rect RType::Render::Window::viewport() const noexcept
     return computeViewport(size(), m_Impl->virtualSize);
 }
 
-RType::Render::Vec2 RType::Render::Window::screenToVirtual(Vec2 screen) const noexcept
+RType::Render::Vec2D RType::Render::Window::screenToVirtual(Vec2D screen) const noexcept
 {
     return RType::Render::screenToVirtual(screen, viewport(), m_Impl->virtualSize);
 }

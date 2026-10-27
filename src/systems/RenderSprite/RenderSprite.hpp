@@ -3,7 +3,7 @@
 ** Project - RType
 ** File description:
 ** Header file for
-** StarRender System
+** RenderSprite System
 */
 
 #pragma once
@@ -14,25 +14,28 @@
 
 
 namespace RType::Systems {
-    class StarRender {
+    class RenderSprite {
         void* m_Engine;
         const RType::Render::Renderer* m_Renderer;
 
         public:
-            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = { .stage = Wrecks::ECS::SystemAttributes::RENDER };
+            static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
+                .stage = Wrecks::ECS::SystemAttributes::RENDER,
+                .order = 1,
+            };
 
-            StarRender() noexcept;
+            RenderSprite() noexcept;
 
             static constexpr Wrecks::Signature signature() noexcept
             {
                 return Wrecks::Signature()
-                    .set(Components::Manager::index<Components::Transform>())
-                    .set(Components::Manager::index<Components::Star>());
+                    .set(Components::Manager::index<Protecs::Components::Transform>())
+                    .set(Components::Manager::index<Components::Sprite>());
             }
 
             inline void setEngine(void* engine) noexcept { m_Engine = engine; }
             inline void setRenderer(const RType::Render::Renderer& renderer) noexcept { m_Renderer = &renderer; }
 
-            void operator()(Wrecks::ECS::Entity entity);
+            void operator()(Wrecks::ECS::Entity entity, Wrecks::DeltaTime);
     };
 }

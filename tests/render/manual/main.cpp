@@ -68,9 +68,9 @@ namespace {
         RType::Render::MusicId music = argc > 3 ? audio.loadMusic(argv[3]) : RType::Render::MusicId::Invalid;
         RType::Render::FontId font = argc > 4 ? resources.loadFont(argv[4], 48) : RType::Render::FontId::Default;
 
-        RType::Render::Vec2 virtualSize = window.virtualSize();
-        RType::Render::Vec2 position = virtualSize * 0.5F;
-        RType::Render::Vec2 scroll = {};
+        RType::Render::Vec2D virtualSize = window.virtualSize();
+        RType::Render::Vec2D position = virtualSize * 0.5F;
+        RType::Render::Vec2D scroll = {};
         bool musicPlaying = false;
         std::string lastKey = "none";
 
@@ -97,7 +97,7 @@ namespace {
             for (auto key = input.nextPressed(); key; key = input.nextPressed())
                 lastKey = std::string(RType::Render::keyName(*key));
 
-            RType::Render::Vec2 direction = {
+            RType::Render::Vec2D direction = {
                 (controls.isDown(Action::Right, input) ? 1.0F : 0.0F) - (controls.isDown(Action::Left, input) ? 1.0F : 0.0F),
                 (controls.isDown(Action::Down, input) ? 1.0F : 0.0F) - (controls.isDown(Action::Up, input) ? 1.0F : 0.0F),
             };
@@ -115,7 +115,7 @@ namespace {
             std::string status = "fps " + std::to_string(delta > 0.0F ? static_cast<int>(1.0F / delta) : 0)
                 + "  volume " + std::to_string(static_cast<int>(audio.volume(RType::Render::Channel::Master) * 100.0F))
                 + "%  audio " + (audio.isReady() ? "on" : "off") + "  last key " + lastKey;
-            RType::Render::Vec2 size = renderer.measureText(status, 40.0F, font);
+            RType::Render::Vec2D size = renderer.measureText(status, 40.0F, font);
             renderer.drawRect({16.0F, 16.0F, size.x + 16.0F, size.y + 16.0F}, RType::Render::Color{0, 0, 0, 160});
             renderer.drawText(status, {24.0F, 24.0F}, 40.0F, RType::Render::Colors::WHITE, font);
             window.endFrame(RType::Render::Colors::GRAY);

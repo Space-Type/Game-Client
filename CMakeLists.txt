@@ -8,18 +8,6 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-# Third-party dependencies come from vcpkg (submodule lib/vcpkg, manifest
-# vcpkg.json), bootstrapped automatically on the first configure.
-# OpenGL and X11 stay system libraries, as the subject allows.
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        CACHE STRING "vcpkg toolchain file")
-endif()
-
-if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
-    list(APPEND VCPKG_MANIFEST_FEATURES "tests")
-endif()
-
 project(RType-Client VERSION 1.0
                      DESCRIPTION "R-Type Game Client - R-Type project"
                      HOMEPAGE_URL "https://github.com/Space-Type/Game-Client"
@@ -51,8 +39,23 @@ add_subdirectory(lib/wrecks)
 add_subdirectory(lib/protecs)
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
-# Render module: window, 2D rendering, input and audio over raylib
-set(RENDER_SOURCES
+set(SOURCES
+    src/components/Controllable.hpp
+    src/components/Manager.hpp
+    src/components/Sprite.hpp
+    src/errors/Error/Error.cpp
+    src/errors/Error/Error.hpp
+    src/errors/GraphicsError/GraphicsError.cpp
+    src/errors/GraphicsError/GraphicsError.hpp
+    src/errors/NetworkError/NetworkError.cpp
+    src/errors/NetworkError/NetworkError.hpp
+    src/game/Controls/Controls.cpp
+    src/game/Controls/Controls.hpp
+    src/game/Client/Client.cpp
+    src/game/Client/Client.hpp
+    src/game/Game/Game.cpp
+    src/game/Game/Game.hpp
+    src/game/Engine.hpp
     src/render/Assets/Assets.cpp
     src/render/Assets/Assets.hpp
     src/render/Audio/Audio.cpp
@@ -76,55 +79,15 @@ set(RENDER_SOURCES
     src/render/Error.hpp
     src/render/InputTypes.hpp
     src/render/Log.hpp
-    src/render/Types.hpp)
-
-add_library(rtype_render STATIC ${RENDER_SOURCES})
-
-target_include_directories(rtype_render PUBLIC include)
-
-# raylib stays private: game code cannot include it through the render module
-target_link_libraries(rtype_render PUBLIC wrecks
-                                   PRIVATE raylib)
-
-set(SOURCES
-    src/components/Manager.hpp
-    src/components/Physics.hpp
-    src/components/Sprite.hpp
-    src/components/Transform.hpp
-    src/components/HasRandomMovement.hpp
-    src/components/Controllable.hpp
-    src/components/Dead.hpp
-    src/components/Health.hpp
-    src/components/Hitbox.hpp
-    src/components/Projectile.hpp
-    src/components/Shooter.hpp
-    src/components/Star.hpp
-    src/game/Controls/Controls.cpp
-    src/game/Controls/Controls.hpp
-    src/game/Game/Game.cpp
-    src/game/Game/Game.hpp
-    src/game/Engine.hpp
-    src/systems/Physics/Physics.cpp
-    src/systems/Physics/Physics.hpp
-    src/systems/Render/Render.cpp
-    src/systems/Render/Render.hpp
-    src/systems/Systems.hpp
-    src/systems/RandomMovement/RandomMovement.cpp
-    src/systems/RandomMovement/RandomMovement.hpp
+    src/render/Types.hpp
     src/systems/Controllable/Controllable.cpp
     src/systems/Controllable/Controllable.hpp
-    src/systems/Shoot/Shoot.cpp
-    src/systems/Shoot/Shoot.hpp
-    src/systems/Projectile/Projectile.cpp
-    src/systems/Projectile/Projectile.hpp
-    src/systems/Collision/Collision.cpp
-    src/systems/Collision/Collision.hpp
-    src/systems/Dead/Dead.cpp
-    src/systems/Dead/Dead.hpp
-    src/systems/Starfield/Starfield.cpp
-    src/systems/Starfield/Starfield.hpp
-    src/systems/StarRender/StarRender.cpp
-    src/systems/StarRender/StarRender.hpp
+    src/systems/RenderSprite/RenderSprite.cpp
+    src/systems/RenderSprite/RenderSprite.hpp
+    src/systems/Tuple.hpp
+    src/utils/EntityMap/EntityMap.cpp
+    src/utils/EntityMap/EntityMap.hpp
+    src/utils/ThreadQueue.hpp
     src/main.cpp)
 
 add_executable(r-type_client ${SOURCES})
@@ -135,12 +98,14 @@ if (WIN32)
     target_compile_definitions(r-type_client PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX NOGDI NOUSER)
 endif()
 
-target_include_directories(r-type_client PUBLIC include
-                                         PUBLIC lib/wrecks/include)
+target_include_directories(r-type_client PUBLIC  include
+                                         PUBLIC  lib/wrecks/include
+                                         PUBLIC  lib/protecs/include
+                                         PRIVATE lib/raylib/src)
 
 target_link_libraries(r-type_client PUBLIC wrecks
                                     PUBLIC protecs
-                                    PUBLIC rtype_render)
+                                    PUBLIC raylib)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     add_subdirectory(tests)
