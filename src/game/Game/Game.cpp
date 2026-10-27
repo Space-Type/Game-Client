@@ -150,11 +150,6 @@ void RType::Game::Game::handleEvents()
 
 namespace Packets = Protecs::Networking::Packets;
 
-void RType::Game::Game::EventHandler::operator()(const Packets::EntityAddComponent& data)
-{
-
-}
-
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityComponentData& data)
 {
     auto localEntity = game.m_EntityMap.toLocal(data.entity);
@@ -179,6 +174,27 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityDelete& da
     auto localEntity = game.m_EntityMap.toLocal(data.id);
     game.m_Engine.deleteEntity(localEntity);
     game.m_EntityMap.removeNetwork(data.id);
+}
+
+void RType::Game::Game::EventHandler::operator()(const Packets::EntityList& data)
+{
+    for (auto& [netEntity, signature] : data.entities) {
+        Wrecks::ECS::Entity localEntity;
+
+        if (game.m_EntityMap.containsNetwork(netEntity)) {
+            localEntity = game.m_EntityMap.toLocal(netEntity);
+        } else {
+            localEntity = game.m_Engine.createEntity();
+            game.m_EntityMap.bind(netEntity, localEntity);
+        }
+
+        auto localSignature = game.m_Engine.entitySignature(localEntity);
+
+        if (signature == localSignature)
+            continue;
+
+        // TODO: send request to sync entity
+    }
 }
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityRemoveComponent& data)
