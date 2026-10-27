@@ -36,6 +36,24 @@ auto RType::Utils::EntityMap::toNetwork(Wrecks::ECS::Entity entity) const -> Pro
 }
 
 /**
+ * Determines of the map contains
+ * the given local entity.
+ */
+bool RType::Utils::EntityMap::containsLocal(Wrecks::ECS::Entity local) const noexcept
+{
+    return m_LocalToNetwork.contains(local);
+}
+
+/**
+ * Determines of the map contains
+ * the given network entity.
+ */
+bool RType::Utils::EntityMap::containsNetwork(Protecs::NetworkEntity network) const noexcept
+{
+    return m_NetworkToLocal.contains(network);
+}
+
+/**
  * Binds a network id to
  * a local entity id. On
  * success, returns true.

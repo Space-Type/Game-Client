@@ -27,6 +27,12 @@ namespace RType::Utils {
             Protecs::NetworkEntity toNetwork(Wrecks::ECS::Entity entity) const;
             Protecs::NetworkEntity toNetwork(Protecs::NetworkEntity entity) const = delete;
 
+            bool containsLocal(Wrecks::ECS::Entity local) const noexcept;
+            bool containsLocal(Protecs::NetworkEntity local) const noexcept = delete;
+
+            bool containsNetwork(Protecs::NetworkEntity network) const noexcept;
+            bool containsNetwork(Wrecks::ECS::Entity network) const noexcept = delete;
+
             bool bind(Protecs::NetworkEntity network, Wrecks::ECS::Entity local);
             bool bind(Wrecks::ECS::Entity a, Protecs::NetworkEntity b) = delete;
 
