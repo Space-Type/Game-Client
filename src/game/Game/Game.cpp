@@ -217,6 +217,11 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityList& data
 
         if (signature == localSignature)
             continue;
+
+        game.m_Client.send(Packets::EntitySyncComponents{
+            .entity = netEntity,
+            .signature = localSignature,
+        });
     }
 }
 
