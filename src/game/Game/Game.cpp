@@ -176,6 +176,10 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityComponentD
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& data)
 {
+    // Already added, nothing to do
+    if (game.m_EntityMap.containsNetwork(data.id))
+        return;
+
     auto entity = game.m_Engine.createEntity();
     game.m_EntityMap.bind(data.id, entity);
 
@@ -188,6 +192,10 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& da
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityDelete& data)
 {
+    // Already deleted, nothing to do
+    if (!game.m_EntityMap.containsNetwork(data.id))
+        return;
+
     auto localEntity = game.m_EntityMap.toLocal(data.id);
     game.m_Engine.deleteEntity(localEntity);
     game.m_EntityMap.removeNetwork(data.id);
@@ -209,14 +217,11 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityList& data
 
         if (signature == localSignature)
             continue;
-
-        // TODO: send request to sync entity
     }
 }
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityRemoveComponent& data)
 {
-
 }
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntitySyncComponents& data)
