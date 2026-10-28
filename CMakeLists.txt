@@ -35,8 +35,13 @@ if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-add_subdirectory(lib/wrecks)
-add_subdirectory(lib/protecs)
+if (NOT TARGET wrecks)
+    add_subdirectory(lib/wrecks)
+endif()
+if (NOT TARGET protecs)
+    add_subdirectory(lib/protecs)
+endif()
+
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
