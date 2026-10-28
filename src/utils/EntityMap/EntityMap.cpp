@@ -7,7 +7,9 @@
 */
 
 #include "EntityMap.hpp"
-#include "protecs/common.hpp"
+#include <rtype/errors.hpp>
+#include <protecs/common.hpp>
+#include <stdexcept>
 
 
 RType::Utils::EntityMap::EntityMap() noexcept
@@ -23,7 +25,11 @@ RType::Utils::EntityMap::EntityMap() noexcept
  */
 auto RType::Utils::EntityMap::toLocal(Protecs::NetworkEntity entity) const -> Wrecks::ECS::Entity
 {
-    return m_NetworkToLocal.at(entity);
+    try {
+        return m_NetworkToLocal.at(entity);
+    } catch (const std::out_of_range& err) {
+        throw Errors::Error("failed to find network entity in entity map", err);
+    }
 }
 
 /**
@@ -32,7 +38,11 @@ auto RType::Utils::EntityMap::toLocal(Protecs::NetworkEntity entity) const -> Wr
  */
 auto RType::Utils::EntityMap::toNetwork(Wrecks::ECS::Entity entity) const -> Protecs::NetworkEntity
 {
-    return m_LocalToNetwork.at(entity);
+    try {
+        return m_LocalToNetwork.at(entity);
+    } catch (const std::out_of_range& err) {
+        throw Errors::Error("failed to find local entity in entity map", err);
+    }
 }
 
 /**
