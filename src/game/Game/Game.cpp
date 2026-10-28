@@ -7,8 +7,10 @@
 */
 
 #include "Game.hpp"
+#include <rtype/errors.hpp>
 #include <algorithm>
 #include <chrono>
+#include <stdexcept>
 #include <thread>
 
 
@@ -163,7 +165,13 @@ namespace Packets = Protecs::Networking::Packets;
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityComponentData& data)
 {
-    auto localEntity = game.m_EntityMap.toLocal(data.entity);
+    Wrecks::ECS::Entity localEntity;
+
+    try {
+        localEntity = game.m_EntityMap.toLocal(data.entity);
+    } catch (const Errors::Error& err) {
+        throw Errors::NetworkError("EntityComponentData: no such entity", err);
+    }
 
     std::visit([&, localEntity](auto& data){
         using Component = std::decay_t<decltype(data)>;
@@ -176,6 +184,10 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityComponentD
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& data)
 {
+    // Already added, nothing to do
+    if (game.m_EntityMap.containsNetwork(data.id))
+        return;
+
     auto entity = game.m_Engine.createEntity();
     game.m_EntityMap.bind(data.id, entity);
 
@@ -188,6 +200,10 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& da
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityDelete& data)
 {
+    // Already deleted, nothing to do
+    if (!game.m_EntityMap.containsNetwork(data.id))
+        return;
+
     auto localEntity = game.m_EntityMap.toLocal(data.id);
     game.m_Engine.deleteEntity(localEntity);
     game.m_EntityMap.removeNetwork(data.id);
@@ -195,7 +211,10 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityDelete& da
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityList& data)
 {
-    for (auto& [netEntity, signature] : data.entities) {
+    for (auto [netEntity, signature] : data.entities) {
+    }
+
+    for (auto [netEntity, signature] : data.entities) {
         Wrecks::ECS::Entity localEntity;
 
         if (game.m_EntityMap.containsNetwork(netEntity)) {
@@ -205,18 +224,42 @@ void RType::Game::Game::EventHandler::operator()(const Packets::EntityList& data
             game.m_EntityMap.bind(netEntity, localEntity);
         }
 
-        auto localSignature = game.m_Engine.entitySignature(localEntity);
+        // local components don't matter, only shared ones
+        auto localSignature = game.m_Engine.entitySignature(localEntity) & Protecs::Components::Manager::mask();
 
         if (signature == localSignature)
             continue;
 
-        // TODO: send request to sync entity
+        game.m_Client.send(Packets::EntitySyncComponents{
+            .entity = netEntity,
+            .signature = localSignature,
+        });
     }
 }
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntityRemoveComponent& data)
 {
 
+    Wrecks::ECS::Entity localEntity;
+
+    try {
+        localEntity = game.m_EntityMap.toLocal(data.entity);
+    } catch (const Errors::Error& err) {
+        throw Errors::NetworkError("EntityRemoveComponent: no such entity", err);
+    }
+
+    try {
+        Wrecks::Utils::visitType<Protecs::Components::Variant>([&](auto type){
+            using Component = decltype(type)::type;
+
+            if (!game.m_Engine.hasComponent<Component>(localEntity))
+                return;
+
+            game.m_Engine.removeComponent<Component>(localEntity);
+        }, data.type);
+    } catch (const std::out_of_range& err) {
+        throw Errors::NetworkError("EntityRemoveComponent: unknown component type", err);
+    }
 }
 
 void RType::Game::Game::EventHandler::operator()(const Packets::EntitySyncComponents& data)
