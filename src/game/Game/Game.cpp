@@ -30,9 +30,9 @@ RType::Game::Game::Game()
 {
     setFPS(120);
 
+    m_Engine.get<Systems::PlayerInput>().setInput(m_Input);
+    m_Engine.get<Systems::PlayerInput>().setControls(m_Controls);
     m_Engine.get<Systems::RenderSprite>().setRenderer(m_Renderer);
-    m_Engine.get<Systems::Controllable>().setInput(m_Input);
-    m_Engine.get<Systems::Controllable>().setControls(m_Controls);
 
     m_Resources.loadTexture(Render::assetPath("spaceship.png"));
     m_Resources.loadTexture(Render::assetPath("blueshoot.png"));
