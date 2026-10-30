@@ -10,8 +10,12 @@
 #include <rtype/errors.hpp>
 #include <algorithm>
 #include <chrono>
+#include <exception>
+#include <optional>
 #include <stdexcept>
+#include <string>
 #include <thread>
+#include <utility>
 
 
 RType::Game::Game::Game()
@@ -28,8 +32,18 @@ RType::Game::Game::Game()
     , m_Input(m_Window)
     , m_Controls(defaultControls())
     , m_TargetDuration()
-    , m_FixedUpdateRate()
     , m_Session()
+    , m_Context{
+        .window = m_Window,
+        .renderer = m_Renderer,
+        .input = m_Input,
+        .resources = m_Resources,
+        .controls = m_Controls,
+        .session = m_Session,
+        .fixedUpdateRate = {},
+        .message = {},
+    }
+    , m_Scenes()
 {
     setFPS(120);
 
@@ -55,7 +69,7 @@ void RType::Game::Game::setFPS(double targetFPS) noexcept
     using seconds = std::chrono::duration<double>;
 
     m_TargetDuration  = seconds(1.0 / targetFPS);
-    m_FixedUpdateRate = seconds(FIXED_UPDATES_PER_FPS / targetFPS);
+    m_Context.fixedUpdateRate = seconds(FIXED_UPDATES_PER_FPS / targetFPS);
 }
 
 /**
@@ -67,9 +81,6 @@ void RType::Game::Game::run()
 {
     std::chrono::time_point frameStart = std::chrono::steady_clock::now();
     Wrecks::DeltaTime prevDelta = m_TargetDuration;
-
-    m_Session = std::make_unique<Session>(m_Resources, m_Renderer, m_Input, m_Controls, m_FixedUpdateRate);
-    m_Session->connect("John Doe");  // TODO: make this the player's ign
 
     while (!m_Window.shouldClose()) {
         update(prevDelta);
@@ -89,16 +100,51 @@ void RType::Game::Game::run()
 }
 
 /**
- * Runs a single game update: the session
- * update, then the session render.
+ * Runs a single game update:
+ *
+ * - session update (if in a game)
+ * - scene update
+ * - render: session, then scene on top
+ * - scene change (if any was requested)
+ *
+ * A session ended by the server, or
+ * failing on a network error, leads
+ * to the GameOver scene, whatever the
+ * active scene requested.
  */
 void RType::Game::Game::update(Wrecks::DeltaTime dt)
 {
-    m_Session->update(dt);
+    std::optional<std::string> endMessage;
+
+    if (m_Session) {
+        m_Session->setControlsEnabled(m_Scenes.current() == Scenes::SceneId::InGame);
+        try {
+            m_Session->update(dt);
+            if (m_Session->ended())
+                endMessage = m_Session->endReason();
+        } catch (const std::exception& err) {
+            endMessage = std::string("Network error: ") + err.what();
+        }
+    }
+
+    m_Scenes.update(m_Context, dt);
+
+    // After the scene update: GameOver wins over its request
+    if (endMessage) {
+        m_Context.message = std::move(*endMessage);
+        m_Session.reset();
+        m_Scenes.request(Scenes::SceneId::GameOver);
+    }
 
     m_Window.beginFrame(Render::Colors::BLACK);
-    m_Session->render(dt);
+    if (m_Session)
+        m_Session->render(dt);
+    m_Scenes.render(m_Context);
     m_Window.endFrame();
+
+    m_Scenes.applyPending();
+    if (m_Scenes.quitRequested())
+        m_Window.close();
 
     // FIXME: remove (shouldn't be here)
     // m_Audio.update();

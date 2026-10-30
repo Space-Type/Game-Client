@@ -87,8 +87,20 @@ set(SOURCES
     src/render/InputTypes.hpp
     src/render/Log.hpp
     src/render/Types.hpp
+    src/scenes/Connecting/Connecting.cpp
+    src/scenes/Connecting/Connecting.hpp
+    src/scenes/GameOver/GameOver.cpp
+    src/scenes/GameOver/GameOver.hpp
+    src/scenes/InGame/InGame.cpp
+    src/scenes/InGame/InGame.hpp
     src/scenes/Manager/Manager.hpp
+    src/scenes/Menu/Menu.cpp
+    src/scenes/Menu/Menu.hpp
+    src/scenes/Paused/Paused.cpp
+    src/scenes/Paused/Paused.hpp
+    src/scenes/Context.hpp
     src/scenes/SceneId.hpp
+    src/scenes/Text.hpp
     src/systems/Controllable/Controllable.cpp
     src/systems/Controllable/Controllable.hpp
     src/systems/RenderSprite/RenderSprite.cpp

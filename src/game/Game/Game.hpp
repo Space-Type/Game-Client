@@ -11,6 +11,7 @@
 #include "../Controls/Controls.hpp"
 #include "../Session/Session.hpp"
 #include <rtype/render.hpp>
+#include <rtype/scenes.hpp>
 #include <protecs/common.hpp>
 #include <memory>
 
@@ -21,6 +22,13 @@ namespace RType::Game {
     class Game {
         static constexpr double FIXED_UPDATES_PER_FPS = 2.0;
 
+        using SceneManager = Scenes::Manager<Scenes::Context,
+                                             Scenes::Menu,
+                                             Scenes::Connecting,
+                                             Scenes::InGame,
+                                             Scenes::Paused,
+                                             Scenes::GameOver>;
+
         Render::Window m_Window;  // first: outlives everything that depends on it
         Render::Resources m_Resources;
         Render::Audio m_Audio;
@@ -29,9 +37,10 @@ namespace RType::Game {
         Controls m_Controls;
 
         Wrecks::DeltaTime m_TargetDuration;
-        Wrecks::DeltaTime m_FixedUpdateRate;
 
         std::unique_ptr<Session> m_Session;  // after the window and resources it uses
+        Scenes::Context m_Context;           // after everything it refers to
+        SceneManager m_Scenes;
 
         public:
             static constexpr int VIRTUAL_WIDTH = 1280;
