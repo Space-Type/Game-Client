@@ -11,6 +11,7 @@
 #include "../Controls/Controls.hpp"
 #include "../Session/Session.hpp"
 #include <rtype/render.hpp>
+#include <protecs/common.hpp>
 #include <memory>
 
 
@@ -33,6 +34,12 @@ namespace RType::Game {
         std::unique_ptr<Session> m_Session;  // after the window and resources it uses
 
         public:
+            static constexpr int VIRTUAL_WIDTH = 1280;
+            static constexpr int VIRTUAL_HEIGHT = 720;
+
+            // The game world stays Protecs' (shared with the server), scaled at render time
+            static constexpr float WORLD_TO_SCREEN = VIRTUAL_WIDTH / Protecs::POSITION_MAX_X;
+
             Game();
 
             inline void stop() noexcept { m_Window.close(); }
@@ -43,4 +50,7 @@ namespace RType::Game {
         private:
             void update(Wrecks::DeltaTime delta);
     };
+
+    static_assert(Game::VIRTUAL_WIDTH * Protecs::POSITION_MAX_Y == Game::VIRTUAL_HEIGHT * Protecs::POSITION_MAX_X,
+                  "the virtual screen and the game world must have the same aspect ratio");
 }

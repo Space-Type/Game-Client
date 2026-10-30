@@ -15,7 +15,13 @@
 
 
 RType::Game::Game::Game()
-    : m_Window({.title = "Spaceship demo", .width = 800, .height = 450, .virtualWidth = 800, .virtualHeight = 450})
+    : m_Window({
+        .title = "R-Type",
+        .width = VIRTUAL_WIDTH,
+        .height = VIRTUAL_HEIGHT,
+        .virtualWidth = VIRTUAL_WIDTH,
+        .virtualHeight = VIRTUAL_HEIGHT,
+    })
     , m_Resources(m_Window)
     , m_Audio()
     , m_Renderer(m_Resources)
