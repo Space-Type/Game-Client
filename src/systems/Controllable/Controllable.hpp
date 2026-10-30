@@ -12,6 +12,7 @@ namespace RType::Systems {
         void* m_Engine;
         const RType::Render::Input* m_Input;
         const Game::Controls* m_Controls;
+        bool m_Enabled;
 
         public:
             static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
@@ -31,6 +32,7 @@ namespace RType::Systems {
             inline void setEngine(void* engine) noexcept { m_Engine = engine; }
             inline void setInput(const RType::Render::Input& input) noexcept { m_Input = &input; }
             inline void setControls(const Game::Controls& controls) noexcept { m_Controls = &controls; }
+            inline void setEnabled(bool enabled) noexcept { m_Enabled = enabled; }
 
             void operator()(Wrecks::ECS::Entity entity, Wrecks::DeltaTime dt);
     };

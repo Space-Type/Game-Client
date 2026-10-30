@@ -60,6 +60,8 @@ set(SOURCES
     src/game/Client/Client.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
+    src/game/Session/Session.cpp
+    src/game/Session/Session.hpp
     src/game/Engine.hpp
     src/render/Assets/Assets.cpp
     src/render/Assets/Assets.hpp
