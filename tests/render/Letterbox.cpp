@@ -177,5 +177,5 @@ TEST(render_Letterbox, minimizedWindowGivesOrigin)
 {
     RType::Render::Rect viewport = RType::Render::computeViewport({0.0F, 0.0F}, VIRTUAL);
 
-    EXPECT_EQ(RType::Render::screenToVirtual({100.0F, 100.0F}, viewport, VIRTUAL), RType::Render::Vec2{});
+    EXPECT_EQ(RType::Render::screenToVirtual({100.0F, 100.0F}, viewport, VIRTUAL), RType::Render::Vec2D{});
 }
