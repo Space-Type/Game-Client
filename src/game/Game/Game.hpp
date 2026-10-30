@@ -22,6 +22,9 @@ namespace RType::Game {
     class Game {
         static constexpr double FIXED_UPDATES_PER_FPS = 2.0;
 
+        // Not black: the bars must stand out from the game's background
+        static constexpr Render::Color LETTERBOX_COLOR = { .r = 40, .g = 40, .b = 40, .a = 255 };
+
         using SceneManager = Scenes::Manager<Scenes::Context,
                                              Scenes::Menu,
                                              Scenes::Connecting,

@@ -140,7 +140,7 @@ void RType::Game::Game::update(Wrecks::DeltaTime dt)
     if (m_Session)
         m_Session->render(dt);
     m_Scenes.render(m_Context);
-    m_Window.endFrame();
+    m_Window.endFrame(LETTERBOX_COLOR);
 
     m_Scenes.applyPending();
     if (m_Scenes.quitRequested())
