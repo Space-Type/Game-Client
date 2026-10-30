@@ -14,4 +14,5 @@
 #include "rtype/errors.hpp"
 #include "rtype/systems.hpp"
 #include "rtype/game.hpp"
+#include "rtype/scenes.hpp"
 #include "rtype/utils.hpp"

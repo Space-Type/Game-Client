@@ -87,6 +87,8 @@ set(SOURCES
     src/render/InputTypes.hpp
     src/render/Log.hpp
     src/render/Types.hpp
+    src/scenes/Manager/Manager.hpp
+    src/scenes/SceneId.hpp
     src/systems/Controllable/Controllable.cpp
     src/systems/Controllable/Controllable.hpp
     src/systems/RenderSprite/RenderSprite.cpp

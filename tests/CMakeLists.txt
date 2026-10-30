@@ -28,7 +28,8 @@ set(TEST_SOURCES
     render/KeyMap.cpp
     render/KeyNames.cpp
     render/Letterbox.cpp
-    render/Types.cpp)
+    render/Types.cpp
+    scenes/Manager.cpp)
 
 add_executable(rtype_tests ${TEST_SOURCES})
 
