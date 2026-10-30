@@ -25,9 +25,11 @@ void RType::Systems::RenderSprite::operator()(Wrecks::ECS::Entity entity, Wrecks
     auto& transform = engine.get<Protecs::Components::Transform>()[entity];
     auto& sprite = engine.get<Components::Sprite>()[entity];
 
+    float scale = transform.scale * Game::Game::WORLD_TO_SCREEN;
+
     m_Renderer->drawSprite(sprite.texture, {
-        .position = transform.position,
+        .position = transform.position * Game::Game::WORLD_TO_SCREEN,
         .rotation = transform.rotation,
-        .scale = { .x = transform.scale, .y = transform.scale },
+        .scale = { .x = scale, .y = scale },
     });
 }
