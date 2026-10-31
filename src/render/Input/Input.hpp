@@ -43,6 +43,13 @@ namespace RType::Render {
              */
             std::optional<Key> nextPressed() noexcept;
 
+            /**
+             * Pops the next character typed this frame from
+             * the queue (Unicode code point, following the
+             * keyboard layout), nullopt once empty.
+             */
+            std::optional<char32_t> nextChar() noexcept;
+
             bool isDown(MouseButton button) const noexcept;
             bool isPressed(MouseButton button) const noexcept;
             bool isReleased(MouseButton button) const noexcept;
