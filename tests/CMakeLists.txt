@@ -29,7 +29,10 @@ set(TEST_SOURCES
     render/KeyNames.cpp
     render/Letterbox.cpp
     render/Types.cpp
-    scenes/Manager.cpp)
+    scenes/Manager.cpp
+    ui/Form.cpp
+    ui/TextField.cpp
+    ui/Theme.cpp)
 
 add_executable(rtype_tests ${TEST_SOURCES})
 

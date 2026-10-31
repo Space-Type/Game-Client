@@ -87,6 +87,8 @@ set(SOURCES
     src/render/InputTypes.hpp
     src/render/Log.hpp
     src/render/Types.hpp
+    src/scenes/Menu/Menu.cpp
+    src/scenes/Menu/Menu.hpp
     src/scenes/Connecting/Connecting.cpp
     src/scenes/Connecting/Connecting.hpp
     src/scenes/GameOver/GameOver.cpp
@@ -94,8 +96,6 @@ set(SOURCES
     src/scenes/InGame/InGame.cpp
     src/scenes/InGame/InGame.hpp
     src/scenes/Manager/Manager.hpp
-    src/scenes/Menu/Menu.cpp
-    src/scenes/Menu/Menu.hpp
     src/scenes/Paused/Paused.cpp
     src/scenes/Paused/Paused.hpp
     src/scenes/Context.hpp
@@ -106,6 +106,17 @@ set(SOURCES
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
+    src/ui/Button/Button.cpp
+    src/ui/Button/Button.hpp
+    src/ui/Form/Form.cpp
+    src/ui/Form/Form.hpp
+    src/ui/FrameInput/FrameInput.cpp
+    src/ui/FrameInput/FrameInput.hpp
+    src/ui/MenuControls/MenuControls.cpp
+    src/ui/MenuControls/MenuControls.hpp
+    src/ui/TextField/TextField.cpp
+    src/ui/TextField/TextField.hpp
+    src/ui/Theme.hpp
     src/utils/EntityMap/EntityMap.cpp
     src/utils/EntityMap/EntityMap.hpp
     src/utils/ThreadQueue.hpp)
