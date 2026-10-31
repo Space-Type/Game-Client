@@ -33,20 +33,22 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
 
 RType::Game::Session::~Session()
 {
-    // ~Client would let a failed disconnect throw
+    // A failed goodbye must not get in the way of ending the session
     try {
         m_Client.disconnect();
     } catch (...) {
     }
 }
 
-/**
- * Joins the server as `name`.
- * Blocks until the server answers.
- */
-void RType::Game::Session::connect(std::string_view name)
+void RType::Game::Session::beginConnect(const Protecs::Networking::Address& server, std::string_view name,
+                                        std::chrono::milliseconds timeout)
 {
-    m_Client.connect(name);
+    m_Client.beginConnect(server, name, timeout);
+}
+
+bool RType::Game::Session::pollConnect()
+{
+    return m_Client.pollConnect();
 }
 
 /**

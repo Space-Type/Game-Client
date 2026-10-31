@@ -23,13 +23,18 @@ FetchContent_MakeAvailable(googletest)
 
 # Only headless tests: nothing here opens a window or an audio device
 set(TEST_SOURCES
+    game/Client.cpp
+    game/ConnectionInfo.cpp
     render/ActionMap.cpp
     render/Concepts.cpp
     render/KeyMap.cpp
     render/KeyNames.cpp
     render/Letterbox.cpp
     render/Types.cpp
-    scenes/Manager.cpp)
+    scenes/Manager.cpp
+    ui/Form.cpp
+    ui/TextField.cpp
+    ui/Theme.cpp)
 
 add_executable(rtype_tests ${TEST_SOURCES})
 

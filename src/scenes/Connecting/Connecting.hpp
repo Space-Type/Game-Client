@@ -15,7 +15,7 @@
 
 
 namespace RType::Scenes {
-    // Opens the session, shows a message while the connection blocks
+    // Opens the session on Context::connection, without blocking the window
     class Connecting {
         bool m_Started;
 

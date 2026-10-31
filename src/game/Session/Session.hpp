@@ -27,8 +27,7 @@ namespace RType::Game {
      * thread of the client refers to it.
      */
     class Session {
-        // Catch-up guard: a long frame (e.g. the blocking connect)
-        // never replays more than this much game time
+        // Catch-up guard: a long frame never replays more than this much game time
         static constexpr Wrecks::DeltaTime MAX_ACCUMULATED_DELTA = std::chrono::duration<double>(0.25);
 
         Render::Resources& m_Resources;
@@ -54,7 +53,10 @@ namespace RType::Game {
             Session& operator=(const Session&) = delete;
             Session& operator=(Session&&) = delete;
 
-            void connect(std::string_view name);
+            // See Client::beginConnect and Client::pollConnect
+            void beginConnect(const Protecs::Networking::Address& server, std::string_view name,
+                              std::chrono::milliseconds timeout = Client::CONNECT_TIMEOUT);
+            bool pollConnect();
 
             void update(Wrecks::DeltaTime dt);
             void render(Wrecks::DeltaTime dt);

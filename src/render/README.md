@@ -104,6 +104,7 @@ gameplay does not depend on the frame rate (a subject requirement).
 `ActionMap<A>` binds game actions (any enum) to keys, mouse buttons, gamepad
 buttons and gamepad axes. Bindings can be changed at runtime, for a remapping menu
 (accessibility). `Input::nextPressed()` and `keyName()` help build that menu.
+`Input::nextChar()` gives the characters typed this frame, for text fields.
 
 ```cpp
 enum class Action { Up, Shoot };
