@@ -11,7 +11,7 @@
 
 void unsafeMain(int argc, char *argv[])
 {
-    RType::Game::Game game;
+    RType::Game::Game game(RType::Game::parseArguments(argc, argv));
 
     game.setFPS(120);
     game.run();
