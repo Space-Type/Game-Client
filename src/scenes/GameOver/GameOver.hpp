@@ -15,7 +15,7 @@
 
 
 namespace RType::Scenes {
-    // End of a game or failed connection: shows Context::message
+    // End of a game: shows Context::message
     class GameOver {
         public:
             std::optional<SceneId> update(Context& ctx, Wrecks::DeltaTime dt);

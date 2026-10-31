@@ -54,6 +54,8 @@ set(SOURCES
     src/errors/GraphicsError/GraphicsError.hpp
     src/errors/NetworkError/NetworkError.cpp
     src/errors/NetworkError/NetworkError.hpp
+    src/game/ConnectionInfo/ConnectionInfo.cpp
+    src/game/ConnectionInfo/ConnectionInfo.hpp
     src/game/Controls/Controls.cpp
     src/game/Controls/Controls.hpp
     src/game/Client/Client.cpp
@@ -87,8 +89,8 @@ set(SOURCES
     src/render/InputTypes.hpp
     src/render/Log.hpp
     src/render/Types.hpp
-    src/scenes/Menu/Menu.cpp
-    src/scenes/Menu/Menu.hpp
+    src/scenes/Connect/Connect.cpp
+    src/scenes/Connect/Connect.hpp
     src/scenes/Connecting/Connecting.cpp
     src/scenes/Connecting/Connecting.hpp
     src/scenes/GameOver/GameOver.cpp

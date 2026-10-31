@@ -14,7 +14,7 @@ auto RType::Scenes::GameOver::update(Context& ctx, Wrecks::DeltaTime) -> std::op
 {
     if (ctx.input.isPressed(Render::Key::Enter) || ctx.input.isPressed(ctx.controls.gamepad(), Render::GamepadButton::A)) {
         ctx.message.clear();
-        return SceneId::Menu;
+        return SceneId::Connect;
     }
     return std::nullopt;
 }
