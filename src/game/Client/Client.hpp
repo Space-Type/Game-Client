@@ -46,5 +46,6 @@ namespace RType::Game {
 
         private:
             void run();
+            void update();
     };
 }

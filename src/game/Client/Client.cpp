@@ -8,6 +8,7 @@
 
 #include "Client.hpp"
 #include <rtype/errors.hpp>
+#include <iostream>
 
 
 using Protecs::Networking::Packet;
@@ -102,19 +103,39 @@ void RType::Game::Client::swap(Client& other) noexcept
 void RType::Game::Client::run()
 {
     while (isConnected()) {
-        auto packetToSend = m_OutgoingPackets.pop();
-        while (packetToSend) {
-            auto packet = Packet::serialize(*packetToSend);
-            m_Client.send(packet, m_ServerAddr);
-            packetToSend = m_OutgoingPackets.pop();
+        try {
+            update();
+        } catch (const Errors::Error& err) {
+            std::cerr << err.what() << std::endl;
+        } catch (const std::exception& err) {
+            std::cerr << err.what() << std::endl;
+        } catch (...) {
+            std::cerr << "unknown error" << std::endl;
         }
-
-        if (!m_Client.pollReceive(1000))
-            continue;
-
-        // TODO: ensure packet is from server, not from John Mckligzgy
-        Packet packet;
-        m_Client.receive(packet);
-        m_IncomingPackets.push(packet.deserialize());
     }
+}
+
+void RType::Game::Client::update()
+{
+    auto packetToSend = m_OutgoingPackets.pop();
+    while (packetToSend) {
+        auto packet = Packet::serialize(*packetToSend);
+        m_Client.send(packet, m_ServerAddr);
+        packetToSend = m_OutgoingPackets.pop();
+    }
+
+    if (!m_Client.pollReceive(1000))
+        return;
+
+    // TODO: ensure packet is from server, not from John Mckligzgy
+    Packet packet;
+    m_Client.receive(packet);
+
+    Packets::PacketData data;
+    try {
+        data = packet.deserialize();
+    } catch (const std::exception& err) {
+        throw Errors::NetworkError("failed to deserialize server data", err);
+    }
+    m_IncomingPackets.push(std::move(data));
 }
