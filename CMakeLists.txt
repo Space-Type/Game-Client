@@ -103,8 +103,8 @@ set(SOURCES
     src/scenes/Context.hpp
     src/scenes/SceneId.hpp
     src/scenes/Text.hpp
-    src/systems/Controllable/Controllable.cpp
-    src/systems/Controllable/Controllable.hpp
+    src/systems/PlayerInput/PlayerInput.cpp
+    src/systems/PlayerInput/PlayerInput.hpp
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp

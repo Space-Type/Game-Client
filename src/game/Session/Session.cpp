@@ -27,8 +27,8 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_Client()
 {
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
-    m_Engine.get<Systems::Controllable>().setInput(input);
-    m_Engine.get<Systems::Controllable>().setControls(controls);
+    m_Engine.get<Systems::PlayerInput>().setInput(input);
+    m_Engine.get<Systems::PlayerInput>().setControls(controls);
 }
 
 RType::Game::Session::~Session()
@@ -108,7 +108,7 @@ void RType::Game::Session::render(Wrecks::DeltaTime dt)
 
 void RType::Game::Session::setControlsEnabled(bool enabled) noexcept
 {
-    m_Engine.get<Systems::Controllable>().setEnabled(enabled);
+    m_Engine.get<Systems::PlayerInput>().setEnabled(enabled);
 }
 
 void RType::Game::Session::handleEvents()
