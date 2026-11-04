@@ -10,29 +10,42 @@
 #include <rtype/errors.hpp>
 #include <algorithm>
 #include <chrono>
+#include <exception>
+#include <optional>
 #include <stdexcept>
+#include <string>
 #include <thread>
+#include <utility>
 
 
 RType::Game::Game::Game()
-    : m_Window({.title = "Spaceship demo", .width = 800, .height = 450, .virtualWidth = 800, .virtualHeight = 450})
+    : m_Window({
+        .title = "R-Type",
+        .width = VIRTUAL_WIDTH,
+        .height = VIRTUAL_HEIGHT,
+        .virtualWidth = VIRTUAL_WIDTH,
+        .virtualHeight = VIRTUAL_HEIGHT,
+    })
     , m_Resources(m_Window)
     , m_Audio()
     , m_Renderer(m_Resources)
     , m_Input(m_Window)
     , m_Controls(defaultControls())
-    , m_Engine()
     , m_TargetDuration()
-    , m_FixedUpdateRate()
-    , m_AccumulatedDelta()
-    , m_EntityMap()
-    , m_Client()
+    , m_Session()
+    , m_Context{
+        .window = m_Window,
+        .renderer = m_Renderer,
+        .input = m_Input,
+        .resources = m_Resources,
+        .controls = m_Controls,
+        .session = m_Session,
+        .fixedUpdateRate = {},
+        .message = {},
+    }
+    , m_Scenes()
 {
     setFPS(120);
-
-    m_Engine.get<Systems::RenderSprite>().setRenderer(m_Renderer);
-    m_Engine.get<Systems::Controllable>().setInput(m_Input);
-    m_Engine.get<Systems::Controllable>().setControls(m_Controls);
 
     m_Resources.loadTexture(Render::assetPath("spaceship.png"));
     m_Resources.loadTexture(Render::assetPath("blueshoot.png"));
@@ -56,7 +69,7 @@ void RType::Game::Game::setFPS(double targetFPS) noexcept
     using seconds = std::chrono::duration<double>;
 
     m_TargetDuration  = seconds(1.0 / targetFPS);
-    m_FixedUpdateRate = seconds(FIXED_UPDATES_PER_FPS / targetFPS);
+    m_Context.fixedUpdateRate = seconds(FIXED_UPDATES_PER_FPS / targetFPS);
 }
 
 /**
@@ -68,8 +81,6 @@ void RType::Game::Game::run()
 {
     std::chrono::time_point frameStart = std::chrono::steady_clock::now();
     Wrecks::DeltaTime prevDelta = m_TargetDuration;
-
-    m_Client.connect("John Doe");  // TODO: make this the player's ign
 
     while (!m_Window.shouldClose()) {
         update(prevDelta);
@@ -85,211 +96,56 @@ void RType::Game::Game::run()
         prevDelta = delta + sleepTime;
     }
 
-    m_Client.disconnect();
+    m_Session.reset();
 }
 
 /**
- * Runs a single game update.
+ * Runs a single game update:
  *
- * Game updates are divided into
- * 3 steps, in the following order:
+ * - session update (if in a game)
+ * - scene update
+ * - render: session, then scene on top
+ * - scene change (if any was requested)
  *
- * - fixed updates (if any)
- * - frame update
- * - render update
- *
- * Multiple or no fixed updates can
- * occur in a single frame to ensure
- * that for a given time period n,
- * fixed updates are called n*R times
- * (where R is the fixed update rate).
- *
- * As such, if the game is laggy, multiple
- * fixed updates may have to occur in a single
- * call to update() (so as to catch up to the
- * updates that should've occurred in the elapsed
- * time). On the other hand, if the game is running
- * very smoothly, there may be no fixed updates.
+ * A session ended by the server, or
+ * failing on a network error, leads
+ * to the GameOver scene, whatever the
+ * active scene requested.
  */
 void RType::Game::Game::update(Wrecks::DeltaTime dt)
 {
-    handleEvents();
+    std::optional<std::string> endMessage;
 
-    m_AccumulatedDelta += dt;
-    while (m_AccumulatedDelta >= m_FixedUpdateRate) {
-        m_Engine.fixedUpdate(m_FixedUpdateRate);
-        m_AccumulatedDelta -= m_FixedUpdateRate;
+    if (m_Session) {
+        m_Session->setControlsEnabled(m_Scenes.current() == Scenes::SceneId::InGame);
+        try {
+            m_Session->update(dt);
+            if (m_Session->ended())
+                endMessage = m_Session->endReason();
+        } catch (const std::exception& err) {
+            endMessage = std::string("Network error: ") + err.what();
+        }
     }
 
-    m_Engine.update(dt);
+    m_Scenes.update(m_Context, dt);
+
+    // After the scene update: GameOver wins over its request
+    if (endMessage) {
+        m_Context.message = std::move(*endMessage);
+        m_Session.reset();
+        m_Scenes.request(Scenes::SceneId::GameOver);
+    }
 
     m_Window.beginFrame(Render::Colors::BLACK);
-    m_Engine.render(dt);
-    m_Window.endFrame();
+    if (m_Session)
+        m_Session->render(dt);
+    m_Scenes.render(m_Context);
+    m_Window.endFrame(LETTERBOX_COLOR);
+
+    m_Scenes.applyPending();
+    if (m_Scenes.quitRequested())
+        m_Window.close();
 
     // FIXME: remove (shouldn't be here)
     // m_Audio.update();
-    // m_Engine.get<Systems::Dead>().flush();
-    // m_Engine.get<Systems::Shoot>().flush();
-}
-
-void RType::Game::Game::handleEvents()
-{
-    auto event = m_Client.receive();
-
-    while (event) {
-        std::visit(EventHandler{ *this }, *event);
-        event = m_Client.receive();
-    }
-}
-
-void RType::Game::Game::initPlayer(Wrecks::ECS::Entity entity)
-{
-    m_Engine.addComponent(entity, Components::Controllable{});
-    m_Engine.addComponent(entity, Components::Sprite{ m_Resources.loadTexture(Render::assetPath("spaceship.png"))});
-}
-
-void RType::Game::Game::initEnemyPataPata(Wrecks::ECS::Entity entity)
-{
-
-}
-
-
-////////////////////////////////////////////////////////////////
-//                                                            //
-//                       Network Events                       //
-//                                                            //
-////////////////////////////////////////////////////////////////
-
-namespace Packets = Protecs::Networking::Packets;
-
-void RType::Game::Game::EventHandler::operator()(const Packets::EntityComponentData& data)
-{
-    Wrecks::ECS::Entity localEntity;
-
-    try {
-        localEntity = game.m_EntityMap.toLocal(data.entity);
-    } catch (const Errors::Error& err) {
-        throw Errors::NetworkError("EntityComponentData: no such entity", err);
-    }
-
-    std::visit([&, localEntity](auto& data){
-        using Component = std::decay_t<decltype(data)>;
-        if (!game.m_Engine.hasComponent<Component>(localEntity))
-            game.m_Engine.addComponent(localEntity, Component{});
-
-        game.m_Engine.get<Component>()[localEntity] = std::move(data);
-    }, data.component);
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::EntityCreate& data)
-{
-    // Already added, nothing to do
-    if (game.m_EntityMap.containsNetwork(data.id))
-        return;
-
-    auto entity = game.m_Engine.createEntity();
-    game.m_EntityMap.bind(data.id, entity);
-
-    switch (data.type) {
-        case Packets::EntityCreate::PLAYER: game.initPlayer(entity); return;
-        case Packets::EntityCreate::ENEMY_PATA_PATA: game.initEnemyPataPata(entity); return;
-        default: return;
-    }
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::EntityDelete& data)
-{
-    // Already deleted, nothing to do
-    if (!game.m_EntityMap.containsNetwork(data.id))
-        return;
-
-    auto localEntity = game.m_EntityMap.toLocal(data.id);
-    game.m_Engine.deleteEntity(localEntity);
-    game.m_EntityMap.removeNetwork(data.id);
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::EntityList& data)
-{
-    for (auto [netEntity, signature] : data.entities) {
-    }
-
-    for (auto [netEntity, signature] : data.entities) {
-        Wrecks::ECS::Entity localEntity;
-
-        if (game.m_EntityMap.containsNetwork(netEntity)) {
-            localEntity = game.m_EntityMap.toLocal(netEntity);
-        } else {
-            localEntity = game.m_Engine.createEntity();
-            game.m_EntityMap.bind(netEntity, localEntity);
-        }
-
-        // local components don't matter, only shared ones
-        auto localSignature = game.m_Engine.entitySignature(localEntity) & Protecs::Components::Manager::mask();
-
-        if (signature == localSignature)
-            continue;
-
-        game.m_Client.send(Packets::EntitySyncComponents{
-            .entity = netEntity,
-            .signature = localSignature,
-        });
-    }
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::EntityRemoveComponent& data)
-{
-
-    Wrecks::ECS::Entity localEntity;
-
-    try {
-        localEntity = game.m_EntityMap.toLocal(data.entity);
-    } catch (const Errors::Error& err) {
-        throw Errors::NetworkError("EntityRemoveComponent: no such entity", err);
-    }
-
-    try {
-        Wrecks::Utils::visitType<Protecs::Components::Variant>([&](auto type){
-            using Component = decltype(type)::type;
-
-            if (!game.m_Engine.hasComponent<Component>(localEntity))
-                return;
-
-            game.m_Engine.removeComponent<Component>(localEntity);
-        }, data.type);
-    } catch (const std::out_of_range& err) {
-        throw Errors::NetworkError("EntityRemoveComponent: unknown component type", err);
-    }
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::EntitySyncComponents& data)
-{
-
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::Ping& data)
-{
-    // reply with a ping to tell the
-    // server you're still alive
-    game.m_Client.send(Packets::Ping{});
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::PlayerId& data)
-{
-
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::PlayerInput& data)
-{
-
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::PlayerJoin& data)
-{
-
-}
-
-void RType::Game::Game::EventHandler::operator()(const Packets::PlayerLeave& data)
-{
-    game.m_Client.disconnect();
 }

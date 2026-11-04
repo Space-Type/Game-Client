@@ -8,8 +8,18 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-# Provided by vcpkg ("tests" feature of vcpkg.json)
-find_package(GTest CONFIG REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+
+# MSVC: use the same (shared) runtime as the tested code
+if (WIN32)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif()
+
+FetchContent_MakeAvailable(googletest)
 
 # Only headless tests: nothing here opens a window or an audio device
 set(TEST_SOURCES
@@ -18,12 +28,13 @@ set(TEST_SOURCES
     render/KeyMap.cpp
     render/KeyNames.cpp
     render/Letterbox.cpp
-    render/Types.cpp)
+    render/Types.cpp
+    scenes/Manager.cpp)
 
 add_executable(rtype_tests ${TEST_SOURCES})
 
 # raylib for its key codes (render/KeyMap.cpp)
-target_link_libraries(rtype_tests PRIVATE rtype_render
+target_link_libraries(rtype_tests PRIVATE rtype_client_core
                                   PRIVATE raylib
                                   PRIVATE GTest::gtest_main)
 

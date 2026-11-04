@@ -6,12 +6,16 @@ RType::Systems::Controllable::Controllable() noexcept
     : m_Engine(nullptr)
     , m_Input(nullptr)
     , m_Controls(nullptr)
+    , m_Enabled(true)
 {
 
 }
 
 void RType::Systems::Controllable::operator()(Wrecks::ECS::Entity entity, Wrecks::DeltaTime dt)
 {
+    if (!m_Enabled)
+        return;
+
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
 
     auto& controllable = engine.get<Components::Controllable>()[entity];

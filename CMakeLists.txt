@@ -60,6 +60,8 @@ set(SOURCES
     src/game/Client/Client.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
+    src/game/Session/Session.cpp
+    src/game/Session/Session.hpp
     src/game/Engine.hpp
     src/render/Assets/Assets.cpp
     src/render/Assets/Assets.hpp
@@ -85,6 +87,20 @@ set(SOURCES
     src/render/InputTypes.hpp
     src/render/Log.hpp
     src/render/Types.hpp
+    src/scenes/Connecting/Connecting.cpp
+    src/scenes/Connecting/Connecting.hpp
+    src/scenes/GameOver/GameOver.cpp
+    src/scenes/GameOver/GameOver.hpp
+    src/scenes/InGame/InGame.cpp
+    src/scenes/InGame/InGame.hpp
+    src/scenes/Manager/Manager.hpp
+    src/scenes/Menu/Menu.cpp
+    src/scenes/Menu/Menu.hpp
+    src/scenes/Paused/Paused.cpp
+    src/scenes/Paused/Paused.hpp
+    src/scenes/Context.hpp
+    src/scenes/SceneId.hpp
+    src/scenes/Text.hpp
     src/systems/Controllable/Controllable.cpp
     src/systems/Controllable/Controllable.hpp
     src/systems/RenderSprite/RenderSprite.cpp
@@ -92,25 +108,29 @@ set(SOURCES
     src/systems/Tuple.hpp
     src/utils/EntityMap/EntityMap.cpp
     src/utils/EntityMap/EntityMap.hpp
-    src/utils/ThreadQueue.hpp
-    src/main.cpp)
+    src/utils/ThreadQueue.hpp)
 
-add_executable(r-type_client ${SOURCES})
+# Everything but the entry point, shared by the client and the unit tests
+add_library(rtype_client_core STATIC ${SOURCES})
 
 # windows.h (included by the Protecs networking headers) clashes with raylib
 # (CloseWindow, ShowCursor, Rectangle...) and defines min / max macros
 if (WIN32)
-    target_compile_definitions(r-type_client PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX NOGDI NOUSER)
+    target_compile_definitions(rtype_client_core PUBLIC WIN32_LEAN_AND_MEAN NOMINMAX NOGDI NOUSER)
 endif()
 
-target_include_directories(r-type_client PUBLIC  include
-                                         PUBLIC  lib/wrecks/include
-                                         PUBLIC  lib/protecs/include
-                                         PRIVATE lib/raylib/src)
+target_include_directories(rtype_client_core PUBLIC  include
+                                             PUBLIC  lib/wrecks/include
+                                             PUBLIC  lib/protecs/include
+                                             PRIVATE lib/raylib/src)
 
-target_link_libraries(r-type_client PUBLIC wrecks
-                                    PUBLIC protecs
-                                    PUBLIC raylib)
+target_link_libraries(rtype_client_core PUBLIC wrecks
+                                        PUBLIC protecs
+                                        PUBLIC raylib)
+
+add_executable(r-type_client src/main.cpp)
+
+target_link_libraries(r-type_client PRIVATE rtype_client_core)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     add_subdirectory(tests)
