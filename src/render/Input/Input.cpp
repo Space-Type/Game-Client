@@ -65,6 +65,15 @@ std::optional<RType::Render::Key> RType::Render::Input::nextPressed() noexcept
     return std::nullopt;
 }
 
+std::optional<char32_t> RType::Render::Input::nextChar() noexcept
+{
+    int character = GetCharPressed();
+
+    if (character <= 0)
+        return std::nullopt;
+    return static_cast<char32_t>(character);
+}
+
 
 /////////////////////////////////////////////////////////
 //                                                     //

@@ -33,6 +33,7 @@ namespace RType::Errors {
             virtual std::unique_ptr<Error> clone() const;
 
             const char* what() const noexcept override;
+            inline std::string_view message() const noexcept { return m_Message; }  // what(), for the screen: no location nor colors
             inline std::uint8_t status() const noexcept { return m_Status; }
 
         private:

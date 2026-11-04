@@ -18,7 +18,7 @@
 #include <utility>
 
 
-RType::Game::Game::Game()
+RType::Game::Game::Game(ConnectionInfo connection)
     : m_Window({
         .title = "R-Type",
         .width = VIRTUAL_WIDTH,
@@ -31,6 +31,7 @@ RType::Game::Game::Game()
     , m_Renderer(m_Resources)
     , m_Input(m_Window)
     , m_Controls(defaultControls())
+    , m_MenuControls(UI::defaultMenuControls())
     , m_TargetDuration()
     , m_Session()
     , m_Context{
@@ -39,9 +40,11 @@ RType::Game::Game::Game()
         .input = m_Input,
         .resources = m_Resources,
         .controls = m_Controls,
+        .menuControls = m_MenuControls,
         .session = m_Session,
         .fixedUpdateRate = {},
         .message = {},
+        .connection = std::move(connection),
     }
     , m_Scenes()
 {
@@ -115,6 +118,8 @@ void RType::Game::Game::run()
 void RType::Game::Game::update(Wrecks::DeltaTime dt)
 {
     std::optional<std::string> endMessage;
+
+    m_MenuControls.setGamepad(m_Controls.gamepad());
 
     if (m_Session) {
         m_Session->setControlsEnabled(m_Scenes.current() == Scenes::SceneId::InGame);

@@ -8,5 +8,5 @@
 
 #pragma once
 
-#include "../../../src/systems/Controllable/Controllable.hpp"
+#include "../../../src/systems/PlayerInput/PlayerInput.hpp"
 #include "../../../src/systems/RenderSprite/RenderSprite.hpp"

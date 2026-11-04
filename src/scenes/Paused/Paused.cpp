@@ -23,7 +23,7 @@ auto RType::Scenes::Paused::update(Context& ctx, Wrecks::DeltaTime) -> std::opti
         return SceneId::InGame;
     if (ctx.input.isPressed(Render::Key::Backspace) || ctx.input.isPressed(gamepad, Render::GamepadButton::Y)) {
         ctx.session.reset();  // the client disconnects on destruction
-        return SceneId::Menu;
+        return SceneId::Connect;
     }
     return std::nullopt;
 }

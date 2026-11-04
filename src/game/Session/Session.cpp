@@ -27,26 +27,28 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_Client()
 {
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
-    m_Engine.get<Systems::Controllable>().setInput(input);
-    m_Engine.get<Systems::Controllable>().setControls(controls);
+    m_Engine.get<Systems::PlayerInput>().setInput(input);
+    m_Engine.get<Systems::PlayerInput>().setControls(controls);
 }
 
 RType::Game::Session::~Session()
 {
-    // ~Client would let a failed disconnect throw
+    // A failed goodbye must not get in the way of ending the session
     try {
         m_Client.disconnect();
     } catch (...) {
     }
 }
 
-/**
- * Joins the server as `name`.
- * Blocks until the server answers.
- */
-void RType::Game::Session::connect(std::string_view name)
+void RType::Game::Session::beginConnect(const Protecs::Networking::Address& server, std::string_view name,
+                                        std::chrono::milliseconds timeout)
 {
-    m_Client.connect(name);
+    m_Client.beginConnect(server, name, timeout);
+}
+
+bool RType::Game::Session::pollConnect()
+{
+    return m_Client.pollConnect();
 }
 
 /**
@@ -106,7 +108,7 @@ void RType::Game::Session::render(Wrecks::DeltaTime dt)
 
 void RType::Game::Session::setControlsEnabled(bool enabled) noexcept
 {
-    m_Engine.get<Systems::Controllable>().setEnabled(enabled);
+    m_Engine.get<Systems::PlayerInput>().setEnabled(enabled);
 }
 
 void RType::Game::Session::handleEvents()

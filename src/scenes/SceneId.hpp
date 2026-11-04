@@ -12,7 +12,7 @@
 namespace RType::Scenes {
     // Scene order of Manager. Quit has no scene: it ends the game
     enum class SceneId {
-        Menu,
+        Connect,
         Connecting,
         InGame,
         Paused,

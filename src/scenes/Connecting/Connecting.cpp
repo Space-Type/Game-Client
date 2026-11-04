@@ -8,8 +8,24 @@
 
 #include "Connecting.hpp"
 #include "../Text.hpp"
+#include <rtype/errors.hpp>
 #include <exception>
+#include <memory>
 #include <string>
+#include <string_view>
+
+
+namespace {
+    constexpr float MESSAGE_Y = 300.0F;
+    constexpr float HINT_Y = 400.0F;
+
+    std::optional<RType::Scenes::SceneId> fail(RType::Scenes::Context& ctx, std::string_view reason)
+    {
+        ctx.message = "Connection failed: " + std::string(reason);
+        ctx.session.reset();
+        return RType::Scenes::SceneId::Connect;
+    }
+}
 
 
 RType::Scenes::Connecting::Connecting() noexcept
@@ -18,31 +34,36 @@ RType::Scenes::Connecting::Connecting() noexcept
 
 }
 
-/**
- * The first update only lets one frame show the
- * message: the second one blocks until the
- * server answers (or the connection fails).
- */
 auto RType::Scenes::Connecting::update(Context& ctx, Wrecks::DeltaTime) -> std::optional<SceneId>
 {
-    if (!m_Started) {
-        m_Started = true;
-        return std::nullopt;
-    }
-
     try {
-        ctx.session = std::make_unique<Game::Session>(ctx.resources, ctx.renderer, ctx.input,
-                                                      ctx.controls, ctx.fixedUpdateRate);
-        ctx.session->connect("Player");  // nickname placeholder until #50
+        if (!m_Started) {
+            m_Started = true;
+            ctx.message.clear();
+            ctx.session = std::make_unique<Game::Session>(ctx.resources, ctx.renderer, ctx.input,
+                                                          ctx.controls, ctx.fixedUpdateRate);
+            ctx.session->beginConnect(ctx.connection.address(), ctx.connection.name);
+        }
+
+        if (ctx.menuControls.isPressed(UI::MenuAction::Back, ctx.input)) {
+            ctx.session.reset();  // tells the server the player leaves
+            return SceneId::Connect;
+        }
+
+        if (ctx.session->pollConnect())
+            return SceneId::InGame;
+    } catch (const Errors::Error& err) {
+        return fail(ctx, err.message());  // what() is meant for a terminal
     } catch (const std::exception& err) {
-        ctx.message = std::string("Connection failed: ") + err.what();
-        ctx.session.reset();
-        return SceneId::GameOver;
+        return fail(ctx, err.what());
     }
-    return SceneId::InGame;
+    return std::nullopt;
 }
 
 void RType::Scenes::Connecting::render(Context& ctx) const
 {
-    drawCenteredText(ctx.renderer, ctx.window, "Connecting...", 340.0F, TEXT_SIZE);
+    std::string text = "Connecting to " + ctx.connection.host + ":" + ctx.connection.port + "...";
+
+    drawCenteredText(ctx.renderer, ctx.window, Wrecks::cstring_view(text), MESSAGE_Y, TEXT_SIZE);
+    drawCenteredText(ctx.renderer, ctx.window, "Escape / B: Cancel", HINT_Y, TEXT_SIZE);
 }

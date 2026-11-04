@@ -8,10 +8,12 @@
 
 #pragma once
 
+#include "../ConnectionInfo/ConnectionInfo.hpp"
 #include "../Controls/Controls.hpp"
 #include "../Session/Session.hpp"
 #include <rtype/render.hpp>
 #include <rtype/scenes.hpp>
+#include <rtype/ui.hpp>
 #include <protecs/common.hpp>
 #include <memory>
 
@@ -26,7 +28,7 @@ namespace RType::Game {
         static constexpr Render::Color LETTERBOX_COLOR = { .r = 40, .g = 40, .b = 40, .a = 255 };
 
         using SceneManager = Scenes::Manager<Scenes::Context,
-                                             Scenes::Menu,
+                                             Scenes::Connect,
                                              Scenes::Connecting,
                                              Scenes::InGame,
                                              Scenes::Paused,
@@ -38,6 +40,7 @@ namespace RType::Game {
         Render::Renderer m_Renderer;
         Render::Input m_Input;
         Controls m_Controls;
+        UI::MenuControls m_MenuControls;
 
         Wrecks::DeltaTime m_TargetDuration;
 
@@ -52,7 +55,7 @@ namespace RType::Game {
             // The game world stays Protecs' (shared with the server), scaled at render time
             static constexpr float WORLD_TO_SCREEN = VIRTUAL_WIDTH / Protecs::POSITION_MAX_X;
 
-            Game();
+            explicit Game(ConnectionInfo connection = {});
 
             inline void stop() noexcept { m_Window.close(); }
             void setFPS(double targetFPS) noexcept;

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../../src/game/Client/Client.hpp"
+#include "../../src/game/ConnectionInfo/ConnectionInfo.hpp"
 #include "../../src/game/Controls/Controls.hpp"
 #include "../../src/game/Game/Game.hpp"
 #include "../../src/game/Session/Session.hpp"

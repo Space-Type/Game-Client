@@ -10,6 +10,7 @@
 // render.hpp first: other modules include raylib.h, whose
 // color macros (WHITE, BLACK...) clash with RType::Render::Colors
 #include "rtype/render.hpp"
+#include "rtype/ui.hpp"
 #include "rtype/components.hpp"
 #include "rtype/errors.hpp"
 #include "rtype/systems.hpp"

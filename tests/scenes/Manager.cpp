@@ -44,11 +44,11 @@ namespace {
         void update(FakeContext&, Wrecks::DeltaTime) {}
     };
 
-    static_assert(RType::Scenes::Scene<FakeScene<SceneId::Menu>, FakeContext>);
+    static_assert(RType::Scenes::Scene<FakeScene<SceneId::Connect>, FakeContext>);
     static_assert(!RType::Scenes::Scene<NotAScene, FakeContext>);
 
     using Manager = RType::Scenes::Manager<FakeContext,
-                                           FakeScene<SceneId::Menu>,
+                                           FakeScene<SceneId::Connect>,
                                            FakeScene<SceneId::Connecting>,
                                            FakeScene<SceneId::InGame>,
                                            FakeScene<SceneId::Paused>,
@@ -58,11 +58,11 @@ namespace {
 }
 
 
-TEST(scenes_Manager, initialSceneIsMenu)
+TEST(scenes_Manager, initialSceneIsConnect)
 {
     Manager scenes;
 
-    EXPECT_EQ(scenes.current(), SceneId::Menu);
+    EXPECT_EQ(scenes.current(), SceneId::Connect);
     EXPECT_FALSE(scenes.quitRequested());
 }
 
@@ -71,7 +71,7 @@ TEST(scenes_Manager, applyPendingWithoutRequestIsNoop)
     Manager scenes;
 
     EXPECT_FALSE(scenes.applyPending());
-    EXPECT_EQ(scenes.current(), SceneId::Menu);
+    EXPECT_EQ(scenes.current(), SceneId::Connect);
 }
 
 TEST(scenes_Manager, requestIsDeferred)
@@ -80,7 +80,7 @@ TEST(scenes_Manager, requestIsDeferred)
     FakeContext ctx;
 
     scenes.request(SceneId::InGame);
-    EXPECT_EQ(scenes.current(), SceneId::Menu);
+    EXPECT_EQ(scenes.current(), SceneId::Connect);
 
     scenes.update(ctx, DT);
     scenes.render(ctx);
@@ -111,9 +111,9 @@ TEST(scenes_Manager, applyPendingRecreatesScene)
 
     scenes.update(ctx, DT);
     scenes.update(ctx, DT);
-    scenes.request(SceneId::Menu);
+    scenes.request(SceneId::Connect);
     EXPECT_TRUE(scenes.applyPending());
-    EXPECT_EQ(scenes.current(), SceneId::Menu);
+    EXPECT_EQ(scenes.current(), SceneId::Connect);
 
     ctx.calls.clear();
     scenes.render(ctx);
@@ -172,7 +172,7 @@ TEST(scenes_Manager, updateResultBecomesRequest)
 
     ctx.next = SceneId::Connecting;
     EXPECT_EQ(scenes.update(ctx, DT), SceneId::Connecting);
-    EXPECT_EQ(scenes.current(), SceneId::Menu);
+    EXPECT_EQ(scenes.current(), SceneId::Connect);
     EXPECT_TRUE(scenes.applyPending());
     EXPECT_EQ(scenes.current(), SceneId::Connecting);
 
@@ -228,7 +228,7 @@ TEST(scenes_Manager, quitStaysRequested)
 
     scenes.request(SceneId::Quit);
     scenes.applyPending();
-    scenes.request(SceneId::Menu);
+    scenes.request(SceneId::Connect);
     scenes.applyPending();
 
     EXPECT_TRUE(scenes.quitRequested());
