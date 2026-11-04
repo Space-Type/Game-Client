@@ -21,6 +21,19 @@
 namespace RType::UI {
     using Widget = std::variant<Button, TextField>;
 
+    // What happened to a widget of a Form during one frame
+    struct FormEvent {
+        enum class Kind {
+            Activated,  // a button was pressed
+            Changed,    // the value of a widget changed
+        };
+
+        Kind kind;
+        std::size_t index;
+
+        bool operator==(const FormEvent&) const = default;
+    };
+
     /**
      * Widgets and which one has the focus.
      *
@@ -38,8 +51,8 @@ namespace RType::UI {
         public:
             explicit Form(std::vector<Widget> widgets);
 
-            // Returns the index of the button activated this frame, if any
-            std::optional<std::size_t> update(const FrameInput& input);
+            // Returns what happened this frame, if anything
+            std::optional<FormEvent> update(const FrameInput& input);
 
             void draw(const Render::Renderer& renderer) const;
 

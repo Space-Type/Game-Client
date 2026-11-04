@@ -74,12 +74,15 @@ auto RType::Scenes::Connect::update(Context& ctx, Wrecks::DeltaTime) -> std::opt
         m_Form.emplace(buildForm(ctx.connection));
 
     UI::FrameInput input = UI::readFrameInput(ctx.input, ctx.menuControls);
-    std::optional<std::size_t> activated = m_Form->update(input);
+    std::optional<UI::FormEvent> event = m_Form->update(input);
+    auto activated = [&](std::size_t button) {
+        return event == UI::FormEvent{ .kind = UI::FormEvent::Kind::Activated, .index = button };
+    };
 
-    if (activated == QUIT_BUTTON || input.isPressed(UI::MenuAction::Back))
+    if (activated(QUIT_BUTTON) || input.isPressed(UI::MenuAction::Back))
         return SceneId::Quit;
 
-    if (activated != CONNECT_BUTTON)
+    if (!activated(CONNECT_BUTTON))
         return std::nullopt;
 
     ctx.connection.host = valueOf(*m_Form, HOST_FIELD);

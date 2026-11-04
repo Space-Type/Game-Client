@@ -22,8 +22,10 @@ RType::UI::Form::Form(std::vector<Widget> widgets)
  * Text goes first, to the widget focused when it was
  * typed: it must not follow a focus change of the same frame.
  */
-auto RType::UI::Form::update(const FrameInput& input) -> std::optional<std::size_t>
+auto RType::UI::Form::update(const FrameInput& input) -> std::optional<FormEvent>
 {
+    constexpr auto ACTIVATED = FormEvent::Kind::Activated;
+
     if (m_Widgets.empty())
         return std::nullopt;
 
@@ -38,7 +40,7 @@ auto RType::UI::Form::update(const FrameInput& input) -> std::optional<std::size
     if (hovered && (mouseMoved || input.click))
         m_Focus = *hovered;
     if (hovered && input.click && isButton(*hovered))
-        return hovered;
+        return FormEvent{ .kind = ACTIVATED, .index = *hovered };
 
     if (input.isPressed(MenuAction::Up))
         moveFocus(false);
@@ -47,7 +49,7 @@ auto RType::UI::Form::update(const FrameInput& input) -> std::optional<std::size
 
     if (input.isPressed(MenuAction::Confirm)) {
         if (isButton(m_Focus))
-            return m_Focus;
+            return FormEvent{ .kind = ACTIVATED, .index = m_Focus };
         moveFocus(true);
     }
     return std::nullopt;

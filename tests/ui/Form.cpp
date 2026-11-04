@@ -69,6 +69,11 @@ namespace {
         return input;
     }
 
+    std::optional<RType::UI::FormEvent> activated(std::size_t index)
+    {
+        return RType::UI::FormEvent{ .kind = RType::UI::FormEvent::Kind::Activated, .index = index };
+    }
+
     std::string valueOf(const Form& form, std::size_t field)
     {
         return std::get<TextField>(form.widgets()[field]).value();
@@ -143,7 +148,7 @@ TEST(ui_Form, confirmOnButtonActivatesIt)
     Form form = makeForm();
 
     form.update(pressed(MenuAction::Up));
-    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), QUIT_BUTTON);
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), activated(QUIT_BUTTON));
     EXPECT_EQ(form.focus(), QUIT_BUTTON);
 }
 
@@ -195,7 +200,7 @@ TEST(ui_Form, clickActivatesButton)
     Form form = makeForm();
 
     form.update(idle(ON_OK_BUTTON));
-    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), OK_BUTTON);
+    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), activated(OK_BUTTON));
     EXPECT_EQ(form.focus(), OK_BUTTON);
 }
 
@@ -213,7 +218,7 @@ TEST(ui_Form, clickWorksOnFirstFrame)
 {
     Form form = makeForm();
 
-    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), OK_BUTTON);
+    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), activated(OK_BUTTON));
 }
 
 TEST(ui_Form, clickOutsideKeepsFocus)
