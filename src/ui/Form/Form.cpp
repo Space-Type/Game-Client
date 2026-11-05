@@ -21,6 +21,9 @@ RType::UI::Form::Form(std::vector<Widget> widgets)
 /**
  * Text goes first, to the widget focused when it was
  * typed: it must not follow a focus change of the same frame.
+ * A slider being dragged keeps the focus, wherever the
+ * mouse goes, and gets the input after the mouse moved the
+ * focus: a click on a slider starts dragging it at once.
  */
 auto RType::UI::Form::update(const FrameInput& input) -> std::optional<FormEvent>
 {
@@ -32,15 +35,20 @@ auto RType::UI::Form::update(const FrameInput& input) -> std::optional<FormEvent
     if (auto* field = std::get_if<TextField>(&m_Widgets[m_Focus]))
         field->update(input);
 
+    const auto* focusedSlider = std::get_if<Slider>(&m_Widgets[m_Focus]);
+    bool dragging = focusedSlider && focusedSlider->dragging();
     std::optional<std::size_t> hovered = widgetAt(input.mouse);
     bool mouseMoved = m_LastMouse && (m_LastMouse->x != input.mouse.x || m_LastMouse->y != input.mouse.y);
 
     m_LastMouse = input.mouse;
 
-    if (hovered && (mouseMoved || input.click))
+    if (hovered && !dragging && (mouseMoved || input.click))
         m_Focus = *hovered;
-    if (hovered && input.click && isButton(*hovered))
+    if (hovered && !dragging && input.click && isButton(*hovered))
         return FormEvent{ .kind = ACTIVATED, .index = *hovered };
+
+    if (auto* slider = std::get_if<Slider>(&m_Widgets[m_Focus]); slider && slider->update(input))
+        return FormEvent{ .kind = FormEvent::Kind::Changed, .index = m_Focus };
 
     if (input.isPressed(MenuAction::Up))
         moveFocus(false);

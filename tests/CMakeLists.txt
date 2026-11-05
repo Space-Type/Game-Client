@@ -33,6 +33,7 @@ set(TEST_SOURCES
     render/Types.cpp
     scenes/Manager.cpp
     ui/Form.cpp
+    ui/Slider.cpp
     ui/TextField.cpp
     ui/Theme.cpp)
 

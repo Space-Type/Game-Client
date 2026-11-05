@@ -51,3 +51,10 @@ TEST(ui_Theme, focusShowsWithoutColor)
     EXPECT_GT(FOCUS_THICKNESS, BORDER_THICKNESS);
     EXPECT_STREQ(FOCUS_MARKER, ">");
 }
+
+// Non-text contrast (WCAG 1.4.11): the slider fill stands out from its track and the background
+TEST(ui_Theme, sliderFillIsVisible)
+{
+    EXPECT_GE(contrast(FILL_COLOR, TRACK_COLOR), 3.0);
+    EXPECT_GE(contrast(FILL_COLOR, BACKGROUND), 3.0);
+}

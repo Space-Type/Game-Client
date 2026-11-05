@@ -12,5 +12,6 @@
 #include "../../src/ui/Form/Form.hpp"
 #include "../../src/ui/FrameInput/FrameInput.hpp"
 #include "../../src/ui/MenuControls/MenuControls.hpp"
+#include "../../src/ui/Slider/Slider.hpp"
 #include "../../src/ui/TextField/TextField.hpp"
 #include "../../src/ui/Theme.hpp"

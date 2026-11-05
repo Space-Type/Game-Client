@@ -116,6 +116,8 @@ set(SOURCES
     src/ui/FrameInput/FrameInput.hpp
     src/ui/MenuControls/MenuControls.cpp
     src/ui/MenuControls/MenuControls.hpp
+    src/ui/Slider/Slider.cpp
+    src/ui/Slider/Slider.hpp
     src/ui/TextField/TextField.cpp
     src/ui/TextField/TextField.hpp
     src/ui/Theme.hpp
