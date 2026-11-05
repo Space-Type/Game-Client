@@ -11,6 +11,8 @@
 #include "../../game/Controls/Controls.hpp"
 #include <rtype/components.hpp>
 #include <rtype/render.hpp>
+#include <protecs/networking/packets.hpp>
+#include <functional>
 #include <wrecks.hpp>
 
 
@@ -19,6 +21,7 @@ namespace RType::Systems {
         void* m_Engine;
         const RType::Render::Input* m_Input;
         const Game::Controls* m_Controls;
+        std::function<void(Protecs::Networking::Packets::PlayerInput)> m_QueuePlayerInput;
         bool m_Enabled;
 
         public:
@@ -39,6 +42,9 @@ namespace RType::Systems {
             inline void setInput(const RType::Render::Input& input) noexcept { m_Input = &input; }
             inline void setControls(const Game::Controls& controls) noexcept { m_Controls = &controls; }
             inline void setEnabled(bool enabled) noexcept { m_Enabled = enabled; }
+
+            template <typename Fnc>
+            inline void setInputQueuer(Fnc&& fnc) { m_QueuePlayerInput = std::move(fnc); }
 
             void operator()(Wrecks::ECS::Entity entity, Wrecks::DeltaTime);
     };
