@@ -9,13 +9,12 @@
 #include "Game.hpp"
 #include <rtype/errors.hpp>
 #include <algorithm>
-#include <chrono>
 #include <exception>
 #include <optional>
-#include <stdexcept>
+#include <utility>
+#include <chrono>
 #include <string>
 #include <thread>
-#include <utility>
 
 
 RType::Game::Game::Game(ConnectionInfo connection)

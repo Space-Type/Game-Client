@@ -22,16 +22,20 @@ RType::Game::Client::Client(Client&& other)
     , m_ServerAddr()
     , m_PlayerId(0)
     , m_Attempt()
+    , m_OutgoingPackets()
+    , m_IncomingPackets()
     , m_NetworkThread()
 {
     swap(other);
 }
 
 RType::Game::Client::Client()
-    : m_Client("0.0.0.0", 0)  // every interface: the server may be on another machine
+    : m_Client("0.0.0.0", 0)
     , m_ServerAddr()
     , m_PlayerId(0)
     , m_Attempt()
+    , m_OutgoingPackets()
+    , m_IncomingPackets()
     , m_NetworkThread()
 {
 }
@@ -183,12 +187,27 @@ void RType::Game::Client::abandonAttempt()
 
 void RType::Game::Client::send(Packets::PacketData&& data)
 {
-    m_OutgoingPackets.push(std::move(data));
+    m_OutgoingPackets.push(m_ServerAddr, std::move(data));
 }
 
-auto RType::Game::Client::receive() -> std::optional<Packets::PacketData>
+auto RType::Game::Client::receive(Protecs::Tick tick) -> std::optional<Packets::PacketData>
 {
-    return m_IncomingPackets.pop();
+    auto netPacket = m_IncomingPackets.pop(tick);
+
+    while (netPacket) {
+        auto& [addr, packet] = *netPacket;
+        std::cout << packet << std::endl;
+
+        try {
+            return packet.deserialize();
+        } catch (const std::exception& err) {
+            std::cerr << "received " << packet << " from " << addr << std::endl;
+        }
+
+        netPacket = m_IncomingPackets.pop(tick);
+    }
+
+    return {};
 }
 
 void RType::Game::Client::swap(Client& other) noexcept
@@ -207,8 +226,6 @@ void RType::Game::Client::run()
     while (isConnected()) {
         try {
             update();
-        } catch (const Errors::Error& err) {
-            std::cerr << err.what() << std::endl;
         } catch (const std::exception& err) {
             std::cerr << err.what() << std::endl;
         } catch (...) {
@@ -221,23 +238,22 @@ void RType::Game::Client::update()
 {
     auto packetToSend = m_OutgoingPackets.pop();
     while (packetToSend) {
-        auto packet = Packet::serialize(*packetToSend);
-        m_Client.send(packet, m_ServerAddr);
+        auto& [destination, packet] = *packetToSend;
+        m_Client.send(packet, destination);
         packetToSend = m_OutgoingPackets.pop();
     }
 
     if (!m_Client.pollReceive(1000))
         return;
 
-    // TODO: ensure packet is from server, not from John Mckligzgy
     Packet packet;
-    m_Client.receive(packet);
+    Protecs::Networking::Address addr;
+    m_Client.receive(packet, &addr);
 
-    Packets::PacketData data;
-    try {
-        data = packet.deserialize();
-    } catch (const std::exception& err) {
-        throw Errors::NetworkError("failed to deserialize server data", err);
+    if (addr != m_ServerAddr) {
+        std::cerr << "ignoring packet from unknown sender " << addr << std::endl;
+        return;
     }
-    m_IncomingPackets.push(std::move(data));
+
+    m_IncomingPackets.push(addr, packet);
 }

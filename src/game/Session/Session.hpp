@@ -27,13 +27,11 @@ namespace RType::Game {
      * thread of the client refers to it.
      */
     class Session {
-        // Catch-up guard: a long frame never replays more than this much game time
-        static constexpr Wrecks::DeltaTime MAX_ACCUMULATED_DELTA = std::chrono::duration<double>(0.25);
-
         Render::Resources& m_Resources;
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 
+        Protecs::Tick m_SimulationTick;
         Wrecks::DeltaTime m_FixedUpdateRate;
         Wrecks::DeltaTime m_AccumulatedDelta;
 
@@ -67,7 +65,7 @@ namespace RType::Game {
             [[ nodiscard ]] inline std::string_view endReason() const noexcept { return m_EndReason; }
 
         private:
-            void handleEvents();
+            void handleEvents(Protecs::Tick tick);
 
             void initPlayer(Wrecks::ECS::Entity entity);
             void initEnemyPataPata(Wrecks::ECS::Entity entity);

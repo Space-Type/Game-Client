@@ -8,12 +8,13 @@
 
 #pragma once
 
+#include "protecs/common.hpp"
 #include <protecs/networking.hpp>
 #include <rtype/utils.hpp>
-#include <chrono>
-#include <cstddef>
-#include <optional>
 #include <string_view>
+#include <optional>
+#include <cstddef>
+#include <chrono>
 #include <thread>
 
 
@@ -36,8 +37,8 @@ namespace RType::Game {
         Protecs::NetworkEntity m_PlayerId;
         std::optional<ConnectAttempt> m_Attempt;
 
-        Utils::ThreadQueue<Protecs::Networking::Packets::PacketData> m_OutgoingPackets;
-        Utils::ThreadQueue<Protecs::Networking::Packets::PacketData> m_IncomingPackets;
+        Protecs::Networking::PacketQueue m_OutgoingPackets;
+        Protecs::Networking::PacketQueue m_IncomingPackets;
         std::thread m_NetworkThread;
 
         public:
@@ -74,7 +75,7 @@ namespace RType::Game {
             void disconnect();
 
             void send(Protecs::Networking::Packets::PacketData&& data);
-            std::optional<Protecs::Networking::Packets::PacketData> receive();
+            std::optional<Protecs::Networking::Packets::PacketData> receive(Protecs::Tick tick);
 
             void swap(Client& other) noexcept;
             inline Client& operator=(Client&& other) noexcept { swap(other); return *this; }
