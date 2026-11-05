@@ -41,7 +41,6 @@ RType::Game::Game::Game(ConnectionInfo connection)
         .controls = m_Controls,
         .menuControls = m_MenuControls,
         .session = m_Session,
-        .fixedUpdateRate = {},
         .message = {},
         .connection = std::move(connection),
     }
@@ -71,7 +70,6 @@ void RType::Game::Game::setFPS(double targetFPS) noexcept
     using seconds = std::chrono::duration<double>;
 
     m_TargetDuration  = seconds(1.0 / targetFPS);
-    m_Context.fixedUpdateRate = seconds(FIXED_UPDATES_PER_FPS / targetFPS);
 }
 
 /**
