@@ -196,12 +196,14 @@ auto RType::Game::Client::receive(Protecs::Tick tick) -> std::optional<Packets::
 
     while (netPacket) {
         auto& [addr, packet] = *netPacket;
-        std::cout << packet << std::endl;
+
+        if (packet.filled > 0 && packet.raw[0] != Wrecks::Utils::element_index_v<Packets::TickSync, Packets::PacketData>)
+            std::cout << "received " << packet << " from server" << std::endl;
 
         try {
             return packet.deserialize();
         } catch (const std::exception& err) {
-            std::cerr << "received " << packet << " from " << addr << std::endl;
+            std::cerr << err.what() << std::endl;
         }
 
         netPacket = m_IncomingPackets.pop(tick);
@@ -243,7 +245,7 @@ void RType::Game::Client::update()
         packetToSend = m_OutgoingPackets.pop();
     }
 
-    if (!m_Client.pollReceive(1000))
+    if (!m_Client.pollReceive(0))
         return;
 
     Packet packet;
