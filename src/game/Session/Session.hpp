@@ -32,6 +32,7 @@ namespace RType::Game {
         Utils::EntityMap m_EntityMap;
 
         Protecs::Tick m_SimulationTick;
+        Protecs::Tick m_ServerTickDelay;
         Wrecks::DeltaTime m_FixedUpdateRate;
         Wrecks::DeltaTime m_AccumulatedDelta;
 
@@ -85,6 +86,7 @@ namespace RType::Game {
                 void operator()(const Protecs::Networking::Packets::PlayerInput& data);
                 void operator()(const Protecs::Networking::Packets::PlayerJoin& data);
                 void operator()(const Protecs::Networking::Packets::PlayerLeave& data);
+                void operator()(const Protecs::Networking::Packets::TickSync& data);
             };
     };
 }

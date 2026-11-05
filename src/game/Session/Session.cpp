@@ -21,6 +21,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
+    , m_ServerTickDelay(10)
     , m_FixedUpdateRate(fixedUpdateRate)
     , m_AccumulatedDelta()
     , m_Ended(false)
@@ -31,7 +32,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     m_Engine.get<Systems::PlayerInput>().setInput(input);
     m_Engine.get<Systems::PlayerInput>().setControls(controls);
     m_Engine.get<Systems::PlayerInput>().setInputQueuer([&](Protecs::Networking::Packets::PlayerInput input){
-        input.simulationTick = m_SimulationTick + 10;
+        input.simulationTick = m_SimulationTick + m_ServerTickDelay;
         m_Client.send(input);
     });
 }
@@ -213,7 +214,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityList& d
             continue;
 
         session.m_Client.send(Packets::EntitySyncComponents{
-            .simulationTick = session.m_SimulationTick + 20,
+            .simulationTick = session.m_SimulationTick + session.m_ServerTickDelay,
             .entity = netEntity,
             .signature = localSignature,
         });
@@ -282,4 +283,12 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerLeave& 
         session.m_Client.disconnect();
     } catch (...) {
     }
+}
+
+void RType::Game::Session::EventHandler::operator()(const Packets::TickSync& data)
+{
+    session.m_ServerTickDelay = session.m_SimulationTick - data.clientTick + 5;
+    session.m_SimulationTick = data.serverTick;
+
+    std::cout << "server tick delay: " << session.m_ServerTickDelay << std::endl;
 }
