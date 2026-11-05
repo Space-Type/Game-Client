@@ -7,6 +7,7 @@
 */
 
 #include "Session.hpp"
+#include "protecs/common.hpp"
 #include <rtype/errors.hpp>
 #include <algorithm>
 #include <exception>
@@ -15,14 +16,12 @@
 
 
 RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer,
-                              const Render::Input& input, const Controls& controls,
-                              Wrecks::DeltaTime fixedUpdateRate)
+                              const Render::Input& input, const Controls& controls)
     : m_Resources(resources)
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
     , m_ServerTickDelay(10)
-    , m_FixedUpdateRate(fixedUpdateRate)
     , m_AccumulatedDelta()
     , m_Ended(false)
     , m_EndReason()
@@ -85,11 +84,17 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     handleEvents(0);
 
     m_AccumulatedDelta += dt;
-    while (m_AccumulatedDelta >= m_FixedUpdateRate) {
+    while (m_AccumulatedDelta >= Protecs::FIXED_UPDATE_RATE) {
         handleEvents(m_SimulationTick);
-        m_Engine.fixedUpdate(m_FixedUpdateRate);
+        m_Engine.fixedUpdate(Protecs::FIXED_UPDATE_RATE);
         m_SimulationTick++;
-        m_AccumulatedDelta -= m_FixedUpdateRate;
+        m_AccumulatedDelta -= Protecs::FIXED_UPDATE_RATE;
+
+        if (m_SimulationTick % 1000 == 0)
+            m_Client.send(Protecs::Networking::Packets::TickSync{ .clientTick = m_SimulationTick });
+
+        if (m_SimulationTick % 1'000'000 == 0)
+            m_Client.send(Protecs::Networking::Packets::EntityList{});
     }
 
     m_Engine.update(dt);
@@ -289,6 +294,4 @@ void RType::Game::Session::EventHandler::operator()(const Packets::TickSync& dat
 {
     session.m_ServerTickDelay = session.m_SimulationTick - data.clientTick + 5;
     session.m_SimulationTick = data.serverTick;
-
-    std::cout << "server tick delay: " << session.m_ServerTickDelay << std::endl;
 }

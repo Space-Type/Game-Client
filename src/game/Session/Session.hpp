@@ -33,7 +33,6 @@ namespace RType::Game {
 
         Protecs::Tick m_SimulationTick;
         Protecs::Tick m_ServerTickDelay;
-        Wrecks::DeltaTime m_FixedUpdateRate;
         Wrecks::DeltaTime m_AccumulatedDelta;
 
         bool m_Ended;
@@ -43,8 +42,7 @@ namespace RType::Game {
 
         public:
             Session(Render::Resources& resources, const Render::Renderer& renderer,
-                    const Render::Input& input, const Controls& controls,
-                    Wrecks::DeltaTime fixedUpdateRate);
+                    const Render::Input& input, const Controls& controls);
             ~Session();
 
             Session(const Session&) = delete;
