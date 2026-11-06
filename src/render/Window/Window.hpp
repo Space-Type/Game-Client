@@ -62,6 +62,7 @@ namespace RType::Render {
             bool shouldClose() const noexcept;
             void close() noexcept;
             void toggleFullscreen() noexcept;
+            bool isFullscreen() const noexcept;
 
             Vec2D size() const noexcept;             // Current window size, screen pixels
             Vec2D virtualSize() const noexcept;
