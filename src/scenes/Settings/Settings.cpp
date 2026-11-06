@@ -8,6 +8,7 @@
 
 #include "Settings.hpp"
 #include "../Text.hpp"
+#include "../../game/Preferences/Preferences.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -299,8 +300,11 @@ auto RType::Scenes::Settings::update(Context& ctx, Wrecks::DeltaTime) -> std::op
     if (input.isPressed(UI::MenuAction::Back) || event == FormEvent{ .kind = FormEvent::Kind::Activated, .index = back }) {
         if (event)
             ctx.audio.play(ctx.clickSound);
-        if (!m_Page)
+        if (!m_Page) {
+            // A failure is reported on stderr: the changes still hold until the game is closed
+            Game::savePreferences(Game::currentPreferences(ctx.audio, ctx.window, ctx.controls));
             return ctx.settingsReturn;
+        }
         open(ctx, std::nullopt);
         return std::nullopt;
     }
