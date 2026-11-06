@@ -9,13 +9,12 @@
 #include "Game.hpp"
 #include <rtype/errors.hpp>
 #include <algorithm>
-#include <chrono>
 #include <exception>
 #include <optional>
-#include <stdexcept>
+#include <utility>
+#include <chrono>
 #include <string>
 #include <thread>
-#include <utility>
 
 
 RType::Game::Game::Game(ConnectionInfo connection)
@@ -43,7 +42,6 @@ RType::Game::Game::Game(ConnectionInfo connection)
         .controls = m_Controls,
         .menuControls = m_MenuControls,
         .session = m_Session,
-        .fixedUpdateRate = {},
         .message = {},
         .connection = std::move(connection),
         .settingsReturn = Scenes::SceneId::Connect,
@@ -77,7 +75,6 @@ void RType::Game::Game::setFPS(double targetFPS) noexcept
     using seconds = std::chrono::duration<double>;
 
     m_TargetDuration  = seconds(1.0 / targetFPS);
-    m_Context.fixedUpdateRate = seconds(FIXED_UPDATES_PER_FPS / targetFPS);
 }
 
 /**

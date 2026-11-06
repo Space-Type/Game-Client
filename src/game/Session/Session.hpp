@@ -27,14 +27,14 @@ namespace RType::Game {
      * thread of the client refers to it.
      */
     class Session {
-        // Catch-up guard: a long frame never replays more than this much game time
-        static constexpr Wrecks::DeltaTime MAX_ACCUMULATED_DELTA = std::chrono::duration<double>(0.25);
+        static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
 
         Render::Resources& m_Resources;
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 
-        Wrecks::DeltaTime m_FixedUpdateRate;
+        Protecs::Tick m_SimulationTick;
+        Protecs::Tick m_ServerTickDelay;
         Wrecks::DeltaTime m_AccumulatedDelta;
 
         bool m_Ended;
@@ -44,8 +44,7 @@ namespace RType::Game {
 
         public:
             Session(Render::Resources& resources, const Render::Renderer& renderer,
-                    const Render::Input& input, const Controls& controls,
-                    Wrecks::DeltaTime fixedUpdateRate);
+                    const Render::Input& input, const Controls& controls);
             ~Session();
 
             Session(const Session&) = delete;
@@ -67,7 +66,7 @@ namespace RType::Game {
             [[ nodiscard ]] inline std::string_view endReason() const noexcept { return m_EndReason; }
 
         private:
-            void handleEvents();
+            void handleEvents(Protecs::Tick tick);
 
             void initPlayer(Wrecks::ECS::Entity entity);
             void initEnemyPataPata(Wrecks::ECS::Entity entity);
@@ -87,6 +86,7 @@ namespace RType::Game {
                 void operator()(const Protecs::Networking::Packets::PlayerInput& data);
                 void operator()(const Protecs::Networking::Packets::PlayerJoin& data);
                 void operator()(const Protecs::Networking::Packets::PlayerLeave& data);
+                void operator()(const Protecs::Networking::Packets::TickSync& data);
             };
     };
 }

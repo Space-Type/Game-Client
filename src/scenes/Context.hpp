@@ -30,7 +30,6 @@ namespace RType::Scenes {
         const Game::Controls& controls;
         const UI::MenuControls& menuControls;
         std::unique_ptr<Game::Session>& session;  // null outside of a game
-        Wrecks::DeltaTime fixedUpdateRate;
         std::string message;                      // shown by GameOver and Connect
         Game::ConnectionInfo connection;          // prefills Connect
         SceneId settingsReturn;                   // where Settings goes back to

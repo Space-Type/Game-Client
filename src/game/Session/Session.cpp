@@ -7,6 +7,7 @@
 */
 
 #include "Session.hpp"
+#include "protecs/common.hpp"
 #include <rtype/errors.hpp>
 #include <algorithm>
 #include <exception>
@@ -15,12 +16,12 @@
 
 
 RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer,
-                              const Render::Input& input, const Controls& controls,
-                              Wrecks::DeltaTime fixedUpdateRate)
+                              const Render::Input& input, const Controls& controls)
     : m_Resources(resources)
     , m_Engine()
     , m_EntityMap()
-    , m_FixedUpdateRate(fixedUpdateRate)
+    , m_SimulationTick(0)
+    , m_ServerTickDelay(10)
     , m_AccumulatedDelta()
     , m_Ended(false)
     , m_EndReason()
@@ -29,6 +30,10 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
     m_Engine.get<Systems::PlayerInput>().setInput(input);
     m_Engine.get<Systems::PlayerInput>().setControls(controls);
+    m_Engine.get<Systems::PlayerInput>().setInputQueuer([&](Protecs::Networking::Packets::PlayerInput input){
+        input.simulationTick = m_SimulationTick + m_ServerTickDelay;
+        m_Client.send(input);
+    });
 }
 
 RType::Game::Session::~Session()
@@ -73,27 +78,26 @@ bool RType::Game::Session::pollConnect()
  * updates that should've occurred in the elapsed
  * time). On the other hand, if the game is running
  * very smoothly, there may be no fixed updates.
- *
- * Both the frame delta and the accumulated
- * delta are capped by MAX_ACCUMULATED_DELTA
- * (at least one fixed update stays reachable).
  */
 void RType::Game::Session::update(Wrecks::DeltaTime dt)
 {
-    handleEvents();
+    handleEvents(0);
 
-    dt = std::min(dt, MAX_ACCUMULATED_DELTA);
-    m_AccumulatedDelta = std::min(m_AccumulatedDelta + dt, std::max(MAX_ACCUMULATED_DELTA, m_FixedUpdateRate));
-    while (m_AccumulatedDelta >= m_FixedUpdateRate) {
-        m_Engine.fixedUpdate(m_FixedUpdateRate);
-        m_AccumulatedDelta -= m_FixedUpdateRate;
+    m_AccumulatedDelta += dt;
+    while (m_AccumulatedDelta >= Protecs::FIXED_UPDATE_RATE) {
+        handleEvents(m_SimulationTick);
+        m_Engine.fixedUpdate(Protecs::FIXED_UPDATE_RATE);
+        m_SimulationTick++;
+        m_AccumulatedDelta -= Protecs::FIXED_UPDATE_RATE;
+
+        if (m_SimulationTick % 1000 == 0)
+            m_Client.send(Protecs::Networking::Packets::TickSync{ .clientTick = m_SimulationTick });
+
+        if (m_SimulationTick % 1'000'000 == 0)
+            m_Client.send(Protecs::Networking::Packets::EntityList{});
     }
 
     m_Engine.update(dt);
-
-    // FIXME: remove (shouldn't be here)
-    // m_Engine.get<Systems::Dead>().flush();
-    // m_Engine.get<Systems::Shoot>().flush();
 }
 
 /**
@@ -111,18 +115,19 @@ void RType::Game::Session::setControlsEnabled(bool enabled) noexcept
     m_Engine.get<Systems::PlayerInput>().setEnabled(enabled);
 }
 
-void RType::Game::Session::handleEvents()
+void RType::Game::Session::handleEvents(Protecs::Tick tick)
 {
-    auto event = m_Client.receive();
+    auto event = m_Client.receive(tick);
 
-    while (event) {
+    for (unsigned int evtCount = 0; event && evtCount < MAX_EVENTS_PER_UPDATE; evtCount++) {
         // A bad packet only drops itself, not the session
         try {
             std::visit(EventHandler{ *this }, *event);
         } catch (const std::exception& err) {
             std::cerr << "[network] dropped packet: " << err.what() << std::endl;
         }
-        event = m_Client.receive();
+
+        event = m_Client.receive(tick);
     }
 }
 
@@ -214,6 +219,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityList& d
             continue;
 
         session.m_Client.send(Packets::EntitySyncComponents{
+            .simulationTick = session.m_SimulationTick + session.m_ServerTickDelay,
             .entity = netEntity,
             .signature = localSignature,
         });
@@ -282,4 +288,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerLeave& 
         session.m_Client.disconnect();
     } catch (...) {
     }
+}
+
+void RType::Game::Session::EventHandler::operator()(const Packets::TickSync& data)
+{
+    session.m_ServerTickDelay = session.m_SimulationTick - data.clientTick + 5;
+    session.m_SimulationTick = data.serverTick;
 }
