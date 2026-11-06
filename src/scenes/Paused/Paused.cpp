@@ -8,20 +8,64 @@
 
 #include "Paused.hpp"
 #include "../Text.hpp"
+#include <cstddef>
+#include <vector>
 
 
 namespace {
-    constexpr RType::Render::Color OVERLAY = { .r = 0, .g = 0, .b = 0, .a = 160 };
+    // Buttons, in Form order
+    constexpr std::size_t RESUME_BUTTON = 0;
+    constexpr std::size_t SETTINGS_BUTTON = 1;
+    constexpr std::size_t DISCONNECT_BUTTON = 2;
+
+    // Layout on the 1280x720 virtual screen
+    constexpr float TITLE_Y = 150.0F;
+    constexpr float BUTTON_X = 480.0F;
+    constexpr float BUTTON_WIDTH = 320.0F;
+    constexpr float BUTTON_HEIGHT = 64.0F;
+    constexpr float FIRST_BUTTON_Y = 300.0F;
+    constexpr float BUTTON_STEP = 80.0F;
+    constexpr float HINT_Y = 650.0F;
+
+    RType::UI::Form buildForm()
+    {
+        const auto button = [](const char* label, std::size_t row){
+            return RType::UI::Button(label, {
+                .x = BUTTON_X,
+                .y = FIRST_BUTTON_Y + BUTTON_STEP * static_cast<float>(row),
+                .width = BUTTON_WIDTH,
+                .height = BUTTON_HEIGHT,
+            });
+        };
+
+        return RType::UI::Form(std::vector<RType::UI::Widget>{
+            button("Resume", RESUME_BUTTON),
+            button("Settings", SETTINGS_BUTTON),
+            button("Disconnect", DISCONNECT_BUTTON),
+        });
+    }
 }
 
 
 auto RType::Scenes::Paused::update(Context& ctx, Wrecks::DeltaTime) -> std::optional<SceneId>
 {
-    int gamepad = ctx.controls.gamepad();
+    if (!m_Form)
+        m_Form.emplace(buildForm());
 
-    if (ctx.input.isPressed(Render::Key::Enter) || ctx.input.isPressed(gamepad, Render::GamepadButton::A))
+    UI::FrameInput input = UI::readFrameInput(ctx.input, ctx.menuControls);
+    std::optional<UI::FormEvent> event = m_Form->update(input);
+    auto activated = [&](std::size_t button) {
+        return event == UI::FormEvent{ .kind = UI::FormEvent::Kind::Activated, .index = button };
+    };
+    bool start = ctx.input.isPressed(ctx.controls.gamepad(), Render::GamepadButton::Start);
+
+    if (activated(RESUME_BUTTON) || input.isPressed(UI::MenuAction::Back) || start)
         return SceneId::InGame;
-    if (ctx.input.isPressed(Render::Key::Backspace) || ctx.input.isPressed(gamepad, Render::GamepadButton::Y)) {
+    if (activated(SETTINGS_BUTTON)) {
+        ctx.settingsReturn = SceneId::Paused;
+        return SceneId::Settings;
+    }
+    if (activated(DISCONNECT_BUTTON)) {
         ctx.session.reset();  // the client disconnects on destruction
         return SceneId::Connect;
     }
@@ -30,10 +74,11 @@ auto RType::Scenes::Paused::update(Context& ctx, Wrecks::DeltaTime) -> std::opti
 
 void RType::Scenes::Paused::render(Context& ctx) const
 {
-    Render::Vec2D size = ctx.window.virtualSize();
+    drawOverlay(ctx.renderer, ctx.window);
+    drawCenteredText(ctx.renderer, ctx.window, "Paused", TITLE_Y, TITLE_SIZE);
 
-    ctx.renderer.drawRect({ .x = 0.0F, .y = 0.0F, .width = size.x, .height = size.y }, OVERLAY);
-    drawCenteredText(ctx.renderer, ctx.window, "Paused", 200.0F, TITLE_SIZE);
-    drawCenteredText(ctx.renderer, ctx.window, "Enter / A: Resume", 380.0F, TEXT_SIZE);
-    drawCenteredText(ctx.renderer, ctx.window, "Backspace / Y: Disconnect", 440.0F, TEXT_SIZE);
+    if (m_Form)
+        m_Form->draw(ctx.renderer);
+
+    drawCenteredText(ctx.renderer, ctx.window, "Escape / B / Start: Resume", HINT_Y, UI::Theme::HINT_SIZE);
 }
