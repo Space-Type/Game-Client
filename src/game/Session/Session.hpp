@@ -27,6 +27,8 @@ namespace RType::Game {
      * thread of the client refers to it.
      */
     class Session {
+        static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
+
         Render::Resources& m_Resources;
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;

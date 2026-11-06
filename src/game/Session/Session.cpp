@@ -119,7 +119,7 @@ void RType::Game::Session::handleEvents(Protecs::Tick tick)
 {
     auto event = m_Client.receive(tick);
 
-    while (event) {
+    for (unsigned int evtCount = 0; event && evtCount < MAX_EVENTS_PER_UPDATE; evtCount++) {
         // A bad packet only drops itself, not the session
         try {
             std::visit(EventHandler{ *this }, *event);
