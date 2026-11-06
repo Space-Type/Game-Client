@@ -23,6 +23,7 @@ auto RType::UI::readFrameInput(Render::Input& input, const MenuControls& control
     frame.backspace = input.isPressed(Render::Key::Backspace);
     frame.mouse = input.mousePosition();
     frame.click = input.isPressed(Render::MouseButton::Left);
+    frame.mouseDown = input.isDown(Render::MouseButton::Left);
 
     for (auto typed = input.nextChar(); typed; typed = input.nextChar())
         frame.text.push_back(*typed);

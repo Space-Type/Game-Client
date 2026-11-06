@@ -52,7 +52,8 @@ namespace {
                                            FakeScene<SceneId::Connecting>,
                                            FakeScene<SceneId::InGame>,
                                            FakeScene<SceneId::Paused>,
-                                           FakeScene<SceneId::GameOver>>;
+                                           FakeScene<SceneId::GameOver>,
+                                           FakeScene<SceneId::Settings>>;
 
     constexpr Wrecks::DeltaTime DT = Wrecks::DeltaTime(16.0);
 }

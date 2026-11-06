@@ -17,6 +17,7 @@ namespace RType::Scenes {
         InGame,
         Paused,
         GameOver,
+        Settings,
         Quit,
     };
 }
