@@ -47,6 +47,7 @@ RType::Game::Game::Game(ConnectionInfo connection)
         .message = {},
         .connection = std::move(connection),
         .settingsReturn = Scenes::SceneId::Connect,
+        .clickSound = {},
     }
     , m_Scenes()
 {
@@ -60,6 +61,8 @@ RType::Game::Game::Game(ConnectionInfo connection)
     m_Resources.loadTexture(Render::assetPath("ennemi.png"));
     m_Resources.loadTexture(Render::assetPath("orangeshoot.png"));
     m_Audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav"));
+
+    m_Context.clickSound = m_Audio.loadSound(Render::assetPath("sounds/click.wav"));
 }
 
 /**

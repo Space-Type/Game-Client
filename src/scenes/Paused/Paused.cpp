@@ -54,6 +54,10 @@ auto RType::Scenes::Paused::update(Context& ctx, Wrecks::DeltaTime) -> std::opti
 
     UI::FrameInput input = UI::readFrameInput(ctx.input, ctx.menuControls);
     std::optional<UI::FormEvent> event = m_Form->update(input);
+
+    if (event)
+        ctx.audio.play(ctx.clickSound);
+
     auto activated = [&](std::size_t button) {
         return event == UI::FormEvent{ .kind = UI::FormEvent::Kind::Activated, .index = button };
     };

@@ -34,5 +34,6 @@ namespace RType::Scenes {
         std::string message;                      // shown by GameOver and Connect
         Game::ConnectionInfo connection;          // prefills Connect
         SceneId settingsReturn;                   // where Settings goes back to
+        Render::SoundId clickSound;               // played on every Form event
     };
 }

@@ -127,6 +127,8 @@ auto RType::Scenes::Settings::update(Context& ctx, Wrecks::DeltaTime) -> std::op
     std::size_t back = m_Form->widgets().size() - 1;
 
     if (input.isPressed(UI::MenuAction::Back) || event == FormEvent{ .kind = FormEvent::Kind::Activated, .index = back }) {
+        if (event)
+            ctx.audio.play(ctx.clickSound);
         if (!m_Page)
             return ctx.settingsReturn;
         open(ctx, std::nullopt);
@@ -137,6 +139,10 @@ auto RType::Scenes::Settings::update(Context& ctx, Wrecks::DeltaTime) -> std::op
         SECTIONS[*m_Page].apply(ctx, *m_Form, *event);
     else if (event && event->kind == FormEvent::Kind::Activated)
         open(ctx, event->index);
+
+    // After apply: the click is heard at the new Effects volume
+    if (event)
+        ctx.audio.play(ctx.clickSound);
     return std::nullopt;
 }
 
