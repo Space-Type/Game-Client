@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string_view>
 
 namespace RType::Render {
@@ -93,4 +94,13 @@ namespace RType::Render {
      * Returns "Unknown" for `Key::Count` or invalid values.
      */
     std::string_view keyName(Key key) noexcept;
+
+    // Same for mouse buttons ("Mouse Left") and gamepad buttons ("D-pad Up", "A")
+    std::string_view mouseButtonName(MouseButton button) noexcept;
+    std::string_view gamepadButtonName(GamepadButton button) noexcept;
+
+    // Inverse of the functions above (exact names), nullopt for an unknown name
+    std::optional<Key> parseKey(std::string_view name) noexcept;
+    std::optional<MouseButton> parseMouseButton(std::string_view name) noexcept;
+    std::optional<GamepadButton> parseGamepadButton(std::string_view name) noexcept;
 }
