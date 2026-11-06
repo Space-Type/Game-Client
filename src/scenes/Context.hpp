@@ -27,7 +27,7 @@ namespace RType::Scenes {
         Render::Input& input;
         Render::Audio& audio;
         Render::Resources& resources;
-        const Game::Controls& controls;
+        Game::Controls& controls;                 // changed by Settings
         const UI::MenuControls& menuControls;
         std::unique_ptr<Game::Session>& session;  // null outside of a game
         std::string message;                      // shown by GameOver and Connect
