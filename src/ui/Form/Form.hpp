@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Button/Button.hpp"
+#include "../Checkbox/Checkbox.hpp"
 #include "../FrameInput/FrameInput.hpp"
 #include "../Slider/Slider.hpp"
 #include "../TextField/TextField.hpp"
@@ -20,7 +21,7 @@
 
 
 namespace RType::UI {
-    using Widget = std::variant<Button, TextField, Slider>;
+    using Widget = std::variant<Button, TextField, Slider, Checkbox>;
 
     // What happened to a widget of a Form during one frame
     struct FormEvent {
@@ -39,8 +40,9 @@ namespace RType::UI {
      * Widgets and which one has the focus.
      *
      * Up and Down wrap around. Confirm moves from a text
-     * field or a slider to the next widget, and activates
-     * a button. Left and Right only move a slider.
+     * field or a slider to the next widget, activates a
+     * button and toggles a checkbox. Left and Right only
+     * move a slider or set a checkbox off and on.
      * The mouse only takes the focus when it moves (a still
      * mouse never steals it from the keyboard), a click
      * focuses a text field and activates a button.

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../../src/ui/Button/Button.hpp"
+#include "../../src/ui/Checkbox/Checkbox.hpp"
 #include "../../src/ui/Form/Form.hpp"
 #include "../../src/ui/FrameInput/FrameInput.hpp"
 #include "../../src/ui/MenuControls/MenuControls.hpp"

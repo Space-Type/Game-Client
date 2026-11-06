@@ -32,6 +32,7 @@ set(TEST_SOURCES
     render/Letterbox.cpp
     render/Types.cpp
     scenes/Manager.cpp
+    ui/Checkbox.cpp
     ui/Form.cpp
     ui/Slider.cpp
     ui/TextField.cpp

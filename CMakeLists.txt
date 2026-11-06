@@ -110,6 +110,8 @@ set(SOURCES
     src/systems/Tuple.hpp
     src/ui/Button/Button.cpp
     src/ui/Button/Button.hpp
+    src/ui/Checkbox/Checkbox.cpp
+    src/ui/Checkbox/Checkbox.hpp
     src/ui/Form/Form.cpp
     src/ui/Form/Form.hpp
     src/ui/FrameInput/FrameInput.cpp

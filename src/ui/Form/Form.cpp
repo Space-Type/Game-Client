@@ -7,6 +7,7 @@
 */
 
 #include "Form.hpp"
+#include <type_traits>
 #include <utility>
 
 
@@ -22,8 +23,8 @@ RType::UI::Form::Form(std::vector<Widget> widgets)
  * Text goes first, to the widget focused when it was
  * typed: it must not follow a focus change of the same frame.
  * A slider being dragged keeps the focus, wherever the
- * mouse goes, and gets the input after the mouse moved the
- * focus: a click on a slider starts dragging it at once.
+ * mouse goes. Sliders and checkboxes get the input after the
+ * mouse moved the focus: a click on one acts on it at once.
  */
 auto RType::UI::Form::update(const FrameInput& input) -> std::optional<FormEvent>
 {
@@ -47,7 +48,14 @@ auto RType::UI::Form::update(const FrameInput& input) -> std::optional<FormEvent
     if (hovered && !dragging && input.click && isButton(*hovered))
         return FormEvent{ .kind = ACTIVATED, .index = *hovered };
 
-    if (auto* slider = std::get_if<Slider>(&m_Widgets[m_Focus]); slider && slider->update(input))
+    bool changed = std::visit([&]<typename W>(W& widget){
+        if constexpr (std::is_same_v<W, Slider> || std::is_same_v<W, Checkbox>)
+            return widget.update(input);
+        else
+            return false;
+    }, m_Widgets[m_Focus]);
+
+    if (changed)
         return FormEvent{ .kind = FormEvent::Kind::Changed, .index = m_Focus };
 
     if (input.isPressed(MenuAction::Up))

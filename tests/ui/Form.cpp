@@ -418,3 +418,75 @@ TEST(ui_Form, buttonsAreStillActivatedNextToASlider)
     EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), activated(0));
     EXPECT_EQ(form.update(clicked({ .x = 50.0F, .y = 45.0F })), activated(SLIDER + 1));
 }
+
+namespace {
+
+    using RType::UI::Checkbox;
+
+    constexpr std::size_t CHECKBOX = 1;
+    constexpr RType::Render::Vec2D ON_CHECKBOX = { .x = 50.0F, .y = 25.0F };
+
+    // Ok button, an unchecked checkbox, a slider at 50
+    Form makeCheckboxForm()
+    {
+        return Form(std::vector<RType::UI::Widget>{
+            Button("Ok", row(0.0F)),
+            Checkbox("Fullscreen", false, row(20.0F)),
+            Slider("Volume", 50, 0, 100, 10, { .x = 0.0F, .y = 40.0F, .width = 324.0F, .height = 10.0F }),
+        });
+    }
+
+    bool isChecked(const Form& form)
+    {
+        return std::get<Checkbox>(form.widgets()[CHECKBOX]).checked();
+    }
+}
+
+
+TEST(ui_Form, confirmOnCheckboxTogglesItAndKeepsTheFocus)
+{
+    Form form = makeCheckboxForm();
+
+    form.update(pressed(MenuAction::Down));
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), changed(CHECKBOX));
+    EXPECT_TRUE(isChecked(form));
+    EXPECT_EQ(form.focus(), CHECKBOX);
+}
+
+TEST(ui_Form, clickOnUnfocusedCheckboxFocusesAndTogglesIt)
+{
+    Form form = makeCheckboxForm();
+
+    EXPECT_EQ(form.update(clicked(ON_CHECKBOX)), changed(CHECKBOX));
+    EXPECT_EQ(form.focus(), CHECKBOX);
+    EXPECT_TRUE(isChecked(form));
+}
+
+TEST(ui_Form, rightOnFocusedCheckboxSetsItOn)
+{
+    Form form = makeCheckboxForm();
+
+    form.update(pressed(MenuAction::Down));
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), changed(CHECKBOX));
+    EXPECT_TRUE(isChecked(form));
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), std::nullopt);
+}
+
+TEST(ui_Form, checkboxDoesNotReactWithoutFocus)
+{
+    Form form = makeCheckboxForm();
+
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), std::nullopt);
+    EXPECT_FALSE(isChecked(form));
+}
+
+TEST(ui_Form, widgetsNextToACheckboxStillWork)
+{
+    Form form = makeCheckboxForm();
+
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), activated(0));
+    form.update(pressed(MenuAction::Up));
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), changed(2));
+    EXPECT_EQ(std::get<Slider>(form.widgets()[2]).value(), 60);
+    EXPECT_FALSE(isChecked(form));
+}
