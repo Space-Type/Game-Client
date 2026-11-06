@@ -102,6 +102,8 @@ set(SOURCES
     src/scenes/Paused/Paused.hpp
     src/scenes/Context.hpp
     src/scenes/SceneId.hpp
+    src/scenes/Settings/Settings.cpp
+    src/scenes/Settings/Settings.hpp
     src/scenes/Text.hpp
     src/systems/PlayerInput/PlayerInput.cpp
     src/systems/PlayerInput/PlayerInput.hpp

@@ -16,4 +16,5 @@
 #include "../../src/scenes/Manager/Manager.hpp"
 #include "../../src/scenes/Paused/Paused.hpp"
 #include "../../src/scenes/SceneId.hpp"
+#include "../../src/scenes/Settings/Settings.hpp"
 #include "../../src/scenes/Text.hpp"

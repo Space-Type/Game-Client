@@ -13,6 +13,7 @@
 #include "../game/ConnectionInfo/ConnectionInfo.hpp"
 #include "../game/Controls/Controls.hpp"
 #include "../game/Session/Session.hpp"
+#include "SceneId.hpp"
 #include <wrecks/common.hpp>
 #include <memory>
 #include <string>
@@ -24,6 +25,7 @@ namespace RType::Scenes {
         Render::Window& window;
         const Render::Renderer& renderer;
         Render::Input& input;
+        Render::Audio& audio;
         Render::Resources& resources;
         const Game::Controls& controls;
         const UI::MenuControls& menuControls;
@@ -31,5 +33,6 @@ namespace RType::Scenes {
         Wrecks::DeltaTime fixedUpdateRate;
         std::string message;                      // shown by GameOver and Connect
         Game::ConnectionInfo connection;          // prefills Connect
+        SceneId settingsReturn;                   // where Settings goes back to
     };
 }
