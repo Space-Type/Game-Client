@@ -7,6 +7,7 @@
 */
 
 #include "Form.hpp"
+#include <type_traits>
 #include <utility>
 
 
@@ -21,24 +22,41 @@ RType::UI::Form::Form(std::vector<Widget> widgets)
 /**
  * Text goes first, to the widget focused when it was
  * typed: it must not follow a focus change of the same frame.
+ * A slider being dragged keeps the focus, wherever the
+ * mouse goes. Sliders and checkboxes get the input after the
+ * mouse moved the focus: a click on one acts on it at once.
  */
-auto RType::UI::Form::update(const FrameInput& input) -> std::optional<std::size_t>
+auto RType::UI::Form::update(const FrameInput& input) -> std::optional<FormEvent>
 {
+    constexpr auto ACTIVATED = FormEvent::Kind::Activated;
+
     if (m_Widgets.empty())
         return std::nullopt;
 
     if (auto* field = std::get_if<TextField>(&m_Widgets[m_Focus]))
         field->update(input);
 
+    const auto* focusedSlider = std::get_if<Slider>(&m_Widgets[m_Focus]);
+    bool dragging = focusedSlider && focusedSlider->dragging();
     std::optional<std::size_t> hovered = widgetAt(input.mouse);
     bool mouseMoved = m_LastMouse && (m_LastMouse->x != input.mouse.x || m_LastMouse->y != input.mouse.y);
 
     m_LastMouse = input.mouse;
 
-    if (hovered && (mouseMoved || input.click))
+    if (hovered && !dragging && (mouseMoved || input.click))
         m_Focus = *hovered;
-    if (hovered && input.click && isButton(*hovered))
-        return hovered;
+    if (hovered && !dragging && input.click && isButton(*hovered))
+        return FormEvent{ .kind = ACTIVATED, .index = *hovered };
+
+    bool changed = std::visit([&]<typename W>(W& widget){
+        if constexpr (std::is_same_v<W, Slider> || std::is_same_v<W, Checkbox>)
+            return widget.update(input);
+        else
+            return false;
+    }, m_Widgets[m_Focus]);
+
+    if (changed)
+        return FormEvent{ .kind = FormEvent::Kind::Changed, .index = m_Focus };
 
     if (input.isPressed(MenuAction::Up))
         moveFocus(false);
@@ -47,7 +65,7 @@ auto RType::UI::Form::update(const FrameInput& input) -> std::optional<std::size
 
     if (input.isPressed(MenuAction::Confirm)) {
         if (isButton(m_Focus))
-            return m_Focus;
+            return FormEvent{ .kind = ACTIVATED, .index = m_Focus };
         moveFocus(true);
     }
     return std::nullopt;

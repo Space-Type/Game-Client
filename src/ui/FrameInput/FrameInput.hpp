@@ -24,7 +24,8 @@ namespace RType::UI {
         std::bitset<MENU_ACTION_COUNT> actions = {};  // pressed this frame
         bool backspace = false;
         Render::Vec2D mouse = {};
-        bool click = false;
+        bool click = false;                           // left button pressed this frame
+        bool mouseDown = false;                       // left button held
         std::u32string text = {};                     // typed this frame
 
         [[ nodiscard ]] inline bool isPressed(MenuAction action) const noexcept { return actions[static_cast<std::size_t>(action)]; }

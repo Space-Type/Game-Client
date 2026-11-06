@@ -23,7 +23,8 @@ namespace {
     constexpr std::size_t PORT_FIELD = 1;
     constexpr std::size_t NAME_FIELD = 2;
     constexpr std::size_t CONNECT_BUTTON = 3;
-    constexpr std::size_t QUIT_BUTTON = 4;
+    constexpr std::size_t SETTINGS_BUTTON = 4;
+    constexpr std::size_t QUIT_BUTTON = 5;
 
     // Layout on the 1280x720 virtual screen, from top to bottom
     constexpr float TITLE_Y = 30.0F;
@@ -35,9 +36,10 @@ namespace {
     constexpr float NAME_Y = 290.0F;
     constexpr float BUTTON_X = 480.0F;
     constexpr float BUTTON_WIDTH = 320.0F;
-    constexpr float CONNECT_Y = 380.0F;
-    constexpr float QUIT_Y = 460.0F;
-    constexpr float MESSAGE_Y = 550.0F;
+    constexpr float CONNECT_Y = 370.0F;
+    constexpr float SETTINGS_Y = 450.0F;
+    constexpr float QUIT_Y = 530.0F;
+    constexpr float MESSAGE_Y = 605.0F;
     constexpr float MESSAGE_SIZE = 28.0F;
     constexpr float HINT_Y = 650.0F;
 
@@ -57,6 +59,7 @@ namespace {
             TextField("Port", info.port, ConnectionInfo::PORT_MAX_LENGTH, field(PORT_Y), RType::UI::isDigit),
             TextField("Nickname", info.name, ConnectionInfo::NAME_MAX_LENGTH, field(NAME_Y)),
             Button("Connect", button(CONNECT_Y)),
+            Button("Settings", button(SETTINGS_Y)),
             Button("Quit", button(QUIT_Y)),
         });
     }
@@ -74,17 +77,30 @@ auto RType::Scenes::Connect::update(Context& ctx, Wrecks::DeltaTime) -> std::opt
         m_Form.emplace(buildForm(ctx.connection));
 
     UI::FrameInput input = UI::readFrameInput(ctx.input, ctx.menuControls);
-    std::optional<std::size_t> activated = m_Form->update(input);
+    std::optional<UI::FormEvent> event = m_Form->update(input);
 
-    if (activated == QUIT_BUTTON || input.isPressed(UI::MenuAction::Back))
+    if (event)
+        ctx.audio.play(ctx.clickSound);
+
+    auto activated = [&](std::size_t button) {
+        return event == UI::FormEvent{ .kind = UI::FormEvent::Kind::Activated, .index = button };
+    };
+
+    if (activated(QUIT_BUTTON) || input.isPressed(UI::MenuAction::Back))
         return SceneId::Quit;
 
-    if (activated != CONNECT_BUTTON)
+    if (!activated(CONNECT_BUTTON) && !activated(SETTINGS_BUTTON))
         return std::nullopt;
 
+    // Also kept when going to Settings: this scene is built anew when it comes back
     ctx.connection.host = valueOf(*m_Form, HOST_FIELD);
     ctx.connection.port = valueOf(*m_Form, PORT_FIELD);
     ctx.connection.name = valueOf(*m_Form, NAME_FIELD);
+
+    if (activated(SETTINGS_BUTTON)) {
+        ctx.settingsReturn = SceneId::Connect;
+        return SceneId::Settings;
+    }
 
     std::optional<std::string> error = ctx.connection.validate();
 

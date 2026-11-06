@@ -69,6 +69,11 @@ namespace {
         return input;
     }
 
+    std::optional<RType::UI::FormEvent> activated(std::size_t index)
+    {
+        return RType::UI::FormEvent{ .kind = RType::UI::FormEvent::Kind::Activated, .index = index };
+    }
+
     std::string valueOf(const Form& form, std::size_t field)
     {
         return std::get<TextField>(form.widgets()[field]).value();
@@ -143,7 +148,7 @@ TEST(ui_Form, confirmOnButtonActivatesIt)
     Form form = makeForm();
 
     form.update(pressed(MenuAction::Up));
-    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), QUIT_BUTTON);
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), activated(QUIT_BUTTON));
     EXPECT_EQ(form.focus(), QUIT_BUTTON);
 }
 
@@ -195,7 +200,7 @@ TEST(ui_Form, clickActivatesButton)
     Form form = makeForm();
 
     form.update(idle(ON_OK_BUTTON));
-    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), OK_BUTTON);
+    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), activated(OK_BUTTON));
     EXPECT_EQ(form.focus(), OK_BUTTON);
 }
 
@@ -213,7 +218,7 @@ TEST(ui_Form, clickWorksOnFirstFrame)
 {
     Form form = makeForm();
 
-    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), OK_BUTTON);
+    EXPECT_EQ(form.update(clicked(ON_OK_BUTTON)), activated(OK_BUTTON));
 }
 
 TEST(ui_Form, clickOutsideKeepsFocus)
@@ -291,4 +296,197 @@ TEST(ui_MenuControls, defaultBindings)
     EXPECT_EQ(controls.bindings(MenuAction::Down), (std::vector<Binding>{Key::Down, Key::Tab, GamepadButton::DpadDown}));
     EXPECT_EQ(controls.bindings(MenuAction::Confirm), (std::vector<Binding>{Key::Enter, Key::KpEnter, GamepadButton::A}));
     EXPECT_EQ(controls.bindings(MenuAction::Back), (std::vector<Binding>{Key::Escape, GamepadButton::B}));
+}
+
+namespace {
+
+    using RType::UI::FormEvent;
+    using RType::UI::Slider;
+
+    constexpr std::size_t SLIDER = 1;
+    constexpr RType::Render::Rect SLIDER_BOX = { .x = 0.0F, .y = 20.0F, .width = 324.0F, .height = 10.0F };
+
+    // Ok button, a 0-100 slider by steps of 10 at 50, Quit button
+    Form makeSliderForm()
+    {
+        return Form(std::vector<RType::UI::Widget>{
+            Button("Ok", row(0.0F)),
+            Slider("Volume", 50, 0, 100, 10, SLIDER_BOX),
+            Button("Quit", row(40.0F)),
+        });
+    }
+
+    int sliderValue(const Form& form)
+    {
+        return std::get<Slider>(form.widgets()[SLIDER]).value();
+    }
+
+    float sliderX(const Form& form, float ratio)
+    {
+        RType::Render::Rect track = std::get<Slider>(form.widgets()[SLIDER]).track();
+
+        return track.x + track.width * ratio;
+    }
+
+    std::optional<FormEvent> changed(std::size_t index)
+    {
+        return FormEvent{ .kind = FormEvent::Kind::Changed, .index = index };
+    }
+}
+
+
+TEST(ui_Form, rightOnFocusedSliderChangesIt)
+{
+    Form form = makeSliderForm();
+
+    form.update(pressed(MenuAction::Down));
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), changed(SLIDER));
+    EXPECT_EQ(sliderValue(form), 60);
+    EXPECT_EQ(form.update(pressed(MenuAction::Left)), changed(SLIDER));
+    EXPECT_EQ(sliderValue(form), 50);
+}
+
+TEST(ui_Form, sliderAtItsBoundIsNotChanged)
+{
+    Form form(std::vector<RType::UI::Widget>{ Slider("Volume", 100, 0, 100, 10, SLIDER_BOX) });
+
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), std::nullopt);
+}
+
+TEST(ui_Form, leftAndRightOnAButtonLeaveTheSlider)
+{
+    Form form = makeSliderForm();
+
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), std::nullopt);
+    EXPECT_EQ(form.update(pressed(MenuAction::Left)), std::nullopt);
+    EXPECT_EQ(sliderValue(form), 50);
+    EXPECT_EQ(form.focus(), 0U);
+}
+
+TEST(ui_Form, confirmOnSliderMovesToNextWidget)
+{
+    Form form = makeSliderForm();
+
+    form.update(pressed(MenuAction::Down));
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), std::nullopt);
+    EXPECT_EQ(form.focus(), SLIDER + 1);
+}
+
+TEST(ui_Form, clickOnSliderFocusesAndSetsIt)
+{
+    Form form = makeSliderForm();
+
+    EXPECT_EQ(form.update(clicked({ .x = sliderX(form, 0.8F), .y = 25.0F })), changed(SLIDER));
+    EXPECT_EQ(form.focus(), SLIDER);
+    EXPECT_EQ(sliderValue(form), 80);
+}
+
+TEST(ui_Form, draggedSliderKeepsTheFocus)
+{
+    Form form = makeSliderForm();
+    FrameInput input = clicked({ .x = sliderX(form, 0.5F), .y = 25.0F });
+
+    form.update(input);
+
+    // Held over the Quit button, then on its left: the slider still follows
+    input = idle({ .x = 50.0F, .y = 45.0F });
+    input.mouseDown = true;
+    form.update(input);
+    EXPECT_EQ(form.focus(), SLIDER);
+
+    input.mouse = { .x = -50.0F, .y = 45.0F };
+    EXPECT_EQ(form.update(input), changed(SLIDER));
+    EXPECT_EQ(form.focus(), SLIDER);
+    EXPECT_EQ(sliderValue(form), 0);
+}
+
+TEST(ui_Form, releasedSliderGivesTheFocusBack)
+{
+    Form form = makeSliderForm();
+
+    form.update(clicked({ .x = sliderX(form, 0.5F), .y = 25.0F }));
+    form.update(idle({ .x = sliderX(form, 0.5F), .y = 25.0F }));
+    form.update(idle(ON_FIRST_FIELD));
+    EXPECT_EQ(form.focus(), 0U);
+    EXPECT_EQ(sliderValue(form), 50);
+}
+
+TEST(ui_Form, buttonsAreStillActivatedNextToASlider)
+{
+    Form form = makeSliderForm();
+
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), activated(0));
+    EXPECT_EQ(form.update(clicked({ .x = 50.0F, .y = 45.0F })), activated(SLIDER + 1));
+}
+
+namespace {
+
+    using RType::UI::Checkbox;
+
+    constexpr std::size_t CHECKBOX = 1;
+    constexpr RType::Render::Vec2D ON_CHECKBOX = { .x = 50.0F, .y = 25.0F };
+
+    // Ok button, an unchecked checkbox, a slider at 50
+    Form makeCheckboxForm()
+    {
+        return Form(std::vector<RType::UI::Widget>{
+            Button("Ok", row(0.0F)),
+            Checkbox("Fullscreen", false, row(20.0F)),
+            Slider("Volume", 50, 0, 100, 10, { .x = 0.0F, .y = 40.0F, .width = 324.0F, .height = 10.0F }),
+        });
+    }
+
+    bool isChecked(const Form& form)
+    {
+        return std::get<Checkbox>(form.widgets()[CHECKBOX]).checked();
+    }
+}
+
+
+TEST(ui_Form, confirmOnCheckboxTogglesItAndKeepsTheFocus)
+{
+    Form form = makeCheckboxForm();
+
+    form.update(pressed(MenuAction::Down));
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), changed(CHECKBOX));
+    EXPECT_TRUE(isChecked(form));
+    EXPECT_EQ(form.focus(), CHECKBOX);
+}
+
+TEST(ui_Form, clickOnUnfocusedCheckboxFocusesAndTogglesIt)
+{
+    Form form = makeCheckboxForm();
+
+    EXPECT_EQ(form.update(clicked(ON_CHECKBOX)), changed(CHECKBOX));
+    EXPECT_EQ(form.focus(), CHECKBOX);
+    EXPECT_TRUE(isChecked(form));
+}
+
+TEST(ui_Form, rightOnFocusedCheckboxSetsItOn)
+{
+    Form form = makeCheckboxForm();
+
+    form.update(pressed(MenuAction::Down));
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), changed(CHECKBOX));
+    EXPECT_TRUE(isChecked(form));
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), std::nullopt);
+}
+
+TEST(ui_Form, checkboxDoesNotReactWithoutFocus)
+{
+    Form form = makeCheckboxForm();
+
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), std::nullopt);
+    EXPECT_FALSE(isChecked(form));
+}
+
+TEST(ui_Form, widgetsNextToACheckboxStillWork)
+{
+    Form form = makeCheckboxForm();
+
+    EXPECT_EQ(form.update(pressed(MenuAction::Confirm)), activated(0));
+    form.update(pressed(MenuAction::Up));
+    EXPECT_EQ(form.update(pressed(MenuAction::Right)), changed(2));
+    EXPECT_EQ(std::get<Slider>(form.widgets()[2]).value(), 60);
+    EXPECT_FALSE(isChecked(form));
 }

@@ -31,4 +31,15 @@ namespace RType::UI::Theme {
 
     // Room kept on the left of a text field for its label
     inline constexpr float LABEL_WIDTH = 280.0F;
+
+    // Slider: the filled part stands out from the track and the background
+    inline constexpr Render::Color TRACK_COLOR = { .r = 60, .g = 60, .b = 75, .a = 255 };
+    inline constexpr Render::Color FILL_COLOR = { .r = 90, .g = 160, .b = 255, .a = 255 };
+    inline constexpr float TRACK_HEIGHT = 12.0F;
+    inline constexpr float VALUE_WIDTH = 100.0F;  // room on the right of the track for the value
+
+    // Checkbox: a square, crossed when checked
+    inline constexpr float CHECK_SIZE = 28.0F;
+    inline constexpr float CHECK_INSET = 6.0F;
+    inline constexpr float CHECK_THICKNESS = 4.0F;
 }

@@ -88,6 +88,11 @@ void RType::Render::Window::toggleFullscreen() noexcept
     ToggleFullscreen();
 }
 
+bool RType::Render::Window::isFullscreen() const noexcept
+{
+    return IsWindowFullscreen();
+}
+
 RType::Render::Vec2D RType::Render::Window::size() const noexcept
 {
     return {static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())};

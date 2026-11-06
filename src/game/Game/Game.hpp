@@ -32,7 +32,8 @@ namespace RType::Game {
                                              Scenes::Connecting,
                                              Scenes::InGame,
                                              Scenes::Paused,
-                                             Scenes::GameOver>;
+                                             Scenes::GameOver,
+                                             Scenes::Settings>;
 
         Render::Window m_Window;  // first: outlives everything that depends on it
         Render::Resources m_Resources;

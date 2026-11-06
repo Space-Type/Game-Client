@@ -102,6 +102,8 @@ set(SOURCES
     src/scenes/Paused/Paused.hpp
     src/scenes/Context.hpp
     src/scenes/SceneId.hpp
+    src/scenes/Settings/Settings.cpp
+    src/scenes/Settings/Settings.hpp
     src/scenes/Text.hpp
     src/systems/PlayerInput/PlayerInput.cpp
     src/systems/PlayerInput/PlayerInput.hpp
@@ -110,12 +112,16 @@ set(SOURCES
     src/systems/Tuple.hpp
     src/ui/Button/Button.cpp
     src/ui/Button/Button.hpp
+    src/ui/Checkbox/Checkbox.cpp
+    src/ui/Checkbox/Checkbox.hpp
     src/ui/Form/Form.cpp
     src/ui/Form/Form.hpp
     src/ui/FrameInput/FrameInput.cpp
     src/ui/FrameInput/FrameInput.hpp
     src/ui/MenuControls/MenuControls.cpp
     src/ui/MenuControls/MenuControls.hpp
+    src/ui/Slider/Slider.cpp
+    src/ui/Slider/Slider.hpp
     src/ui/TextField/TextField.cpp
     src/ui/TextField/TextField.hpp
     src/ui/Theme.hpp
