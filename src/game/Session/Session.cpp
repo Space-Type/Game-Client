@@ -110,7 +110,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
         m_SimulationTick++;
         m_AccumulatedDelta -= Protecs::FIXED_UPDATE_RATE;
 
-        if (m_SimulationTick % 1000 == 0)
+        if (m_SimulationTick % 100 == 0)
             needsTickSync = true;
 
         if (m_SimulationTick % 1'000'000 == 0)
@@ -157,7 +157,7 @@ void RType::Game::Session::handleEvents(Protecs::Tick tick)
         try {
             std::visit(EventHandler{ *this }, *event);
         } catch (const std::exception& err) {
-            std::cerr << "[network] dropped packet: " << err.what() << std::endl;
+            std::cerr << err.what() << std::endl;
         }
 
         event = m_Client.receive(tick);
@@ -245,6 +245,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
     try {
         localEntity = session.m_EntityMap.toLocal(data.entity);
     } catch (const Errors::Error& err) {
+        session.m_Client.send(Packets::EntityList{});
         throw Errors::NetworkError("EntityComponentData: no such entity", err);
     }
 
@@ -301,9 +302,6 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete&
 
 void RType::Game::Session::EventHandler::operator()(const Packets::EntityList& data)
 {
-    for (auto [netEntity, signature] : data.entities) {
-    }
-
     for (auto [netEntity, signature] : data.entities) {
         Wrecks::ECS::Entity localEntity;
 
@@ -421,7 +419,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::TickSync& dat
     if (session.m_LastSyncTime > data.clientTime)
         return;
 
-    auto timeDelay = std::chrono::steady_clock::now() - data.clientTime;
-    session.m_ServerTickDelay = timeDelay / Protecs::FIXED_UPDATE_RATE + 10;
+    auto timeDelay = (std::chrono::steady_clock::now() - data.clientTime) / 2.0;
+    session.m_ServerTickDelay = timeDelay / Protecs::FIXED_UPDATE_RATE + 2;
     session.m_SimulationTick = data.serverTick;
 }
