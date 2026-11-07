@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <string>
 
 
 namespace {
@@ -104,4 +105,37 @@ std::string RType::UI::Hud::scoreText(std::uint32_t score)
 
     std::snprintf(text, sizeof(text), "%06u", static_cast<unsigned int>(score));
     return text;
+}
+
+void RType::UI::Hud::drawBossBar(const Render::Renderer& renderer, Render::Vec2D screen, std::uint16_t hp, std::uint16_t max)
+{
+    std::string label = "DOBKERATOPS  " + std::to_string(hp) + " / " + std::to_string(max);
+    float labelWidth = renderer.measureText(label, TEXT_SIZE).x;
+    float x = (screen.x - BOSS_BAR_WIDTH) / 2.0F;
+    float barY = screen.y - ORIGIN - BOSS_BAR_HEIGHT;
+    float labelY = barY - PADDING - TEXT_SIZE;
+
+    renderer.drawRect({ .x = x - PADDING, .y = labelY - PADDING, .width = BOSS_BAR_WIDTH + PADDING * 2.0F,
+                        .height = barY + BOSS_BAR_HEIGHT + PADDING - (labelY - PADDING) }, PLATE_COLOR);
+    renderer.drawText(label, { .x = (screen.x - labelWidth) / 2.0F, .y = labelY }, TEXT_SIZE, Theme::FOREGROUND);
+    renderer.drawRect({ .x = x, .y = barY, .width = BOSS_BAR_WIDTH, .height = BOSS_BAR_HEIGHT }, Theme::TRACK_COLOR);
+    renderer.drawRect({ .x = x, .y = barY, .width = bossBarFill(hp, max, BOSS_BAR_WIDTH), .height = BOSS_BAR_HEIGHT }, Theme::HEART_LOW);
+}
+
+float RType::UI::Hud::bossBarFill(std::uint16_t hp, std::uint16_t max, float width) noexcept
+{
+    if (max == 0)
+        return 0.0F;
+    return width * static_cast<float>(std::min(hp, max)) / static_cast<float>(max);
+}
+
+float RType::UI::Hud::announcementOpacity(float elapsed, float duration) noexcept
+{
+    if (elapsed < 0.0F || elapsed > duration)
+        return 0.0F;
+    if (elapsed < FADE_IN)
+        return elapsed / FADE_IN;
+    if (elapsed > duration - FADE_OUT)
+        return std::max(0.0F, (duration - elapsed) / FADE_OUT);
+    return 1.0F;
 }

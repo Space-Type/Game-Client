@@ -38,3 +38,22 @@ TEST(ui_Hud, scoreHasSixDigits)
     EXPECT_EQ(Hud::scoreText(1200), "001200");
     EXPECT_EQ(Hud::scoreText(4000000000U), "4000000000");
 }
+
+TEST(ui_Hud, announcementFadesInAndOut)
+{
+    EXPECT_EQ(Hud::announcementOpacity(0.0F, 2.5F), 0.0F);
+    EXPECT_NEAR(Hud::announcementOpacity(Hud::FADE_IN / 2.0F, 2.5F), 0.5F, 0.001F);
+    EXPECT_EQ(Hud::announcementOpacity(1.0F, 2.5F), 1.0F);
+    EXPECT_NEAR(Hud::announcementOpacity(2.5F - Hud::FADE_OUT / 2.0F, 2.5F), 0.5F, 0.001F);
+    EXPECT_EQ(Hud::announcementOpacity(3.0F, 2.5F), 0.0F);
+    EXPECT_EQ(Hud::announcementOpacity(-1.0F, 2.5F), 0.0F);
+}
+
+TEST(ui_Hud, bossBarFollowsTheHealth)
+{
+    EXPECT_EQ(Hud::bossBarFill(60, 60, 600.0F), 600.0F);
+    EXPECT_EQ(Hud::bossBarFill(30, 60, 600.0F), 300.0F);
+    EXPECT_EQ(Hud::bossBarFill(0, 60, 600.0F), 0.0F);
+    EXPECT_EQ(Hud::bossBarFill(90, 60, 600.0F), 600.0F);  // never past the full bar
+    EXPECT_EQ(Hud::bossBarFill(10, 0, 600.0F), 0.0F);
+}

@@ -39,6 +39,11 @@ namespace {
     constexpr std::size_t CHARGE_FRAMES = 8;
     constexpr float CHARGE_FPS = 16.0F;
 
+    // r-typesheet30: last row of the Dobkeratops (chest open), 4 frames 162 px apart (155 px wide + gap)
+    constexpr Rect BOSS_FRAME = { .x = 27.0F, .y = 1711.0F, .width = 162.0F, .height = 204.0F };
+    constexpr std::size_t BOSS_FRAMES = 4;
+    constexpr float BOSS_FPS = 4.0F;
+
     constexpr Rect EXPLOSION_FRAME = { .x = 129.0F, .y = 0.0F, .width = 33.0F, .height = 33.0F };      // r-typesheet44: 6 frames
     constexpr std::size_t EXPLOSION_FRAMES = 6;
     constexpr float EXPLOSION_FPS = 15.0F;
@@ -98,6 +103,11 @@ auto RType::Game::beamSprite(Render::Resources& resources, std::uint8_t level) -
 auto RType::Game::chargeSprite(Render::Resources& resources) -> Components::Sprite
 {
     return { .texture = sheet(resources, "r-typesheet1.gif"), .frame = CHARGE_FRAME, .frameCount = CHARGE_FRAMES, .framesPerSecond = CHARGE_FPS };
+}
+
+auto RType::Game::bossSprite(Render::Resources& resources) -> Components::Sprite
+{
+    return { .texture = sheet(resources, "r-typesheet30.gif"), .frame = BOSS_FRAME, .frameCount = BOSS_FRAMES, .framesPerSecond = BOSS_FPS };
 }
 
 void RType::Game::setPlayerColour(Components::Sprite& sprite, std::size_t slot) noexcept

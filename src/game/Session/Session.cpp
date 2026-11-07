@@ -30,6 +30,8 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_ExplosionSound(audio.loadSound(Render::assetPath("sounds/enemy_hit.wav")))
     , m_ChargeSound(audio.loadSound(Render::assetPath("sounds/charge.wav")))
     , m_BeamSound(audio.loadSound(Render::assetPath("sounds/beam.wav")))
+    , m_LevelSound(audio.loadSound(Render::assetPath("sounds/level.wav")))
+    , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
     , m_Effects()
     , m_Engine()
     , m_EntityMap()
@@ -125,6 +127,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     }
 
     m_Engine.update(dt);
+    m_Clock += std::chrono::duration<float>(dt).count();
     m_Starfield.update(dt);
     removeFinishedEffects();
     updateChargeSound();
@@ -246,16 +249,78 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
         return;
 
     EntityCreate::EntityType type = m_Engine.get<Components::EntityKind>()[entity].type;
+    const auto transform = m_Engine.get<Protecs::Components::Transform>()[entity];
 
-    if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT)
+    if (type == EntityCreate::ENEMY_DOBKERATOPS && m_Engine.hasComponent<Components::Sprite>(entity)) {
+        // The boss blows up all over its body
+        Render::Vec2D size = Systems::spriteSize(m_Engine.get<Components::Sprite>()[entity], m_Resources);
+
+        for (float fx : { 0.2F, 0.5F, 0.8F })
+            for (float fy : { 0.2F, 0.5F, 0.8F })
+                explodeAt({ .position = { transform.position.x + size.x * transform.scale * fx, transform.position.y + size.y * transform.scale * fy },
+                            .rotation = 0.0F, .scale = 1.5F });
         return;
+    }
+    if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT
+        && type != EntityCreate::ENEMY_DOBKERATOPS_CORE)
+        return;
+    explodeAt(transform);
+}
 
+void RType::Game::Session::explodeAt(const Protecs::Components::Transform& where)
+{
     auto effect = m_Engine.createEntity();
 
-    m_Engine.addComponent(effect, Protecs::Components::Transform{ m_Engine.get<Protecs::Components::Transform>()[entity] });
+    m_Engine.addComponent(effect, Protecs::Components::Transform{ where });
     m_Engine.addComponent(effect, explosionSprite(m_Resources));
     m_Effects.push_back(effect);
     m_Audio.play(m_ExplosionSound);
+}
+
+void RType::Game::Session::announce(std::string text, float duration, bool scores, Render::SoundId sound)
+{
+    m_Announcement = Announcement{ .text = std::move(text), .start = m_Clock, .duration = duration, .scores = scores };
+    m_Audio.play(sound);
+}
+
+/**
+ * The boss core is dead: "STAGE CLEAR" with the scores, then
+ * the victory screen (the game over timer ends the session).
+ */
+void RType::Game::Session::clearStage()
+{
+    std::uint32_t score = 0;
+
+    for (const auto& line : players())
+        if (line.local)
+            score = line.score;
+    announce("STAGE CLEAR", STAGE_CLEAR_ANNOUNCEMENT, true, m_StageClearSound);
+    m_GameOverIn = STAGE_CLEAR_ANNOUNCEMENT;
+    m_EndReason = "Victory! Score " + std::to_string(score);
+}
+
+auto RType::Game::Session::findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const -> std::optional<Wrecks::ECS::Entity>
+{
+    for (auto [entity, kind] : m_Engine.get<Components::EntityKind>())
+        if (kind.type == type)
+            return entity;
+    return std::nullopt;
+}
+
+auto RType::Game::Session::announcement() const -> std::optional<std::pair<Announcement, float>>
+{
+    if (!m_Announcement || m_Clock - m_Announcement->start > m_Announcement->duration)
+        return std::nullopt;
+    return std::pair{ *m_Announcement, m_Clock - m_Announcement->start };
+}
+
+auto RType::Game::Session::bossHealth() const -> std::optional<Protecs::Components::Health>
+{
+    std::optional<Wrecks::ECS::Entity> core = findKind(Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE);
+
+    if (!core || !m_Engine.hasComponent<Protecs::Components::Health>(*core))
+        return std::nullopt;
+    return m_Engine.get<Protecs::Components::Health>()[*core];
 }
 
 /**
@@ -305,6 +370,9 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
         case Protecs::Networking::Packets::EntityCreate::ENEMY_MISSILE:
             m_Engine.addComponent(entity, enemyMissileSprite(m_Resources));
             m_Audio.play(m_EnemyShotSound);
+            return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS:
+            m_Engine.addComponent(entity, bossSprite(m_Resources));
             return;
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1:
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_2:
@@ -375,13 +443,29 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
                 session.loseLife(localEntity, stats.lives);
         }
 
-        // An enemy hit but not killed blinks briefly
+        // An enemy hit but not killed blinks briefly (the boss body when its core is hit)
         if constexpr (std::is_same_v<Component, Protecs::Components::Health>) {
             if (hpBefore && session.m_Engine.get<Component>()[localEntity].hp < *hpBefore) {
-                if (session.m_Engine.hasComponent<Components::Blink>(localEntity))
-                    session.m_Engine.get<Components::Blink>()[localEntity].remaining = HIT_BLINK;
+                Wrecks::ECS::Entity target = localEntity;
+                bool isCore = session.m_Engine.hasComponent<Components::EntityKind>(localEntity)
+                           && session.m_Engine.get<Components::EntityKind>()[localEntity].type == Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE;
+
+                if (auto body = isCore ? session.findKind(Packets::EntityCreate::ENEMY_DOBKERATOPS) : std::nullopt)
+                    target = *body;
+                if (session.m_Engine.hasComponent<Components::Blink>(target))
+                    session.m_Engine.get<Components::Blink>()[target].remaining = HIT_BLINK;
                 else
-                    session.m_Engine.addComponent(localEntity, Components::Blink{ .remaining = HIT_BLINK });
+                    session.m_Engine.addComponent(target, Components::Blink{ .remaining = HIT_BLINK });
+            }
+        }
+
+        // "LEVEL n" when a stage starts (the first Level received, then every change)
+        if constexpr (std::is_same_v<Component, Protecs::Components::Level>) {
+            std::uint8_t stage = session.m_Engine.get<Component>()[localEntity].stage;
+
+            if (!session.m_Stage || *session.m_Stage != stage) {
+                session.m_Stage = stage;
+                session.announce("LEVEL " + std::to_string(stage), LEVEL_ANNOUNCEMENT, false, session.m_LevelSound);
             }
         }
     }, data.component);
@@ -410,9 +494,13 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete&
         return;
 
     auto localEntity = session.m_EntityMap.toLocal(data.id);
+    bool isCore = session.m_Engine.hasComponent<Components::EntityKind>(localEntity)
+               && session.m_Engine.get<Components::EntityKind>()[localEntity].type == Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE;
 
     if (!Components::isEliminated(session.m_Engine, localEntity))  // it already exploded
         session.explode(localEntity);
+    if (isCore && !session.m_GameOverIn)
+        session.clearStage();
     session.m_Engine.deleteEntity(localEntity);
     session.m_EntityMap.removeNetwork(data.id);
 }

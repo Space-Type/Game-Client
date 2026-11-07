@@ -20,7 +20,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
+#include <utility>
 #include <vector>
 
 
@@ -32,6 +32,14 @@ namespace RType::Game {
      * Never copied nor moved: the network
      * thread of the client refers to it.
      */
+    // Big text over the game: "LEVEL n" when a stage starts, "STAGE CLEAR" (with the scores) when it is won
+    struct Announcement {
+        std::string text;
+        float start;      // Session clock
+        float duration;   // seconds
+        bool scores;      // also shows every player's score
+    };
+
     class Session {
         static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
 
@@ -47,6 +55,12 @@ namespace RType::Game {
         Render::SoundId m_ChargeSound;
         Render::SoundId m_BeamSound;
         bool m_ChargeSoundPlaying = false;
+        Render::SoundId m_LevelSound;
+        Render::SoundId m_StageClearSound;
+
+        float m_Clock = 0.0F;                     // seconds since the session started
+        std::optional<std::uint8_t> m_Stage;      // last Level::stage received
+        std::optional<Announcement> m_Announcement;
 
         // Client-only entities (explosions), deleted once their animation is over
         std::vector<Wrecks::ECS::Entity> m_Effects;
@@ -67,6 +81,8 @@ namespace RType::Game {
         public:
             static constexpr float GAME_OVER_DELAY = 1.5F;  // lets the last explosion play
             static constexpr float HIT_BLINK = 0.2F;         // an enemy hit but not killed blinks as long
+            static constexpr float LEVEL_ANNOUNCEMENT = 2.5F;
+            static constexpr float STAGE_CLEAR_ANNOUNCEMENT = 4.0F;  // then the victory screen
 
             Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                     const Render::Input& input, const Controls& controls, const DisplayOptions& display);
@@ -90,6 +106,12 @@ namespace RType::Game {
             // Players with their stats, the local one first then by slot
             [[ nodiscard ]] std::vector<UI::HudLine> players() const;
 
+            // The announcement on screen, and how long it has been shown (seconds)
+            [[ nodiscard ]] std::optional<std::pair<Announcement, float>> announcement() const;
+
+            // Health of the boss core, while a boss is there
+            [[ nodiscard ]] std::optional<Protecs::Components::Health> bossHealth() const;
+
             [[ nodiscard ]] inline bool ended() const noexcept { return m_Ended; }
             [[ nodiscard ]] inline std::string_view endReason() const noexcept { return m_EndReason; }
 
@@ -98,6 +120,10 @@ namespace RType::Game {
 
             void initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id);
             void explode(Wrecks::ECS::Entity entity);
+            void explodeAt(const Protecs::Components::Transform& where);
+            void announce(std::string text, float duration, bool scores, Render::SoundId sound);
+            void clearStage();
+            [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void removeFinishedEffects();
             void updateChargeSound();

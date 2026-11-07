@@ -22,5 +22,8 @@ namespace RType::Scenes {
         public:
             std::optional<SceneId> update(Context& ctx, Wrecks::DeltaTime dt);
             void render(Context& ctx) const;
+
+        private:
+            static void drawAnnouncement(Context& ctx, const Game::Announcement& announcement, float elapsed);
     };
 }
