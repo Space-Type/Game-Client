@@ -233,8 +233,18 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
         throw Errors::NetworkError("EntityComponentData: no such entity", err);
     }
 
+    Protecs::NetworkEntity networkEntity = data.entity;
+
     std::visit([&, localEntity](auto& data){
         using Component = std::decay_t<decltype(data)>;
+
+        // Players that joined before us were never announced by an EntityCreate: their name tells
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerName>) {
+            if (!session.m_Engine.hasComponent<Components::EntityKind>(localEntity)) {
+                session.m_Engine.addComponent(localEntity, Components::EntityKind{ Packets::EntityCreate::PLAYER });
+                session.initPlayer(localEntity, networkEntity);
+            }
+        }
         if (!session.m_Engine.hasComponent<Component>(localEntity))
             session.m_Engine.addComponent(localEntity, Component{});
 
