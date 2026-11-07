@@ -27,6 +27,7 @@ set(TEST_SOURCES
     game/ConnectionInfo.cpp
     game/Controls.cpp
     game/Preferences.cpp
+    game/Starfield.cpp
     render/ActionMap.cpp
     render/Concepts.cpp
     render/KeyMap.cpp

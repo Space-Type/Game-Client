@@ -9,6 +9,7 @@
 #include "Session.hpp"
 #include "protecs/common.hpp"
 #include <rtype/errors.hpp>
+#include <rtype/game.hpp>
 #include <algorithm>
 #include <exception>
 #include <iostream>
@@ -18,6 +19,8 @@
 RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer,
                               const Render::Input& input, const Controls& controls, const DisplayOptions& display)
     : m_Resources(resources)
+    , m_Renderer(renderer)
+    , m_Starfield({ .x = static_cast<float>(Game::Game::VIRTUAL_WIDTH), .y = static_cast<float>(Game::Game::VIRTUAL_HEIGHT) })
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
@@ -103,6 +106,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     }
 
     m_Engine.update(dt);
+    m_Starfield.update(dt);
 }
 
 /**
@@ -112,6 +116,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
  */
 void RType::Game::Session::render(Wrecks::DeltaTime dt)
 {
+    m_Starfield.draw(m_Renderer);  // behind every entity
     m_Engine.render(dt);
 }
 

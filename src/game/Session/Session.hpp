@@ -12,6 +12,7 @@
 #include "../Client/Client.hpp"
 #include "../Controls/Controls.hpp"
 #include "../DisplayOptions/DisplayOptions.hpp"
+#include "../Starfield/Starfield.hpp"
 #include <rtype/render.hpp>
 #include <rtype/utils.hpp>
 #include <chrono>
@@ -31,6 +32,8 @@ namespace RType::Game {
         static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
 
         Render::Resources& m_Resources;
+        const Render::Renderer& m_Renderer;
+        Starfield m_Starfield;
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 

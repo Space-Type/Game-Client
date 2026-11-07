@@ -67,6 +67,8 @@ set(SOURCES
     src/game/Preferences/Preferences.cpp
     src/game/Preferences/Preferences.hpp
     src/game/Session/Session.cpp
+    src/game/Starfield/Starfield.cpp
+    src/game/Starfield/Starfield.hpp
     src/game/Session/Session.hpp
     src/game/Engine.hpp
     src/render/Assets/Assets.cpp
