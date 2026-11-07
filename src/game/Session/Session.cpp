@@ -31,6 +31,8 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     m_Engine.get<Systems::RenderOutline>().setRenderer(renderer);
     m_Engine.get<Systems::RenderOutline>().setResources(resources);
     m_Engine.get<Systems::RenderOutline>().setOptions(display);
+    m_Engine.get<Systems::RenderName>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderName>().setResources(resources);
     m_Engine.get<Systems::PlayerInput>().setInput(input);
     m_Engine.get<Systems::PlayerInput>().setControls(controls);
     m_Engine.get<Systems::PlayerInput>().setInputQueuer([&](Protecs::Networking::Packets::PlayerInput input){

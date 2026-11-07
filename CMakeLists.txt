@@ -111,6 +111,8 @@ set(SOURCES
     src/scenes/Text.hpp
     src/systems/PlayerInput/PlayerInput.cpp
     src/systems/PlayerInput/PlayerInput.hpp
+    src/systems/RenderName/RenderName.cpp
+    src/systems/RenderName/RenderName.hpp
     src/systems/RenderOutline/RenderOutline.cpp
     src/systems/RenderOutline/RenderOutline.hpp
     src/systems/RenderSprite/RenderSprite.cpp

@@ -18,6 +18,7 @@ namespace RType::Systems {
         Protecs::Systems::Tuple,
         std::tuple<PlayerInput,
                    RenderSprite,
-                   RenderOutline>
+                   RenderOutline,
+                   RenderName>
     >;
 }
