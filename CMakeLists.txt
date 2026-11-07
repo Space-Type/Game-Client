@@ -46,6 +46,7 @@ set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
     src/components/Controllable.hpp
+    src/components/EntityKind.hpp
     src/components/Manager.hpp
     src/components/Sprite.hpp
     src/errors/Error/Error.cpp
@@ -60,6 +61,7 @@ set(SOURCES
     src/game/Controls/Controls.hpp
     src/game/Client/Client.cpp
     src/game/Client/Client.hpp
+    src/game/DisplayOptions/DisplayOptions.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Preferences/Preferences.cpp
@@ -109,6 +111,10 @@ set(SOURCES
     src/scenes/Text.hpp
     src/systems/PlayerInput/PlayerInput.cpp
     src/systems/PlayerInput/PlayerInput.hpp
+    src/systems/RenderName/RenderName.cpp
+    src/systems/RenderName/RenderName.hpp
+    src/systems/RenderOutline/RenderOutline.cpp
+    src/systems/RenderOutline/RenderOutline.hpp
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp

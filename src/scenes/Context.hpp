@@ -12,6 +12,7 @@
 #include <rtype/ui.hpp>
 #include "../game/ConnectionInfo/ConnectionInfo.hpp"
 #include "../game/Controls/Controls.hpp"
+#include "../game/DisplayOptions/DisplayOptions.hpp"
 #include "../game/Session/Session.hpp"
 #include "SceneId.hpp"
 #include <wrecks/common.hpp>
@@ -29,6 +30,7 @@ namespace RType::Scenes {
         Render::Resources& resources;
         Game::Controls& controls;                 // changed by Settings
         const UI::MenuControls& menuControls;
+        Game::DisplayOptions& displayOptions;     // changed by Settings
         std::unique_ptr<Game::Session>& session;  // null outside of a game
         std::string message;                      // shown by GameOver and Connect
         Game::ConnectionInfo connection;          // prefills Connect

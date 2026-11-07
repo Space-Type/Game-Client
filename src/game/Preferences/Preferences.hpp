@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Controls/Controls.hpp"
+#include "../DisplayOptions/DisplayOptions.hpp"
 #include <rtype/render.hpp>
 #include <cstddef>
 #include <filesystem>
@@ -24,6 +25,7 @@ namespace RType::Game {
      *
      *     volume.master=80
      *     fullscreen=false
+ *     accessibility.high_contrast=false
      *     bind.shoot.keyboard=Space
      *     bind.shoot.gamepad=A
      *
@@ -39,13 +41,16 @@ namespace RType::Game {
         int music = VOLUME_MAX;
         int effects = VOLUME_MAX;
         bool fullscreen = false;
+        bool highContrast = false;
         Controls controls = defaultControls();
     };
 
-    Preferences currentPreferences(const Render::Audio& audio, const Render::Window& window, const Controls& controls);
+    Preferences currentPreferences(const Render::Audio& audio, const Render::Window& window, const Controls& controls,
+                                   const DisplayOptions& display);
 
     // Keeps the gamepad selected in `controls`
-    void applyPreferences(const Preferences& preferences, Render::Audio& audio, Render::Window& window, Controls& controls);
+    void applyPreferences(const Preferences& preferences, Render::Audio& audio, Render::Window& window, Controls& controls,
+                          DisplayOptions& display);
 
     std::string toText(const Preferences& preferences);
 

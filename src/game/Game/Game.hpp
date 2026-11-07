@@ -43,6 +43,7 @@ namespace RType::Game {
         Render::Input m_Input;
         Controls m_Controls;
         UI::MenuControls m_MenuControls;
+        DisplayOptions m_DisplayOptions;
 
         Wrecks::DeltaTime m_TargetDuration;
 

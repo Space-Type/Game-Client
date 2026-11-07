@@ -119,6 +119,8 @@ namespace {
             readVolume(value, preferences.effects);
         else if (key == "fullscreen" && (value == "true" || value == "false"))
             preferences.fullscreen = value == "true";
+        else if (key == "accessibility.high_contrast" && (value == "true" || value == "false"))
+            preferences.highContrast = value == "true";
         else
             readBindingLine(preferences, key, value);
     }
@@ -137,18 +139,21 @@ namespace {
 }
 
 
-auto RType::Game::currentPreferences(const Render::Audio& audio, const Render::Window& window, const Controls& controls) -> Preferences
+auto RType::Game::currentPreferences(const Render::Audio& audio, const Render::Window& window, const Controls& controls,
+                                     const DisplayOptions& display) -> Preferences
 {
     return Preferences{
         .master = toPercent(audio.volume(Render::Channel::Master)),
         .music = toPercent(audio.volume(Render::Channel::Music)),
         .effects = toPercent(audio.volume(Render::Channel::Effects)),
         .fullscreen = window.isFullscreen(),
+        .highContrast = display.highContrast,
         .controls = controls,
     };
 }
 
-void RType::Game::applyPreferences(const Preferences& preferences, Render::Audio& audio, Render::Window& window, Controls& controls)
+void RType::Game::applyPreferences(const Preferences& preferences, Render::Audio& audio, Render::Window& window, Controls& controls,
+                                   DisplayOptions& display)
 {
     int gamepad = controls.gamepad();
 
@@ -159,6 +164,7 @@ void RType::Game::applyPreferences(const Preferences& preferences, Render::Audio
         window.toggleFullscreen();
     controls = preferences.controls;
     controls.setGamepad(gamepad);
+    display.highContrast = preferences.highContrast;
 }
 
 std::string RType::Game::toText(const Preferences& preferences)
@@ -168,7 +174,8 @@ std::string RType::Game::toText(const Preferences& preferences)
     text << "volume.master=" << preferences.master << '\n'
          << "volume.music=" << preferences.music << '\n'
          << "volume.effects=" << preferences.effects << '\n'
-         << "fullscreen=" << (preferences.fullscreen ? "true" : "false") << '\n';
+         << "fullscreen=" << (preferences.fullscreen ? "true" : "false") << '\n'
+         << "accessibility.high_contrast=" << (preferences.highContrast ? "true" : "false") << '\n';
 
     for (Action action : ACTIONS) {
         for (Slot slot : { Slot::Keyboard, Slot::Gamepad }) {

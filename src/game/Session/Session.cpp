@@ -17,7 +17,7 @@
 
 
 RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer,
-                              const Render::Input& input, const Controls& controls)
+                              const Render::Input& input, const Controls& controls, const DisplayOptions& display)
     : m_Resources(resources)
     , m_Engine()
     , m_EntityMap()
@@ -30,6 +30,11 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_Client()
 {
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderOutline>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderOutline>().setResources(resources);
+    m_Engine.get<Systems::RenderOutline>().setOptions(display);
+    m_Engine.get<Systems::RenderName>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderName>().setResources(resources);
     m_Engine.get<Systems::PlayerInput>().setInput(input);
     m_Engine.get<Systems::PlayerInput>().setControls(controls);
     m_Engine.get<Systems::PlayerInput>().setInputQueuer([&](Protecs::Networking::Packets::PlayerInput input){
@@ -193,6 +198,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCreate&
 
     auto entity = session.m_Engine.createEntity();
     session.m_EntityMap.bind(data.id, entity);
+    session.m_Engine.addComponent(entity, Components::EntityKind{ data.type });
 
     switch (data.type) {
         case Packets::EntityCreate::PLAYER: session.initPlayer(entity); return;
