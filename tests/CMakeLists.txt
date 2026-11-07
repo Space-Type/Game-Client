@@ -36,6 +36,7 @@ set(TEST_SOURCES
     render/Types.cpp
     scenes/Manager.cpp
     systems/RenderName.cpp
+    systems/RenderSprite.cpp
     ui/Checkbox.cpp
     ui/Form.cpp
     ui/Slider.cpp
