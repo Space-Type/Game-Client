@@ -25,6 +25,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_AccumulatedDelta()
     , m_Ended(false)
     , m_EndReason()
+    , m_LastSyncTime()
     , m_Client()
 {
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
@@ -316,6 +317,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerLeave& 
 
 void RType::Game::Session::EventHandler::operator()(const Packets::TickSync& data)
 {
+    if (session.m_LastSyncTime > data.serverTime)
+        return;
+
     session.m_ServerTickDelay = 1.5 * (session.m_SimulationTick - data.clientTick) + 10;
     session.m_SimulationTick = data.serverTick;
+    session.m_LastSyncTime = data.serverTime;
 }

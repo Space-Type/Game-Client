@@ -41,6 +41,7 @@ namespace RType::Game {
         std::string m_EndReason;
 
         Client m_Client;  // last: its network thread stops first
+        std::chrono::steady_clock::time_point m_LastSyncTime;
 
         public:
             Session(Render::Resources& resources, const Render::Renderer& renderer,
