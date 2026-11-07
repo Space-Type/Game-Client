@@ -10,6 +10,7 @@
 
 #include "../ConnectionInfo/ConnectionInfo.hpp"
 #include "../Controls/Controls.hpp"
+#include "../Preferences/Preferences.hpp"
 #include "../Session/Session.hpp"
 #include <rtype/render.hpp>
 #include <rtype/scenes.hpp>

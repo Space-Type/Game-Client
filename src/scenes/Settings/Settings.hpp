@@ -23,8 +23,17 @@ namespace RType::Scenes {
      * Context::settingsReturn.
      */
     class Settings {
-        std::optional<std::size_t> m_Page;  // section shown, none for the list
-        std::optional<UI::Form> m_Form;     // built on the first update: scenes have no constructor argument
+        public:
+            // A control slot waiting for the player's next input
+            struct Capture {
+                Game::Action action;
+                Game::Slot slot;
+            };
+
+        private:
+            std::optional<std::size_t> m_Page;  // section shown, none for the list
+            std::optional<UI::Form> m_Form;     // built on the first update: scenes have no constructor argument
+            std::optional<Capture> m_Capture;
 
         public:
             Settings() noexcept = default;
@@ -34,5 +43,6 @@ namespace RType::Scenes {
 
         private:
             void open(const Context& ctx, std::optional<std::size_t> page);
+            void updateCapture(Context& ctx);
     };
 }
