@@ -7,6 +7,7 @@
 */
 
 #include "RenderOutline.hpp"
+#include "../RenderSprite/RenderSprite.hpp"
 #include "../../ui/Theme.hpp"
 #include <rtype/game.hpp>
 
@@ -38,7 +39,7 @@ void RType::Systems::RenderOutline::operator()(Wrecks::ECS::Entity entity, Wreck
     Render::Vec2D size = { .x = DEFAULT_SIZE, .y = DEFAULT_SIZE };
 
     if (engine.hasComponent<Components::Sprite>(entity))
-        size = m_Resources->textureSize(engine.get<Components::Sprite>()[entity].texture);
+        size = spriteSize(engine.get<Components::Sprite>()[entity], *m_Resources);
 
     // Same box as RenderSprite: the position is the top-left corner
     Render::Vec2D position = transform.position * Game::Game::WORLD_TO_SCREEN;

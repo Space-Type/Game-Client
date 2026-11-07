@@ -10,15 +10,25 @@
 #include "protecs/common.hpp"
 #include <chrono>
 #include <rtype/errors.hpp>
+#include <rtype/game.hpp>
+#include "../SpriteSheets/SpriteSheets.hpp"
 #include <algorithm>
 #include <exception>
 #include <iostream>
 #include <stdexcept>
+#include <type_traits>
 
 
-RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer,
+RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                               const Render::Input& input, const Controls& controls, const DisplayOptions& display)
     : m_Resources(resources)
+    , m_Renderer(renderer)
+    , m_Audio(audio)
+    , m_Starfield({ .x = static_cast<float>(Game::Game::VIRTUAL_WIDTH), .y = static_cast<float>(Game::Game::VIRTUAL_HEIGHT) })
+    , m_PlayerShotSound(audio.loadSound(Render::assetPath("sounds/playershoot.wav")))
+    , m_EnemyShotSound(audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav")))
+    , m_ExplosionSound(audio.loadSound(Render::assetPath("sounds/enemy_hit.wav")))
+    , m_Effects()
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
@@ -108,6 +118,8 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     }
 
     m_Engine.update(dt);
+    m_Starfield.update(dt);
+    removeFinishedEffects();
 
     if (needsTickSync) {
         auto timeNow = std::chrono::steady_clock::now();
@@ -127,6 +139,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
  */
 void RType::Game::Session::render(Wrecks::DeltaTime dt)
 {
+    m_Starfield.draw(m_Renderer);  // behind every entity
     m_Engine.render(dt);
 }
 
@@ -151,15 +164,69 @@ void RType::Game::Session::handleEvents(Protecs::Tick tick)
     }
 }
 
-void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity)
+/**
+ * The colour of a player comes from its slot (PlayerStats) once
+ * the server sends it. Until then, from its network id: the
+ * same on every client.
+ */
+void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id)
 {
     m_Engine.addComponent(entity, Components::Controllable{});
-    m_Engine.addComponent(entity, Components::Sprite{ m_Resources.loadTexture(Render::assetPath("spaceship.png")) });
+    m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
 }
 
-void RType::Game::Session::initEnemyPataPata(Wrecks::ECS::Entity entity)
+/**
+ * An explosion where a ship or an enemy was destroyed:
+ * the visual cue of the explosion sound (accessibility).
+ */
+void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
 {
+    using Protecs::Networking::Packets::EntityCreate;
 
+    if (!m_Engine.hasComponent<Components::EntityKind>(entity) || !m_Engine.hasComponent<Protecs::Components::Transform>(entity))
+        return;
+
+    EntityCreate::EntityType type = m_Engine.get<Components::EntityKind>()[entity].type;
+
+    if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT)
+        return;
+
+    auto effect = m_Engine.createEntity();
+
+    m_Engine.addComponent(effect, Protecs::Components::Transform{ m_Engine.get<Protecs::Components::Transform>()[entity] });
+    m_Engine.addComponent(effect, explosionSprite(m_Resources));
+    m_Effects.push_back(effect);
+    m_Audio.play(m_ExplosionSound);
+}
+
+void RType::Game::Session::removeFinishedEffects()
+{
+    std::erase_if(m_Effects, [&](Wrecks::ECS::Entity effect) {
+        if (!Components::finished(m_Engine.get<Components::Sprite>()[effect]))
+            return false;
+        m_Engine.deleteEntity(effect);
+        return true;
+    });
+}
+
+void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)
+{
+    switch (type) {
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_PATA_PATA:
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_SCANT:
+            m_Engine.addComponent(entity, enemySprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_MISSILE:
+            m_Engine.addComponent(entity, playerMissileSprite(m_Resources));
+            m_Audio.play(m_PlayerShotSound);
+            return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_MISSILE:
+            m_Engine.addComponent(entity, enemyMissileSprite(m_Resources));
+            m_Audio.play(m_EnemyShotSound);
+            return;
+        default:
+            return;
+    }
 }
 
 
@@ -181,12 +248,26 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
         throw Errors::NetworkError("EntityComponentData: no such entity", err);
     }
 
+    Protecs::NetworkEntity networkEntity = data.entity;
+
     std::visit([&, localEntity](auto& data){
         using Component = std::decay_t<decltype(data)>;
+
+        // Players that joined before us were never announced by an EntityCreate: their name tells
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerName>) {
+            if (!session.m_Engine.hasComponent<Components::EntityKind>(localEntity)) {
+                session.m_Engine.addComponent(localEntity, Components::EntityKind{ Packets::EntityCreate::PLAYER });
+                session.initPlayer(localEntity, networkEntity);
+            }
+        }
         if (!session.m_Engine.hasComponent<Component>(localEntity))
             session.m_Engine.addComponent(localEntity, Component{});
 
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
+
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
+            if (session.m_Engine.hasComponent<Components::Sprite>(localEntity))
+                setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], session.m_Engine.get<Component>()[localEntity].slot);
     }, data.component);
 }
 
@@ -200,11 +281,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCreate&
     session.m_EntityMap.bind(data.id, entity);
     session.m_Engine.addComponent(entity, Components::EntityKind{ data.type });
 
-    switch (data.type) {
-        case Packets::EntityCreate::PLAYER: session.initPlayer(entity); return;
-        case Packets::EntityCreate::ENEMY_PATA_PATA: session.initEnemyPataPata(entity); return;
-        default: return;
-    }
+    if (data.type == Packets::EntityCreate::PLAYER)
+        session.initPlayer(entity, data.id);
+    else
+        session.initSprite(entity, data.type);
 }
 
 void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete& data)
@@ -214,6 +294,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete&
         return;
 
     auto localEntity = session.m_EntityMap.toLocal(data.id);
+    session.explode(localEntity);
     session.m_Engine.deleteEntity(localEntity);
     session.m_EntityMap.removeNetwork(data.id);
 }

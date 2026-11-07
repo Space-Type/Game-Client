@@ -8,6 +8,7 @@
 
 #include "RenderName.hpp"
 #include "../RenderOutline/RenderOutline.hpp"
+#include "../RenderSprite/RenderSprite.hpp"
 #include "../../ui/Theme.hpp"
 #include <rtype/game.hpp>
 
@@ -38,7 +39,7 @@ void RType::Systems::RenderName::operator()(Wrecks::ECS::Entity entity, Wrecks::
     float shipWidth = RenderOutline::DEFAULT_SIZE;
 
     if (engine.hasComponent<Components::Sprite>(entity))
-        shipWidth = m_Resources->textureSize(engine.get<Components::Sprite>()[entity].texture).x;
+        shipWidth = spriteSize(engine.get<Components::Sprite>()[entity], *m_Resources).x;
     shipWidth *= transform.scale * Game::Game::WORLD_TO_SCREEN;
 
     // Centered above the ship, whose position is its top-left corner (see RenderSprite)
