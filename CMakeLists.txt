@@ -47,6 +47,7 @@ set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 set(SOURCES
     src/components/Controllable.hpp
     src/components/EntityKind.hpp
+    src/components/Freshness.hpp
     src/components/Manager.hpp
     src/components/Sprite.hpp
     src/errors/Error/Error.cpp
