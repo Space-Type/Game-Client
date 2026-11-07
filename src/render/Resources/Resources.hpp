@@ -50,6 +50,13 @@ namespace RType::Render {
             // Throws RType::Render::Error if the file cannot be loaded
             TextureId loadTexture(const std::string& path);
 
+            /**
+             * Same, with every pixel of the `transparent` colour made
+             * fully transparent (images without alpha, like the stage
+             * backgrounds). Cached by (path, colour).
+             */
+            TextureId loadTexture(const std::string& path, Color transparent);
+
             // Cached by (path, size). Throws RType::Render::Error if the file cannot be loaded
             FontId loadFont(const std::string& path, int size);
 
