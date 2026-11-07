@@ -12,6 +12,7 @@
 #include <wrecks/common.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <random>
 #include <vector>
 
 
@@ -21,8 +22,10 @@ namespace RType::Game {
      *
      * Pure decoration, so drawn by the client alone. Three
      * layers move at different speeds (parallax): the far
-     * ones are small, dim and slow. Positions only depend
-     * on the elapsed time, never on the frame rate.
+     * ones are many, small, dim and slow. Positions only
+     * depend on the elapsed time, never on the frame rate.
+     * A star leaving on the left comes back on the right
+     * at a random height, so no pattern repeats.
      */
     class Starfield {
         public:
@@ -33,9 +36,7 @@ namespace RType::Game {
                 Render::Color color;
             };
 
-            static constexpr std::size_t STARS_PER_LAYER = 50;
-
-            // Stars spread over a `size` area, always placed the same way for a given seed
+            // Stars spread over a `size` area, always placed and moved the same way for a given seed
             explicit Starfield(Render::Vec2D size, std::uint32_t seed = 1);
 
             void update(Wrecks::DeltaTime dt) noexcept;
@@ -46,5 +47,6 @@ namespace RType::Game {
         private:
             Render::Vec2D m_Size;
             std::vector<Star> m_Stars;
+            std::minstd_rand m_Random;  // seeded: the same stars for the same seed
     };
 }

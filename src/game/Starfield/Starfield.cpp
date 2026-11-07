@@ -15,16 +15,17 @@
 
 namespace {
     struct Layer {
+        std::size_t count;
         float size;
         float speed;
         std::uint8_t brightness;
     };
 
-    // Far to near: slow enough to stay in the background
+    // Far to near: more stars far away for depth, slow enough to stay in the background
     constexpr std::array LAYERS = {
-        Layer{ .size = 1.0F, .speed = 12.0F, .brightness = 110 },
-        Layer{ .size = 2.0F, .speed = 30.0F, .brightness = 170 },
-        Layer{ .size = 3.0F, .speed = 60.0F, .brightness = 235 },
+        Layer{ .count = 70, .size = 1.0F, .speed = 12.0F, .brightness = 110 },
+        Layer{ .count = 35, .size = 2.0F, .speed = 30.0F, .brightness = 170 },
+        Layer{ .count = 15, .size = 3.0F, .speed = 60.0F, .brightness = 235 },
     };
 }
 
@@ -32,16 +33,15 @@ namespace {
 RType::Game::Starfield::Starfield(Render::Vec2D size, std::uint32_t seed)
     : m_Size(size)
     , m_Stars()
+    , m_Random(seed)
 {
-    std::minstd_rand random(seed);
     std::uniform_real_distribution<float> x(0.0F, size.x);
     std::uniform_real_distribution<float> y(0.0F, size.y);
 
-    m_Stars.reserve(LAYERS.size() * STARS_PER_LAYER);
     for (const Layer& layer : LAYERS)
-        for (std::size_t i = 0; i < STARS_PER_LAYER; ++i)
+        for (std::size_t i = 0; i < layer.count; ++i)
             m_Stars.push_back(Star{
-                .position = { .x = x(random), .y = y(random) },
+                .position = { .x = x(m_Random), .y = y(m_Random) },
                 .size = layer.size,
                 .speed = layer.speed,
                 .color = { .r = layer.brightness, .g = layer.brightness, .b = 255, .a = 255 },
@@ -49,17 +49,26 @@ RType::Game::Starfield::Starfield(Render::Vec2D size, std::uint32_t seed)
 }
 
 /**
- * A star leaving on the left comes back on the right:
- * x stays in [0, width), whatever the time step.
+ * A star leaving on the left comes back on the right at a
+ * random height: x stays in [0, width), whatever the time step.
+ * Only a few stars wrap each second, so the random draws cost nothing.
  */
 void RType::Game::Starfield::update(Wrecks::DeltaTime dt) noexcept
 {
     float seconds = std::chrono::duration<float>(dt).count();
+    std::uniform_real_distribution<float> height(0.0F, m_Size.y);
 
     for (Star& star : m_Stars) {
-        star.position.x = std::fmod(star.position.x - star.speed * seconds, m_Size.x);
+        float x = star.position.x - star.speed * seconds;
+
+        if (x >= 0.0F) {
+            star.position.x = x;
+            continue;
+        }
+        star.position.x = std::fmod(x, m_Size.x);
         if (star.position.x < 0.0F)
             star.position.x += m_Size.x;
+        star.position.y = height(m_Random);
     }
 }
 

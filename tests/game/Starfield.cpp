@@ -10,6 +10,7 @@
 #include "../../src/game/Starfield/Starfield.hpp"
 #include <chrono>
 #include <cstddef>
+#include <vector>
 
 namespace {
     using namespace std::chrono_literals;
@@ -51,8 +52,9 @@ TEST(game_Starfield, starsMoveLeftAtTheirSpeed)
 
         if (expected < 0.0F)
             expected += SIZE.x;
+        else
+            EXPECT_EQ(moved.stars()[i].position.y, field.stars()[i].position.y);  // only a wrapping star changes height
         EXPECT_NEAR(moved.stars()[i].position.x, expected, 0.01F);
-        EXPECT_EQ(moved.stars()[i].position.y, field.stars()[i].position.y);
     }
 }
 
@@ -77,4 +79,37 @@ TEST(game_Starfield, starsWrapAroundAfterALongTime)
         EXPECT_GE(star.position.x, 0.0F);
         EXPECT_LT(star.position.x, SIZE.x);
     }
+}
+
+TEST(game_Starfield, moreStarsFarAway)
+{
+    Starfield field(SIZE);
+    std::size_t far = 0;
+    std::size_t near = 0;
+
+    for (const Starfield::Star& star : field.stars()) {
+        far += star.size == 1.0F;
+        near += star.size == 3.0F;
+    }
+    EXPECT_EQ(field.stars().size(), 120);
+    EXPECT_GT(far, near);
+}
+
+TEST(game_Starfield, wrappingStarsTakeANewHeight)
+{
+    Starfield field(SIZE);
+    std::vector<float> before;
+
+    for (const Starfield::Star& star : field.stars())
+        before.push_back(star.position.y);
+    field.update(std::chrono::minutes(2));  // every star wrapped at least once
+
+    std::size_t changed = 0;
+
+    for (std::size_t i = 0; i < before.size(); ++i) {
+        EXPECT_GE(field.stars()[i].position.y, 0.0F);
+        EXPECT_LT(field.stars()[i].position.y, SIZE.y);
+        changed += field.stars()[i].position.y != before[i];
+    }
+    EXPECT_EQ(changed, before.size());
 }
