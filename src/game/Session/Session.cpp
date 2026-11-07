@@ -8,6 +8,7 @@
 
 #include "Session.hpp"
 #include "protecs/common.hpp"
+#include <chrono>
 #include <rtype/errors.hpp>
 #include <algorithm>
 #include <exception>
@@ -25,6 +26,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_AccumulatedDelta()
     , m_Ended(false)
     , m_EndReason()
+    , m_LastSyncTime()
     , m_Client()
 {
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
@@ -86,6 +88,9 @@ bool RType::Game::Session::pollConnect()
  */
 void RType::Game::Session::update(Wrecks::DeltaTime dt)
 {
+    bool needsTickSync   = false;
+    bool needsEntitySync = false;
+
     handleEvents(0);
 
     m_AccumulatedDelta += dt;
@@ -96,13 +101,23 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
         m_AccumulatedDelta -= Protecs::FIXED_UPDATE_RATE;
 
         if (m_SimulationTick % 1000 == 0)
-            m_Client.send(Protecs::Networking::Packets::TickSync{ .clientTick = m_SimulationTick });
+            needsTickSync = true;
 
         if (m_SimulationTick % 1'000'000 == 0)
-            m_Client.send(Protecs::Networking::Packets::EntityList{});
+            needsEntitySync = true;
     }
 
     m_Engine.update(dt);
+
+    if (needsTickSync) {
+        auto timeNow = std::chrono::steady_clock::now();
+        m_Client.send(Protecs::Networking::Packets::TickSync{ .clientTick = m_SimulationTick, .clientTime = timeNow });
+        m_LastSyncTime = timeNow;
+    }
+
+    if (needsEntitySync) {
+        m_Client.send(Protecs::Networking::Packets::EntityList{});
+    }
 }
 
 /**
@@ -139,7 +154,7 @@ void RType::Game::Session::handleEvents(Protecs::Tick tick)
 void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity)
 {
     m_Engine.addComponent(entity, Components::Controllable{});
-    m_Engine.addComponent(entity, Components::Sprite{ m_Resources.loadTexture(Render::assetPath("spaceship.png"))});
+    m_Engine.addComponent(entity, Components::Sprite{ m_Resources.loadTexture(Render::assetPath("spaceship.png")) });
 }
 
 void RType::Game::Session::initEnemyPataPata(Wrecks::ECS::Entity entity)
@@ -276,7 +291,31 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerId& dat
 
 void RType::Game::Session::EventHandler::operator()(const Packets::PlayerInput& data)
 {
+    auto player = session.m_EntityMap.toLocal(session.m_Client.player());
+    auto& input = session.m_Engine.get<Protecs::Components::PlayerInput>()[player];
 
+    using Protecs::Networking::Packets::PlayerInput;
+
+    static constexpr std::array<decltype(PlayerInput::input), 5> direction = {
+        PlayerInput::UP, PlayerInput::DOWN,
+        PlayerInput::LEFT, PlayerInput::RIGHT,
+        PlayerInput::TRIGGER,
+    };
+
+    const std::array<bool, 5> isHoldingKey = {
+        input.up, input.down,
+        input.left, input.right,
+        input.trigger,
+    };
+
+    for (std::uint8_t i = 0; i < direction.size(); i++) {
+        session.m_Client.send(PlayerInput{
+            .simulationTick = session.m_SimulationTick + session.m_ServerTickDelay,
+            .sequence       = i,
+            .input          = direction[i],
+            .state          = isHoldingKey[i] ? PlayerInput::HOLD_DOWN : PlayerInput::RELEASE,
+        });
+    }
 }
 
 void RType::Game::Session::EventHandler::operator()(const Packets::PlayerJoin& data)
@@ -298,6 +337,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerLeave& 
 
 void RType::Game::Session::EventHandler::operator()(const Packets::TickSync& data)
 {
-    session.m_ServerTickDelay = session.m_SimulationTick - data.clientTick + 5;
+    if (session.m_LastSyncTime > data.clientTime)
+        return;
+
+    auto timeDelay = std::chrono::steady_clock::now() - data.clientTime;
+    session.m_ServerTickDelay = timeDelay / Protecs::FIXED_UPDATE_RATE + 10;
     session.m_SimulationTick = data.serverTick;
 }
