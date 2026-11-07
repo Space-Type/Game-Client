@@ -43,6 +43,7 @@ namespace RType::Game {
         Render::Input m_Input;
         Controls m_Controls;
         UI::MenuControls m_MenuControls;
+        DisplayOptions m_DisplayOptions;
 
         Wrecks::DeltaTime m_TargetDuration;
 
@@ -55,7 +56,7 @@ namespace RType::Game {
             static constexpr int VIRTUAL_HEIGHT = 720;
 
             // The game world stays Protecs' (shared with the server), scaled at render time
-            static constexpr float WORLD_TO_SCREEN = VIRTUAL_WIDTH / Protecs::POSITION_MAX_X;
+            static constexpr float WORLD_TO_SCREEN = VIRTUAL_WIDTH / Protecs::MAP_MAX_X;
 
             explicit Game(ConnectionInfo connection = {});
 
@@ -68,6 +69,6 @@ namespace RType::Game {
             void update(Wrecks::DeltaTime delta);
     };
 
-    static_assert(Game::VIRTUAL_WIDTH * Protecs::POSITION_MAX_Y == Game::VIRTUAL_HEIGHT * Protecs::POSITION_MAX_X,
+    static_assert(Game::VIRTUAL_WIDTH * Protecs::MAP_MAX_Y == Game::VIRTUAL_HEIGHT * Protecs::MAP_MAX_X,
                   "the virtual screen and the game world must have the same aspect ratio");
 }

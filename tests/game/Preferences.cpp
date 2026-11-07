@@ -54,13 +54,14 @@ TEST(game_Preferences, defaultsText)
 
     EXPECT_NE(text.find("volume.master=100\n"), std::string::npos);
     EXPECT_NE(text.find("fullscreen=false\n"), std::string::npos);
+    EXPECT_NE(text.find("accessibility.high_contrast=false\n"), std::string::npos);
     EXPECT_NE(text.find("bind.up.gamepad=D-pad Up\n"), std::string::npos);
     EXPECT_NE(text.find("bind.shoot.keyboard=Space\n"), std::string::npos);
 }
 
 TEST(game_Preferences, roundTrip)
 {
-    Preferences preferences{ .master = 80, .music = 0, .effects = 35, .fullscreen = true };
+    Preferences preferences{ .master = 80, .music = 0, .effects = 35, .fullscreen = true, .highContrast = true };
 
     RType::Game::rebind(preferences.controls, Action::Shoot, Slot::Keyboard, MouseButton::Left);
     RType::Game::rebind(preferences.controls, Action::Up, Slot::Keyboard, Key::LeftShift);
@@ -72,6 +73,7 @@ TEST(game_Preferences, roundTrip)
     EXPECT_EQ(read.music, 0);
     EXPECT_EQ(read.effects, 35);
     EXPECT_TRUE(read.fullscreen);
+    EXPECT_TRUE(read.highContrast);
     for (Action action : RType::Game::ACTIONS)
         for (Slot s : { Slot::Keyboard, Slot::Gamepad })
             EXPECT_EQ(slot(read, action, s), slot(preferences, action, s)) << RType::Game::actionName(action);
@@ -104,6 +106,7 @@ TEST(game_Preferences, badLinesKeepTheDefaults)
         "volume.music=-1\n"
         "volume.effects=50abc\n"
         "fullscreen=yes\n"
+        "accessibility.high_contrast=1\n"
         "bind.shoot.keyboard=NotAKey\n"
         "bind.shoot.gamepad=Space\n"
         "bind.jump.keyboard=J\n"
@@ -114,6 +117,7 @@ TEST(game_Preferences, badLinesKeepTheDefaults)
     EXPECT_EQ(read.music, 100);
     EXPECT_EQ(read.effects, 100);
     EXPECT_FALSE(read.fullscreen);
+    EXPECT_FALSE(read.highContrast);
     EXPECT_EQ(read.controls.bindings(Action::Shoot), Preferences{}.controls.bindings(Action::Shoot));
 }
 
