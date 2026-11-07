@@ -45,6 +45,7 @@ endif()
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
+    src/components/Charge.hpp
     src/components/Controllable.hpp
     src/components/EntityKind.hpp
     src/components/Manager.hpp
@@ -116,6 +117,10 @@ set(SOURCES
     src/scenes/Text.hpp
     src/systems/PlayerInput/PlayerInput.cpp
     src/systems/PlayerInput/PlayerInput.hpp
+    src/systems/ChargeTimer/ChargeTimer.cpp
+    src/systems/ChargeTimer/ChargeTimer.hpp
+    src/systems/RenderCharge/RenderCharge.cpp
+    src/systems/RenderCharge/RenderCharge.hpp
     src/systems/RenderName/RenderName.cpp
     src/systems/RenderName/RenderName.hpp
     src/systems/RenderOutline/RenderOutline.cpp

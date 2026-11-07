@@ -18,6 +18,7 @@ namespace RType::Components {
         Protecs::Components::Manager,
         Wrecks::ECS::ComponentManager<Blink,
                                       Controllable,
+                                      LocalCharge,
                                       EntityKind,
                                       Sprite>
     >;

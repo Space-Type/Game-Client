@@ -44,6 +44,9 @@ namespace RType::Game {
         Render::SoundId m_PlayerShotSound;
         Render::SoundId m_EnemyShotSound;
         Render::SoundId m_ExplosionSound;
+        Render::SoundId m_ChargeSound;
+        Render::SoundId m_BeamSound;
+        bool m_ChargeSoundPlaying = false;
 
         // Client-only entities (explosions), deleted once their animation is over
         std::vector<Wrecks::ECS::Entity> m_Effects;
@@ -96,6 +99,7 @@ namespace RType::Game {
             void explode(Wrecks::ECS::Entity entity);
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void removeFinishedEffects();
+            void updateChargeSound();
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:

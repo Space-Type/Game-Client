@@ -28,6 +28,8 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_PlayerShotSound(audio.loadSound(Render::assetPath("sounds/playershoot.wav")))
     , m_EnemyShotSound(audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav")))
     , m_ExplosionSound(audio.loadSound(Render::assetPath("sounds/enemy_hit.wav")))
+    , m_ChargeSound(audio.loadSound(Render::assetPath("sounds/charge.wav")))
+    , m_BeamSound(audio.loadSound(Render::assetPath("sounds/beam.wav")))
     , m_Effects()
     , m_Engine()
     , m_EntityMap()
@@ -46,6 +48,8 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     m_Engine.get<Systems::RenderOutline>().setOptions(display);
     m_Engine.get<Systems::RenderName>().setRenderer(renderer);
     m_Engine.get<Systems::RenderName>().setResources(resources);
+    m_Engine.get<Systems::RenderCharge>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderCharge>().setResources(resources);
     m_Engine.get<Systems::PlayerInput>().setInput(input);
     m_Engine.get<Systems::PlayerInput>().setControls(controls);
     m_Engine.get<Systems::PlayerInput>().setInputQueuer([&](Protecs::Networking::Packets::PlayerInput input){
@@ -121,6 +125,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     m_Engine.update(dt);
     m_Starfield.update(dt);
     removeFinishedEffects();
+    updateChargeSound();
 
     if (m_GameOverIn) {
         *m_GameOverIn -= std::chrono::duration<float>(dt).count();
@@ -205,6 +210,26 @@ void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::Netwo
 {
     m_Engine.addComponent(entity, Components::Controllable{});
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
+    if (id == m_Client.player())
+        m_Engine.addComponent(entity, Components::LocalCharge{});
+}
+
+/**
+ * The charge sound plays while the local player charges
+ * (not for a quick tap) and stops when the trigger is released.
+ */
+void RType::Game::Session::updateChargeSound()
+{
+    bool charging = false;
+
+    for (auto [entity, charge] : m_Engine.get<Components::LocalCharge>())
+        charging = charging || charge.seconds >= Components::CHARGE_SOUND_DELAY;
+
+    if (charging && !m_ChargeSoundPlaying)
+        m_Audio.play(m_ChargeSound);
+    else if (!charging && m_ChargeSoundPlaying)
+        m_Audio.stop(m_ChargeSound);
+    m_ChargeSoundPlaying = charging;
 }
 
 /**
@@ -279,6 +304,14 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
             m_Engine.addComponent(entity, enemyMissileSprite(m_Resources));
             m_Audio.play(m_EnemyShotSound);
             return;
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_2:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_3:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_4:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_5:
+            m_Engine.addComponent(entity, beamSprite(m_Resources, static_cast<std::uint8_t>(type - Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1 + 1)));
+            m_Audio.play(m_BeamSound);
+            return;
         default:
             return;
     }
@@ -321,6 +354,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
         if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
             if (session.m_Engine.hasComponent<Component>(localEntity))
                 livesBefore = session.m_Engine.get<Component>()[localEntity].lives;
+
 
         if (!session.m_Engine.hasComponent<Component>(localEntity))
             session.m_Engine.addComponent(localEntity, Component{});

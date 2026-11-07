@@ -7,6 +7,7 @@
 */
 
 #include "SpriteSheets.hpp"
+#include <array>
 #include <string>
 
 
@@ -23,6 +24,20 @@ namespace {
     constexpr float ENEMY_FPS = 12.0F;
 
     constexpr Rect ENEMY_MISSILE_FRAME = { .x = 135.0F, .y = 5.0F, .width = 9.0F, .height = 8.0F };    // r-typesheet43
+
+    // r-typesheet1: one row per charge level, 2 frames each (head on the right); the frame width includes a 1 px gap
+    constexpr std::array<Rect, 5> BEAM_FRAMES = {{
+        { .x = 232.0F, .y = 103.0F, .width = 17.0F, .height = 12.0F },
+        { .x = 200.0F, .y = 120.0F, .width = 33.0F, .height = 12.0F },
+        { .x = 168.0F, .y = 136.0F, .width = 49.0F, .height = 14.0F },
+        { .x = 136.0F, .y = 154.0F, .width = 65.0F, .height = 14.0F },
+        { .x = 104.0F, .y = 170.0F, .width = 81.0F, .height = 16.0F },
+    }};
+    constexpr float BEAM_FPS = 10.0F;
+
+    constexpr Rect CHARGE_FRAME = { .x = 134.0F, .y = 18.0F, .width = 33.0F, .height = 32.0F };  // r-typesheet1: 8 frames
+    constexpr std::size_t CHARGE_FRAMES = 8;
+    constexpr float CHARGE_FPS = 16.0F;
 
     constexpr Rect EXPLOSION_FRAME = { .x = 129.0F, .y = 0.0F, .width = 33.0F, .height = 33.0F };      // r-typesheet44: 6 frames
     constexpr std::size_t EXPLOSION_FRAMES = 6;
@@ -71,6 +86,18 @@ auto RType::Game::explosionSprite(Render::Resources& resources) -> Components::S
         .framesPerSecond = EXPLOSION_FPS,
         .loop = false,
     };
+}
+
+auto RType::Game::beamSprite(Render::Resources& resources, std::uint8_t level) -> Components::Sprite
+{
+    std::size_t index = level < 1 ? 0 : (level > BEAM_FRAMES.size() ? BEAM_FRAMES.size() - 1 : level - 1);
+
+    return { .texture = sheet(resources, "r-typesheet1.gif"), .frame = BEAM_FRAMES[index], .frameCount = 2, .framesPerSecond = BEAM_FPS };
+}
+
+auto RType::Game::chargeSprite(Render::Resources& resources) -> Components::Sprite
+{
+    return { .texture = sheet(resources, "r-typesheet1.gif"), .frame = CHARGE_FRAME, .frameCount = CHARGE_FRAMES, .framesPerSecond = CHARGE_FPS };
 }
 
 void RType::Game::setPlayerColour(Components::Sprite& sprite, std::size_t slot) noexcept
