@@ -8,6 +8,7 @@
 
 #include "Session.hpp"
 #include "protecs/common.hpp"
+#include <chrono>
 #include <rtype/errors.hpp>
 #include <algorithm>
 #include <exception>
@@ -82,6 +83,9 @@ bool RType::Game::Session::pollConnect()
  */
 void RType::Game::Session::update(Wrecks::DeltaTime dt)
 {
+    bool needsTickSync   = false;
+    bool needsEntitySync = false;
+
     handleEvents(0);
 
     m_AccumulatedDelta += dt;
@@ -92,13 +96,23 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
         m_AccumulatedDelta -= Protecs::FIXED_UPDATE_RATE;
 
         if (m_SimulationTick % 1000 == 0)
-            m_Client.send(Protecs::Networking::Packets::TickSync{ .clientTick = m_SimulationTick });
+            needsTickSync = true;
 
         if (m_SimulationTick % 1'000'000 == 0)
-            m_Client.send(Protecs::Networking::Packets::EntityList{});
+            needsEntitySync = true;
     }
 
     m_Engine.update(dt);
+
+    if (needsTickSync) {
+        auto timeNow = std::chrono::steady_clock::now();
+        m_Client.send(Protecs::Networking::Packets::TickSync{ .clientTick = m_SimulationTick, .clientTime = timeNow });
+        m_LastSyncTime = timeNow;
+    }
+
+    if (needsEntitySync) {
+        m_Client.send(Protecs::Networking::Packets::EntityList{});
+    }
 }
 
 /**
@@ -317,10 +331,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerLeave& 
 
 void RType::Game::Session::EventHandler::operator()(const Packets::TickSync& data)
 {
-    if (session.m_LastSyncTime > data.serverTime)
+    if (session.m_LastSyncTime > data.clientTime)
         return;
 
-    session.m_ServerTickDelay = 1.5 * (session.m_SimulationTick - data.clientTick) + 10;
+    auto timeDelay = std::chrono::steady_clock::now() - data.clientTime;
+    session.m_ServerTickDelay = timeDelay / Protecs::FIXED_UPDATE_RATE + 10;
     session.m_SimulationTick = data.serverTick;
-    session.m_LastSyncTime = data.serverTime;
 }
