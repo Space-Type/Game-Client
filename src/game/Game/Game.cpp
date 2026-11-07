@@ -61,6 +61,8 @@ RType::Game::Game::Game(ConnectionInfo connection)
     m_Audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav"));
 
     m_Context.clickSound = m_Audio.loadSound(Render::assetPath("sounds/click.wav"));
+
+    applyPreferences(loadPreferences(currentPreferences(m_Audio, m_Window, m_Controls)), m_Audio, m_Window, m_Controls);
 }
 
 /**

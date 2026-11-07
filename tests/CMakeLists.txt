@@ -25,6 +25,8 @@ FetchContent_MakeAvailable(googletest)
 set(TEST_SOURCES
     game/Client.cpp
     game/ConnectionInfo.cpp
+    game/Controls.cpp
+    game/Preferences.cpp
     render/ActionMap.cpp
     render/Concepts.cpp
     render/KeyMap.cpp

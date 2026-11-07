@@ -61,6 +61,8 @@ namespace RType::UI {
             void draw(const Render::Renderer& renderer) const;
 
             [[ nodiscard ]] inline std::size_t focus() const noexcept { return m_Focus; }
+            // Ignored if out of range
+            inline void setFocus(std::size_t index) noexcept { if (index < m_Widgets.size()) m_Focus = index; }
             [[ nodiscard ]] inline const std::vector<Widget>& widgets() const noexcept { return m_Widgets; }
 
         private:
