@@ -211,10 +211,29 @@ namespace {
             RType::Scenes::drawCenteredText(ctx.renderer, ctx.window, "(!) Same input on: " + conflicts, CONFLICT_Y, HINT_SIZE, RType::UI::Theme::ERROR_COLOR);
     }
 
-    // #44 adds its section here: the list shows one button per section
+    // Accessibility (#44): options that change how the game is displayed
+    constexpr std::size_t HIGH_CONTRAST_BOX = 0;
+
+    Form buildAccessibility(const Context& ctx)
+    {
+        return Form(std::vector<RType::UI::Widget>{
+            RType::UI::Checkbox("High contrast", ctx.displayOptions.highContrast, field(HIGH_CONTRAST_BOX)),
+            RType::UI::Button("Back", button(HIGH_CONTRAST_BOX + 1)),
+        });
+    }
+
+    bool applyAccessibility(Context& ctx, const Form& form, FormEvent event)
+    {
+        if (const auto* box = std::get_if<RType::UI::Checkbox>(&form.widgets()[event.index]); box && event.index == HIGH_CONTRAST_BOX)
+            ctx.displayOptions.highContrast = box->checked();
+        return false;
+    }
+
+    // The list shows one button per section
     constexpr std::array SECTIONS = {
         Section{ .title = "Audio & display", .build = buildAudioDisplay, .apply = applyAudioDisplay },
         Section{ .title = "Controls", .build = buildControls, .apply = applyControls, .capture = controlAt, .draw = drawControls },
+        Section{ .title = "Accessibility", .build = buildAccessibility, .apply = applyAccessibility },
     };
 
     // The input for a control slot pressed this frame, if any (Escape and Start excluded: they cancel)
