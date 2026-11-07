@@ -27,6 +27,7 @@ set(TEST_SOURCES
     game/ConnectionInfo.cpp
     game/Controls.cpp
     game/Preferences.cpp
+    game/Starfield.cpp
     render/ActionMap.cpp
     render/Concepts.cpp
     render/KeyMap.cpp
@@ -35,6 +36,7 @@ set(TEST_SOURCES
     render/Types.cpp
     scenes/Manager.cpp
     systems/RenderName.cpp
+    systems/RenderSprite.cpp
     ui/Checkbox.cpp
     ui/Form.cpp
     ui/Slider.cpp

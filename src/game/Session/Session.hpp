@@ -12,11 +12,13 @@
 #include "../Client/Client.hpp"
 #include "../Controls/Controls.hpp"
 #include "../DisplayOptions/DisplayOptions.hpp"
+#include "../Starfield/Starfield.hpp"
 #include <rtype/render.hpp>
 #include <rtype/utils.hpp>
 #include <chrono>
 #include <string>
 #include <string_view>
+#include <vector>
 
 
 namespace RType::Game {
@@ -31,6 +33,17 @@ namespace RType::Game {
         static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
 
         Render::Resources& m_Resources;
+        const Render::Renderer& m_Renderer;
+        Render::Audio& m_Audio;
+        Starfield m_Starfield;
+
+        // Sounds of the server's events (Invalid without an audio device: then silent)
+        Render::SoundId m_PlayerShotSound;
+        Render::SoundId m_EnemyShotSound;
+        Render::SoundId m_ExplosionSound;
+
+        // Client-only entities (explosions), deleted once their animation is over
+        std::vector<Wrecks::ECS::Entity> m_Effects;
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 
@@ -44,7 +57,7 @@ namespace RType::Game {
         Client m_Client;  // last: its network thread stops first
 
         public:
-            Session(Render::Resources& resources, const Render::Renderer& renderer,
+            Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                     const Render::Input& input, const Controls& controls, const DisplayOptions& display);
             ~Session();
 
@@ -69,8 +82,10 @@ namespace RType::Game {
         private:
             void handleEvents(Protecs::Tick tick);
 
-            void initPlayer(Wrecks::ECS::Entity entity);
-            void initEnemyPataPata(Wrecks::ECS::Entity entity);
+            void initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id);
+            void explode(Wrecks::ECS::Entity entity);
+            void removeFinishedEffects();
+            void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:
             struct EventHandler {
