@@ -31,7 +31,7 @@ void RType::Systems::RenderOutline::operator()(Wrecks::ECS::Entity entity, Wreck
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
     EntityCreate::EntityType type = engine.get<Components::EntityKind>()[entity].type;
 
-    if (type == EntityCreate::GENERIC)
+    if (type == EntityCreate::GENERIC || Components::isEliminated(engine, entity))
         return;
 
     auto& transform = engine.get<Protecs::Components::Transform>()[entity];

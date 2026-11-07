@@ -27,8 +27,18 @@ void RType::Systems::RenderSprite::operator()(Wrecks::ECS::Entity entity, Wrecks
 
     auto& transform = engine.get<Protecs::Components::Transform>()[entity];
     auto& sprite = engine.get<Components::Sprite>()[entity];
+    float seconds = std::chrono::duration<float>(dt).count();
 
-    sprite.elapsed += std::chrono::duration<float>(dt).count();
+    sprite.elapsed += seconds;
+    if (Components::isEliminated(engine, entity))
+        return;
+    if (engine.hasComponent<Components::Blink>(entity)) {
+        auto& blink = engine.get<Components::Blink>()[entity];
+
+        blink.remaining -= seconds;
+        if (!Components::blinkVisible(blink.remaining))
+            return;
+    }
 
     std::size_t frame = Components::frameIndex(sprite);
     bool isPlayer = engine.hasComponent<Components::EntityKind>(entity)

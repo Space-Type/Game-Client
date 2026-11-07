@@ -85,6 +85,7 @@ namespace RType::Game {
 
             void initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id);
             void explode(Wrecks::ECS::Entity entity);
+            void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void removeFinishedEffects();
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 

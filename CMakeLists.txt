@@ -48,6 +48,7 @@ set(SOURCES
     src/components/Controllable.hpp
     src/components/EntityKind.hpp
     src/components/Manager.hpp
+    src/components/PlayerState.hpp
     src/components/Sprite.hpp
     src/errors/Error/Error.cpp
     src/errors/Error/Error.hpp

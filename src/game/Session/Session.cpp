@@ -199,6 +199,21 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
     m_Audio.play(m_ExplosionSound);
 }
 
+/**
+ * The server sends the lives before moving the ship back
+ * to its start: the explosion is where the ship was hit.
+ */
+void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft)
+{
+    explode(player);
+    if (livesLeft == 0)
+        return;
+    if (m_Engine.hasComponent<Components::Blink>(player))
+        m_Engine.get<Components::Blink>()[player] = Components::Blink{};
+    else
+        m_Engine.addComponent(player, Components::Blink{});
+}
+
 void RType::Game::Session::removeFinishedEffects()
 {
     std::erase_if(m_Effects, [&](Wrecks::ECS::Entity effect) {
@@ -260,14 +275,25 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
                 session.initPlayer(localEntity, networkEntity);
             }
         }
+        std::optional<std::uint8_t> livesBefore;
+
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
+            if (session.m_Engine.hasComponent<Component>(localEntity))
+                livesBefore = session.m_Engine.get<Component>()[localEntity].lives;
+
         if (!session.m_Engine.hasComponent<Component>(localEntity))
             session.m_Engine.addComponent(localEntity, Component{});
 
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
 
-        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>) {
+            const auto& stats = session.m_Engine.get<Component>()[localEntity];
+
             if (session.m_Engine.hasComponent<Components::Sprite>(localEntity))
-                setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], session.m_Engine.get<Component>()[localEntity].slot);
+                setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], stats.slot);
+            if (livesBefore && stats.lives < *livesBefore)
+                session.loseLife(localEntity, stats.lives);
+        }
     }, data.component);
 }
 
@@ -294,7 +320,9 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete&
         return;
 
     auto localEntity = session.m_EntityMap.toLocal(data.id);
-    session.explode(localEntity);
+
+    if (!Components::isEliminated(session.m_Engine, localEntity))  // it already exploded
+        session.explode(localEntity);
     session.m_Engine.deleteEntity(localEntity);
     session.m_EntityMap.removeNetwork(data.id);
 }
