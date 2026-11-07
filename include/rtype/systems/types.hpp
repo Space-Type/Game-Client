@@ -14,3 +14,4 @@
 #include "../../../src/systems/RenderName/RenderName.hpp"
 #include "../../../src/systems/RenderOutline/RenderOutline.hpp"
 #include "../../../src/systems/RenderSprite/RenderSprite.hpp"
+#include "../../../src/systems/RenderStage/RenderStage.hpp"

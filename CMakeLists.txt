@@ -126,6 +126,8 @@ set(SOURCES
     src/systems/RenderOutline/RenderOutline.cpp
     src/systems/RenderOutline/RenderOutline.hpp
     src/systems/RenderSprite/RenderSprite.cpp
+    src/systems/RenderStage/RenderStage.cpp
+    src/systems/RenderStage/RenderStage.hpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
     src/ui/Button/Button.cpp

@@ -39,6 +39,7 @@ set(TEST_SOURCES
     scenes/Manager.cpp
     systems/RenderName.cpp
     systems/RenderSprite.cpp
+    systems/RenderStage.cpp
     ui/Checkbox.cpp
     ui/Form.cpp
     ui/Hud.cpp

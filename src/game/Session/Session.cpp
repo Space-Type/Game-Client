@@ -48,6 +48,8 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     m_Engine.get<Systems::RenderOutline>().setOptions(display);
     m_Engine.get<Systems::RenderName>().setRenderer(renderer);
     m_Engine.get<Systems::RenderName>().setResources(resources);
+    m_Engine.get<Systems::RenderStage>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderStage>().setResources(resources);
     m_Engine.get<Systems::RenderCharge>().setRenderer(renderer);
     m_Engine.get<Systems::RenderCharge>().setResources(resources);
     m_Engine.get<Systems::PlayerInput>().setInput(input);
