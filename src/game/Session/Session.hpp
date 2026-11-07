@@ -17,6 +17,7 @@
 #include <rtype/render.hpp>
 #include <rtype/utils.hpp>
 #include <chrono>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -55,11 +56,14 @@ namespace RType::Game {
 
         bool m_Ended;
         std::string m_EndReason;
+        std::optional<float> m_GameOverIn;  // seconds left before ending, once the local player is out
 
         Client m_Client;  // last: its network thread stops first
         std::chrono::steady_clock::time_point m_LastSyncTime;
 
         public:
+            static constexpr float GAME_OVER_DELAY = 1.5F;  // lets the last explosion play
+
             Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                     const Render::Input& input, const Controls& controls, const DisplayOptions& display);
             ~Session();

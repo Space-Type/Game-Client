@@ -36,6 +36,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_AccumulatedDelta()
     , m_Ended(false)
     , m_EndReason()
+    , m_GameOverIn()
     , m_LastSyncTime()
     , m_Client()
 {
@@ -120,6 +121,12 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     m_Engine.update(dt);
     m_Starfield.update(dt);
     removeFinishedEffects();
+
+    if (m_GameOverIn) {
+        *m_GameOverIn -= std::chrono::duration<float>(dt).count();
+        if (*m_GameOverIn <= 0.0F)
+            m_Ended = true;
+    }
 
     if (needsTickSync) {
         auto timeNow = std::chrono::steady_clock::now();
@@ -231,8 +238,16 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
 void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft)
 {
     explode(player);
-    if (livesLeft == 0)
+    if (livesLeft == 0) {
+        bool isLocal = m_EntityMap.containsNetwork(m_Client.player()) && m_EntityMap.toLocal(m_Client.player()) == player;
+
+        // The game goes on for the others: this client shows its game over, then leaves
+        if (isLocal && !m_GameOverIn) {
+            m_GameOverIn = GAME_OVER_DELAY;
+            m_EndReason = "Game over - Score " + std::to_string(m_Engine.get<Protecs::Components::PlayerStats>()[player].score);
+        }
         return;
+    }
     if (m_Engine.hasComponent<Components::Blink>(player))
         m_Engine.get<Components::Blink>()[player] = Components::Blink{};
     else
