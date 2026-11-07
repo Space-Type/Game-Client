@@ -143,6 +143,31 @@ void RType::Game::Session::render(Wrecks::DeltaTime dt)
     m_Engine.render(dt);
 }
 
+auto RType::Game::Session::players() const -> std::vector<UI::HudLine>
+{
+    std::vector<std::pair<std::uint8_t, UI::HudLine>> players;
+    std::optional<Wrecks::ECS::Entity> local;
+
+    if (m_EntityMap.containsNetwork(m_Client.player()))
+        local = m_EntityMap.toLocal(m_Client.player());
+
+    for (auto [entity, stats] : m_Engine.get<Protecs::Components::PlayerStats>()) {
+        std::string name = m_Engine.hasComponent<Protecs::Components::PlayerName>(entity)
+                         ? std::string(m_Engine.get<Protecs::Components::PlayerName>()[entity].str()) : "Player";
+
+        players.emplace_back(stats.slot, UI::HudLine{ .name = std::move(name), .lives = stats.lives, .score = stats.score, .local = entity == local });
+    }
+    std::ranges::sort(players, [](const auto& a, const auto& b) {
+        return a.second.local != b.second.local ? a.second.local : a.first < b.first;
+    });
+
+    std::vector<UI::HudLine> lines;
+
+    for (auto& [slot, line] : players)
+        lines.push_back(std::move(line));
+    return lines;
+}
+
 void RType::Game::Session::setControlsEnabled(bool enabled) noexcept
 {
     m_Engine.get<Systems::PlayerInput>().setEnabled(enabled);

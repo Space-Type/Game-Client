@@ -13,11 +13,13 @@
 #include "../Controls/Controls.hpp"
 #include "../DisplayOptions/DisplayOptions.hpp"
 #include "../Starfield/Starfield.hpp"
+#include <rtype/ui.hpp>
 #include <rtype/render.hpp>
 #include <rtype/utils.hpp>
 #include <chrono>
 #include <string>
 #include <string_view>
+#include <vector>
 #include <vector>
 
 
@@ -76,6 +78,9 @@ namespace RType::Game {
             void render(Wrecks::DeltaTime dt);
 
             void setControlsEnabled(bool enabled) noexcept;
+
+            // Players with their stats, the local one first then by slot
+            [[ nodiscard ]] std::vector<UI::HudLine> players() const;
 
             [[ nodiscard ]] inline bool ended() const noexcept { return m_Ended; }
             [[ nodiscard ]] inline std::string_view endReason() const noexcept { return m_EndReason; }

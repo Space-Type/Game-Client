@@ -40,6 +40,7 @@ set(TEST_SOURCES
     systems/RenderSprite.cpp
     ui/Checkbox.cpp
     ui/Form.cpp
+    ui/Hud.cpp
     ui/Slider.cpp
     ui/TextField.cpp
     ui/Theme.cpp)

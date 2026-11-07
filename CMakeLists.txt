@@ -131,6 +131,8 @@ set(SOURCES
     src/ui/Form/Form.hpp
     src/ui/FrameInput/FrameInput.cpp
     src/ui/FrameInput/FrameInput.hpp
+    src/ui/Hud/Hud.cpp
+    src/ui/Hud/Hud.hpp
     src/ui/MenuControls/MenuControls.cpp
     src/ui/MenuControls/MenuControls.hpp
     src/ui/Slider/Slider.cpp
