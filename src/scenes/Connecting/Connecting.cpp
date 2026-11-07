@@ -40,7 +40,7 @@ auto RType::Scenes::Connecting::update(Context& ctx, Wrecks::DeltaTime) -> std::
         if (!m_Started) {
             m_Started = true;
             ctx.message.clear();
-            ctx.session = std::make_unique<Game::Session>(ctx.resources, ctx.renderer, ctx.input,
+            ctx.session = std::make_unique<Game::Session>(ctx.resources, ctx.renderer, ctx.audio, ctx.input,
                                                           ctx.controls, ctx.displayOptions);
             ctx.session->beginConnect(ctx.connection.address(), ctx.connection.name);
         }
