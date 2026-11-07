@@ -18,11 +18,16 @@
 #include <type_traits>
 
 
-RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer,
+RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                               const Render::Input& input, const Controls& controls, const DisplayOptions& display)
     : m_Resources(resources)
     , m_Renderer(renderer)
+    , m_Audio(audio)
     , m_Starfield({ .x = static_cast<float>(Game::Game::VIRTUAL_WIDTH), .y = static_cast<float>(Game::Game::VIRTUAL_HEIGHT) })
+    , m_PlayerShotSound(audio.loadSound(Render::assetPath("sounds/playershoot.wav")))
+    , m_EnemyShotSound(audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav")))
+    , m_ExplosionSound(audio.loadSound(Render::assetPath("sounds/enemy_hit.wav")))
+    , m_Effects()
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
@@ -109,6 +114,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
 
     m_Engine.update(dt);
     m_Starfield.update(dt);
+    removeFinishedEffects();
 }
 
 /**
@@ -154,6 +160,40 @@ void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::Netwo
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
 }
 
+/**
+ * An explosion where a ship or an enemy was destroyed:
+ * the visual cue of the explosion sound (accessibility).
+ */
+void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
+{
+    using Protecs::Networking::Packets::EntityCreate;
+
+    if (!m_Engine.hasComponent<Components::EntityKind>(entity) || !m_Engine.hasComponent<Protecs::Components::Transform>(entity))
+        return;
+
+    EntityCreate::EntityType type = m_Engine.get<Components::EntityKind>()[entity].type;
+
+    if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT)
+        return;
+
+    auto effect = m_Engine.createEntity();
+
+    m_Engine.addComponent(effect, Protecs::Components::Transform{ m_Engine.get<Protecs::Components::Transform>()[entity] });
+    m_Engine.addComponent(effect, explosionSprite(m_Resources));
+    m_Effects.push_back(effect);
+    m_Audio.play(m_ExplosionSound);
+}
+
+void RType::Game::Session::removeFinishedEffects()
+{
+    std::erase_if(m_Effects, [&](Wrecks::ECS::Entity effect) {
+        if (!Components::finished(m_Engine.get<Components::Sprite>()[effect]))
+            return false;
+        m_Engine.deleteEntity(effect);
+        return true;
+    });
+}
+
 void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)
 {
     switch (type) {
@@ -163,9 +203,11 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
             return;
         case Protecs::Networking::Packets::EntityCreate::PLAYER_MISSILE:
             m_Engine.addComponent(entity, playerMissileSprite(m_Resources));
+            m_Audio.play(m_PlayerShotSound);
             return;
         case Protecs::Networking::Packets::EntityCreate::ENEMY_MISSILE:
             m_Engine.addComponent(entity, enemyMissileSprite(m_Resources));
+            m_Audio.play(m_EnemyShotSound);
             return;
         default:
             return;
@@ -227,6 +269,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete&
         return;
 
     auto localEntity = session.m_EntityMap.toLocal(data.id);
+    session.explode(localEntity);
     session.m_Engine.deleteEntity(localEntity);
     session.m_EntityMap.removeNetwork(data.id);
 }

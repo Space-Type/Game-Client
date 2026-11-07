@@ -18,6 +18,7 @@
 #include <chrono>
 #include <string>
 #include <string_view>
+#include <vector>
 
 
 namespace RType::Game {
@@ -33,7 +34,16 @@ namespace RType::Game {
 
         Render::Resources& m_Resources;
         const Render::Renderer& m_Renderer;
+        Render::Audio& m_Audio;
         Starfield m_Starfield;
+
+        // Sounds of the server's events (Invalid without an audio device: then silent)
+        Render::SoundId m_PlayerShotSound;
+        Render::SoundId m_EnemyShotSound;
+        Render::SoundId m_ExplosionSound;
+
+        // Client-only entities (explosions), deleted once their animation is over
+        std::vector<Wrecks::ECS::Entity> m_Effects;
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 
@@ -47,7 +57,7 @@ namespace RType::Game {
         Client m_Client;  // last: its network thread stops first
 
         public:
-            Session(Render::Resources& resources, const Render::Renderer& renderer,
+            Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                     const Render::Input& input, const Controls& controls, const DisplayOptions& display);
             ~Session();
 
@@ -73,6 +83,8 @@ namespace RType::Game {
             void handleEvents(Protecs::Tick tick);
 
             void initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id);
+            void explode(Wrecks::ECS::Entity entity);
+            void removeFinishedEffects();
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:
