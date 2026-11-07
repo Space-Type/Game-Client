@@ -45,7 +45,7 @@ namespace RType::Game {
         // Client-only entities (explosions), deleted once their animation is over
         std::vector<Wrecks::ECS::Entity> m_Effects;
 
-        float m_SinceAnyTransform = 0.0F;  // seconds since the last position received (Freshness)
+        float m_SinceAnyUpdate = 0.0F;  // seconds since the last component received (Freshness)
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 

@@ -209,7 +209,7 @@ void RType::Game::Session::forgetStaleEntities(float seconds)
     std::vector<Wrecks::ECS::Entity> stale;
     std::optional<Wrecks::ECS::Entity> local;
 
-    m_SinceAnyTransform += seconds;
+    m_SinceAnyUpdate += seconds;
     if (m_EntityMap.containsNetwork(m_Client.player()))
         local = m_EntityMap.toLocal(m_Client.player());
 
@@ -217,7 +217,7 @@ void RType::Game::Session::forgetStaleEntities(float seconds)
         auto& freshness = m_Engine.get<Components::Freshness>()[entity];
 
         freshness.sinceUpdate += seconds;
-        if (entity != local && Components::isStale(freshness.sinceUpdate, m_SinceAnyTransform))
+        if (entity != local && Components::isStale(freshness.sinceUpdate, m_SinceAnyUpdate))
             stale.push_back(entity);
     }
 
@@ -295,11 +295,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
 
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
 
-        if constexpr (std::is_same_v<Component, Protecs::Components::Transform>) {
-            session.m_SinceAnyTransform = 0.0F;
-            if (session.m_Engine.hasComponent<Components::Freshness>(localEntity))
-                session.m_Engine.get<Components::Freshness>()[localEntity].sinceUpdate = 0.0F;
-        }
+        // Any component counts: the level entity, for one, has no Transform
+        session.m_SinceAnyUpdate = 0.0F;
+        if (session.m_Engine.hasComponent<Components::Freshness>(localEntity))
+            session.m_Engine.get<Components::Freshness>()[localEntity].sinceUpdate = 0.0F;
 
         if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
             if (session.m_Engine.hasComponent<Components::Sprite>(localEntity))
