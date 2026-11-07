@@ -10,10 +10,12 @@
 #include "protecs/common.hpp"
 #include <rtype/errors.hpp>
 #include <rtype/game.hpp>
+#include "../SpriteSheets/SpriteSheets.hpp"
 #include <algorithm>
 #include <exception>
 #include <iostream>
 #include <stdexcept>
+#include <type_traits>
 
 
 RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer,
@@ -141,15 +143,33 @@ void RType::Game::Session::handleEvents(Protecs::Tick tick)
     }
 }
 
-void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity)
+/**
+ * The colour of a player comes from its slot (PlayerStats) once
+ * the server sends it. Until then, from its network id: the
+ * same on every client.
+ */
+void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id)
 {
     m_Engine.addComponent(entity, Components::Controllable{});
-    m_Engine.addComponent(entity, Components::Sprite{ m_Resources.loadTexture(Render::assetPath("spaceship.png"))});
+    m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
 }
 
-void RType::Game::Session::initEnemyPataPata(Wrecks::ECS::Entity entity)
+void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)
 {
-
+    switch (type) {
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_PATA_PATA:
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_SCANT:
+            m_Engine.addComponent(entity, enemySprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_MISSILE:
+            m_Engine.addComponent(entity, playerMissileSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_MISSILE:
+            m_Engine.addComponent(entity, enemyMissileSprite(m_Resources));
+            return;
+        default:
+            return;
+    }
 }
 
 
@@ -177,6 +197,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
             session.m_Engine.addComponent(localEntity, Component{});
 
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
+
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
+            if (session.m_Engine.hasComponent<Components::Sprite>(localEntity))
+                setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], session.m_Engine.get<Component>()[localEntity].slot);
     }, data.component);
 }
 
@@ -190,11 +214,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCreate&
     session.m_EntityMap.bind(data.id, entity);
     session.m_Engine.addComponent(entity, Components::EntityKind{ data.type });
 
-    switch (data.type) {
-        case Packets::EntityCreate::PLAYER: session.initPlayer(entity); return;
-        case Packets::EntityCreate::ENEMY_PATA_PATA: session.initEnemyPataPata(entity); return;
-        default: return;
-    }
+    if (data.type == Packets::EntityCreate::PLAYER)
+        session.initPlayer(entity, data.id);
+    else
+        session.initSprite(entity, data.type);
 }
 
 void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete& data)

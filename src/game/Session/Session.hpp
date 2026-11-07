@@ -72,8 +72,8 @@ namespace RType::Game {
         private:
             void handleEvents(Protecs::Tick tick);
 
-            void initPlayer(Wrecks::ECS::Entity entity);
-            void initEnemyPataPata(Wrecks::ECS::Entity entity);
+            void initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id);
+            void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:
             struct EventHandler {
