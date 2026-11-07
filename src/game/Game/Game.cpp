@@ -31,6 +31,7 @@ RType::Game::Game::Game(ConnectionInfo connection)
     , m_Input(m_Window)
     , m_Controls(defaultControls())
     , m_MenuControls(UI::defaultMenuControls())
+    , m_DisplayOptions()
     , m_TargetDuration()
     , m_Session()
     , m_Context{
@@ -41,6 +42,7 @@ RType::Game::Game::Game(ConnectionInfo connection)
         .resources = m_Resources,
         .controls = m_Controls,
         .menuControls = m_MenuControls,
+        .displayOptions = m_DisplayOptions,
         .session = m_Session,
         .message = {},
         .connection = std::move(connection),
@@ -62,7 +64,8 @@ RType::Game::Game::Game(ConnectionInfo connection)
 
     m_Context.clickSound = m_Audio.loadSound(Render::assetPath("sounds/click.wav"));
 
-    applyPreferences(loadPreferences(currentPreferences(m_Audio, m_Window, m_Controls)), m_Audio, m_Window, m_Controls);
+    applyPreferences(loadPreferences(currentPreferences(m_Audio, m_Window, m_Controls, m_DisplayOptions)),
+                     m_Audio, m_Window, m_Controls, m_DisplayOptions);
 }
 
 /**

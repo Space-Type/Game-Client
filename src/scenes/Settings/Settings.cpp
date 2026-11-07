@@ -302,7 +302,7 @@ auto RType::Scenes::Settings::update(Context& ctx, Wrecks::DeltaTime) -> std::op
             ctx.audio.play(ctx.clickSound);
         if (!m_Page) {
             // A failure is reported on stderr: the changes still hold until the game is closed
-            Game::savePreferences(Game::currentPreferences(ctx.audio, ctx.window, ctx.controls));
+            Game::savePreferences(Game::currentPreferences(ctx.audio, ctx.window, ctx.controls, ctx.displayOptions));
             return ctx.settingsReturn;
         }
         open(ctx, std::nullopt);

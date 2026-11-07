@@ -60,6 +60,7 @@ set(SOURCES
     src/game/Controls/Controls.hpp
     src/game/Client/Client.cpp
     src/game/Client/Client.hpp
+    src/game/DisplayOptions/DisplayOptions.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
     src/game/Preferences/Preferences.cpp
