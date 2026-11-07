@@ -18,6 +18,7 @@ namespace RType::UI::Theme {
     inline constexpr Render::Color BORDER_COLOR = { .r = 150, .g = 150, .b = 160, .a = 255 };
     inline constexpr Render::Color FOCUS_COLOR = { .r = 255, .g = 255, .b = 255, .a = 255 };
     inline constexpr Render::Color ERROR_COLOR = { .r = 255, .g = 170, .b = 60, .a = 255 };
+    inline constexpr Render::Color VICTORY_COLOR = { .r = 90, .g = 220, .b = 100, .a = 255 };
 
     inline constexpr float TEXT_SIZE = 32.0F;
     inline constexpr float HINT_SIZE = 24.0F;

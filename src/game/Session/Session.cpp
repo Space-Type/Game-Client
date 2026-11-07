@@ -296,7 +296,7 @@ void RType::Game::Session::clearStage()
             score = line.score;
     announce("STAGE CLEAR", STAGE_CLEAR_ANNOUNCEMENT, true, m_StageClearSound);
     m_GameOverIn = STAGE_CLEAR_ANNOUNCEMENT;
-    m_EndReason = "Victory! Score " + std::to_string(score);
+    m_EndReason = "Victory\nScore " + std::to_string(score);
 }
 
 auto RType::Game::Session::findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const -> std::optional<Wrecks::ECS::Entity>
@@ -336,7 +336,7 @@ void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t liv
         // The game goes on for the others: this client shows its game over, then leaves
         if (isLocal && !m_GameOverIn) {
             m_GameOverIn = GAME_OVER_DELAY;
-            m_EndReason = "Game over - Score " + std::to_string(m_Engine.get<Protecs::Components::PlayerStats>()[player].score);
+            m_EndReason = "Game over\nScore " + std::to_string(m_Engine.get<Protecs::Components::PlayerStats>()[player].score);
         }
         return;
     }
