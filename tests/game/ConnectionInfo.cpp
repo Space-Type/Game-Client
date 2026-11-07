@@ -211,3 +211,13 @@ TEST(game_parseArguments, missingValueThrows)
         EXPECT_THROW(parse({option}), RType::Errors::Error) << option;
     EXPECT_THROW(parse({"-h", "-p", "1234"}), RType::Errors::Error);
 }
+
+TEST(game_ConnectionInfo, helpIsAsked)
+{
+    std::vector<const char*> help = { "r-type_client", "-n", "Bob", "--help" };
+    std::vector<const char*> none = { "r-type_client", "-h", "127.0.0.1" };
+
+    EXPECT_TRUE(RType::Game::wantsHelp(static_cast<int>(help.size()), help.data()));
+    EXPECT_FALSE(RType::Game::wantsHelp(static_cast<int>(none.size()), none.data()));
+    EXPECT_FALSE(RType::Game::wantsHelp(1, help.data()));
+}
