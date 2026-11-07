@@ -66,6 +66,7 @@ namespace RType::Game {
 
         public:
             static constexpr float GAME_OVER_DELAY = 1.5F;  // lets the last explosion play
+            static constexpr float HIT_BLINK = 0.2F;         // an enemy hit but not killed blinks as long
 
             Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                     const Render::Input& input, const Controls& controls, const DisplayOptions& display);

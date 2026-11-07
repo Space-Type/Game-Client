@@ -350,11 +350,14 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
             }
         }
         std::optional<std::uint8_t> livesBefore;
+        std::optional<std::uint16_t> hpBefore;
 
         if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
             if (session.m_Engine.hasComponent<Component>(localEntity))
                 livesBefore = session.m_Engine.get<Component>()[localEntity].lives;
-
+        if constexpr (std::is_same_v<Component, Protecs::Components::Health>)
+            if (session.m_Engine.hasComponent<Component>(localEntity))
+                hpBefore = session.m_Engine.get<Component>()[localEntity].hp;
 
         if (!session.m_Engine.hasComponent<Component>(localEntity))
             session.m_Engine.addComponent(localEntity, Component{});
@@ -368,6 +371,16 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
                 setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], stats.slot);
             if (livesBefore && stats.lives < *livesBefore)
                 session.loseLife(localEntity, stats.lives);
+        }
+
+        // An enemy hit but not killed blinks briefly
+        if constexpr (std::is_same_v<Component, Protecs::Components::Health>) {
+            if (hpBefore && session.m_Engine.get<Component>()[localEntity].hp < *hpBefore) {
+                if (session.m_Engine.hasComponent<Components::Blink>(localEntity))
+                    session.m_Engine.get<Components::Blink>()[localEntity].remaining = HIT_BLINK;
+                else
+                    session.m_Engine.addComponent(localEntity, Components::Blink{ .remaining = HIT_BLINK });
+            }
         }
     }, data.component);
 }
