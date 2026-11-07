@@ -9,4 +9,5 @@
 #pragma once
 
 #include "../../../src/systems/PlayerInput/PlayerInput.hpp"
+#include "../../../src/systems/RenderOutline/RenderOutline.hpp"
 #include "../../../src/systems/RenderSprite/RenderSprite.hpp"

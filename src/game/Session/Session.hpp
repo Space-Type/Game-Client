@@ -11,6 +11,7 @@
 #include "../Engine.hpp"
 #include "../Client/Client.hpp"
 #include "../Controls/Controls.hpp"
+#include "../DisplayOptions/DisplayOptions.hpp"
 #include <rtype/render.hpp>
 #include <rtype/utils.hpp>
 #include <chrono>
@@ -44,7 +45,7 @@ namespace RType::Game {
 
         public:
             Session(Render::Resources& resources, const Render::Renderer& renderer,
-                    const Render::Input& input, const Controls& controls);
+                    const Render::Input& input, const Controls& controls, const DisplayOptions& display);
             ~Session();
 
             Session(const Session&) = delete;

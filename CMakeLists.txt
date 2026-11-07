@@ -46,6 +46,7 @@ set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
     src/components/Controllable.hpp
+    src/components/EntityKind.hpp
     src/components/Manager.hpp
     src/components/Sprite.hpp
     src/errors/Error/Error.cpp
@@ -110,6 +111,8 @@ set(SOURCES
     src/scenes/Text.hpp
     src/systems/PlayerInput/PlayerInput.cpp
     src/systems/PlayerInput/PlayerInput.hpp
+    src/systems/RenderOutline/RenderOutline.cpp
+    src/systems/RenderOutline/RenderOutline.hpp
     src/systems/RenderSprite/RenderSprite.cpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
