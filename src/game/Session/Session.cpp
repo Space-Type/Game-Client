@@ -110,7 +110,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
         m_SimulationTick++;
         m_AccumulatedDelta -= Protecs::FIXED_UPDATE_RATE;
 
-        if (m_SimulationTick % 1000 == 0)
+        if (m_SimulationTick % 100 == 0)
             needsTickSync = true;
 
         if (m_SimulationTick % 1'000'000 == 0)
