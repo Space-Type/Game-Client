@@ -35,6 +35,8 @@ auto RType::Game::defaultControls() -> Controls
     controls.bind(Action::Right, AxisBinding{ GamepadAxis::LeftX, 0.5f });
     controls.bind(Action::Shoot, Key::Space);
     controls.bind(Action::Shoot, GamepadButton::A);
+    controls.bind(Action::Force, Key::F);
+    controls.bind(Action::Force, GamepadButton::B);
 
     return controls;
 }
@@ -47,6 +49,7 @@ std::string_view RType::Game::actionName(Action action) noexcept
         case Action::Left: return "Left";
         case Action::Right: return "Right";
         case Action::Shoot: return "Shoot";
+        case Action::Force: return "Force";
     }
     return "Unknown";
 }

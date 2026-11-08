@@ -23,7 +23,12 @@ void RType::Systems::RenderPopup::operator()(Wrecks::ECS::Entity entity, Wrecks:
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
     const auto& popup = engine.get<Components::Popup>()[entity];
     float remaining = engine.get<Components::Lifetime>()[entity].remaining;
-    Render::Vec2D at = engine.get<Protecs::Components::Transform>()[entity].position * Game::Game::WORLD_TO_SCREEN;
+    auto from = popup.anchor.value_or(entity);
+
+    if (!engine.hasComponent<Protecs::Components::Transform>(from))
+        return;  // its anchor gone, or not placed yet
+
+    Render::Vec2D at = engine.get<Protecs::Components::Transform>()[from].position * Game::Game::WORLD_TO_SCREEN;
     Render::Vec2D size = m_Renderer->measureText(popup.text, TEXT_SIZE);
     Render::Color color = popup.color;
 
