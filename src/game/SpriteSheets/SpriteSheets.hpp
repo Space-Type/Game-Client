@@ -27,6 +27,7 @@ namespace RType::Game {
     Components::Sprite beamSprite(Render::Resources& resources, std::uint8_t level);  // charged shot, level 1 to 5
     Components::Sprite chargeSprite(Render::Resources& resources);  // in front of a charging ship
     Components::Sprite bossSprite(Render::Resources& resources);    // stage 1 boss body (its core is drawn in it)
+    Components::Sprite tailSprite(Render::Resources& resources);    // a segment of the stage 1 boss tail
 
     // Moves a player sprite to the row of its colour (slot modulo PLAYER_COLOURS)
     void setPlayerColour(Components::Sprite& sprite, std::size_t slot) noexcept;

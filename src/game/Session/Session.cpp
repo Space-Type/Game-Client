@@ -32,6 +32,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_BeamSound(audio.loadSound(Render::assetPath("sounds/beam.wav")))
     , m_LevelSound(audio.loadSound(Render::assetPath("sounds/level.wav")))
     , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
+    , m_WarningSound(audio.loadSound(Render::assetPath("sounds/warning.wav")))
     , m_Effects()
     , m_Engine()
     , m_EntityMap()
@@ -262,7 +263,7 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
         return;
     }
     if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT
-        && type != EntityCreate::ENEMY_DOBKERATOPS_CORE)
+        && type != EntityCreate::ENEMY_DOBKERATOPS_CORE && type != EntityCreate::ENEMY_DOBKERATOPS_TAIL)
         return;
     explodeAt(transform);
 }
@@ -297,6 +298,18 @@ void RType::Game::Session::win()
             m_FinalScore = line.score;
     m_Outcome = Outcome::Victory;
     m_GameOverIn = 0.0F;
+}
+
+// The boss gets angry: "WARNING" in big letters (the visual equivalent of the alarm) and its body flashes
+void RType::Game::Session::enrage()
+{
+    announce("WARNING", WARNING_ANNOUNCEMENT, false, m_WarningSound);
+    if (auto body = findKind(Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS)) {
+        if (m_Engine.hasComponent<Components::Blink>(*body))
+            m_Engine.get<Components::Blink>()[*body].remaining = WARNING_BLINK;
+        else
+            m_Engine.addComponent(*body, Components::Blink{ .remaining = WARNING_BLINK });
+    }
 }
 
 auto RType::Game::Session::findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const -> std::optional<Wrecks::ECS::Entity>
@@ -374,6 +387,9 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
             return;
         case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS:
             m_Engine.addComponent(entity, bossSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_TAIL:
+            m_Engine.addComponent(entity, tailSprite(m_Resources));
             return;
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1:
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_2:
@@ -470,6 +486,15 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
             }
             if (level.won && !session.m_GameOverIn)  // a player already out keeps its game over
                 session.win();
+        }
+
+        // A boss getting angry (its phase goes up): "WARNING", an alarm, and its body flashes
+        if constexpr (std::is_same_v<Component, Protecs::Components::BossPhase>) {
+            std::uint8_t phase = session.m_Engine.get<Component>()[localEntity].phase;
+
+            if (session.m_BossPhase && phase > *session.m_BossPhase)
+                session.enrage();
+            session.m_BossPhase = phase;
         }
     }, data.component);
 }
