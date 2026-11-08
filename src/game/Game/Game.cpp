@@ -36,6 +36,8 @@ RType::Game::Game::Game(ConnectionInfo connection)
     , m_DisplayOptions()
     , m_Gamepad()
     , m_TargetDuration()
+    , m_Engine()
+    , m_Soundtrack(m_Engine.createEntity())
     , m_Session()
     , m_Context{
         .window = m_Window,
@@ -69,6 +71,9 @@ RType::Game::Game::Game(ConnectionInfo connection)
     m_Audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav"));
 
     m_Context.clickSound = m_Audio.loadSound(Render::assetPath("sounds/click.wav"));
+
+    m_Engine.get<Systems::PlayMusic>().setAudio(m_Audio);
+    m_Engine.addComponent(m_Soundtrack, Components::Music{ .track = std::string(Session::TITLE_MUSIC) });
 
     loadGamepadMappings(m_Input);
     applyPreferences(loadPreferences(currentPreferences(m_Audio, m_Window, m_Controls, m_DisplayOptions, m_Gamepad)),
@@ -171,6 +176,7 @@ void RType::Game::Game::update(Wrecks::DeltaTime dt)
     if (m_Scenes.quitRequested())
         m_Window.close();
 
-    // FIXME: remove (shouldn't be here)
-    // m_Audio.update();
+    // The soundtrack entity: the title music in the menus, the stage's in a game (Systems::PlayMusic streams it)
+    m_Engine.get<Components::Music>()[m_Soundtrack].track = m_Session ? m_Session->music() : std::string(Session::TITLE_MUSIC);
+    m_Engine.update(dt);
 }

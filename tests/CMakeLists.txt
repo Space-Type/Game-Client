@@ -46,6 +46,7 @@ set(TEST_SOURCES
     scenes/Manager.cpp
     systems/Expire.cpp
     systems/ForgetStale.cpp
+    systems/PlayMusic.cpp
     systems/PlayerInput.cpp
     systems/RenderName.cpp
     systems/RenderSprite.cpp

@@ -24,6 +24,7 @@ namespace RType::Components {
                                       EntityKind,
                                       Freshness,
                                       Lifetime,
+                                      Music,
                                       Popup,
                                       Star,
                                       Sprite>

@@ -48,6 +48,9 @@ namespace RType::Game {
 
         Wrecks::DeltaTime m_TargetDuration;
 
+        Engine m_Engine;                     // the entities of the whole game, outside of a session: the soundtrack
+        Wrecks::ECS::Entity m_Soundtrack;    // Components::Music: the title music, or the stage's in a game
+
         std::unique_ptr<Session> m_Session;  // after the window and resources it uses
         Scenes::Context m_Context;           // after everything it refers to
         SceneManager m_Scenes;
