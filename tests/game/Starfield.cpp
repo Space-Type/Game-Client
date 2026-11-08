@@ -16,15 +16,15 @@ namespace {
     using namespace std::chrono_literals;
     using RType::Components::Star;
 
-    constexpr RType::Render::Vec2D SIZE = { .x = 1280.0F, .y = 720.0F };
+    constexpr RType::Render::Vec2D AREA = { .x = 1280.0F, .y = 720.0F };
 
     struct Field {
         RType::Game::Engine engine;
 
         explicit Field(std::uint32_t seed = 1)
         {
-            RType::Game::spawnStarfield(engine, SIZE, seed);
-            engine.get<RType::Systems::ScrollStars>().setArea(SIZE);
+            RType::Game::spawnStarfield(engine, AREA, seed);
+            engine.get<RType::Systems::ScrollStars>().setArea(AREA);
         }
 
         // Stars by entity: the same entities for the same spawn order
@@ -46,9 +46,9 @@ TEST(game_Starfield, starsAreInsideTheArea)
     ASSERT_FALSE(field.stars().empty());
     for (const auto& [entity, star] : field.stars()) {
         EXPECT_GE(star.position.x, 0.0F);
-        EXPECT_LT(star.position.x, SIZE.x);
+        EXPECT_LT(star.position.x, AREA.x);
         EXPECT_GE(star.position.y, 0.0F);
-        EXPECT_LT(star.position.y, SIZE.y);
+        EXPECT_LT(star.position.y, AREA.y);
     }
 }
 
@@ -67,15 +67,15 @@ TEST(game_Starfield, sameSeedSameStars)
 TEST(game_Starfield, moreStarsFarAway)
 {
     Field field;
-    std::size_t far = 0;
-    std::size_t near = 0;
+    std::size_t farStars = 0;
+    std::size_t nearStars = 0;
 
     for (const auto& [entity, star] : field.stars()) {
-        far += star.size == 1.0F;
-        near += star.size == 3.0F;
+        farStars += star.size == 1.0F;
+        nearStars += star.size == 3.0F;
     }
     EXPECT_EQ(field.stars().size(), 120);
-    EXPECT_GT(far, near);
+    EXPECT_GT(farStars, nearStars);
 }
 
 TEST(game_Starfield, starsMoveLeftAtTheirSpeed)
@@ -88,7 +88,7 @@ TEST(game_Starfield, starsMoveLeftAtTheirSpeed)
         float expected = before.at(entity).position.x - star.speed * 0.1F;
 
         if (expected < 0.0F)
-            expected += SIZE.x;
+            expected += AREA.x;
         else
             EXPECT_EQ(star.position.y, before.at(entity).position.y);  // only a wrapping star changes height
         EXPECT_NEAR(star.position.x, expected, 0.01F);
@@ -117,7 +117,7 @@ TEST(game_Starfield, starsWrapAroundAfterALongTime)
     field.engine.update(1h);
     for (const auto& [entity, star] : field.stars()) {
         EXPECT_GE(star.position.x, 0.0F);
-        EXPECT_LT(star.position.x, SIZE.x);
+        EXPECT_LT(star.position.x, AREA.x);
     }
 }
 
@@ -129,7 +129,7 @@ TEST(game_Starfield, wrappingStarsTakeANewHeight)
     field.engine.update(2min);  // every star wraps at least once
     for (const auto& [entity, star] : field.stars()) {
         EXPECT_GE(star.position.y, 0.0F);
-        EXPECT_LT(star.position.y, SIZE.y);
+        EXPECT_LT(star.position.y, AREA.y);
         EXPECT_NE(star.position.y, before.at(entity).position.y);
     }
 }
