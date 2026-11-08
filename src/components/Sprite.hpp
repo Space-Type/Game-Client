@@ -27,6 +27,7 @@ namespace RType::Components {
         float framesPerSecond = 0.0F;            // 0: no animation
         bool loop = true;
         float elapsed = 0.0F;                    // seconds, advanced by the RenderSprite system
+        Render::Color tint = Render::Colors::WHITE;
     };
 
     // Frame shown after `sprite.elapsed` seconds
