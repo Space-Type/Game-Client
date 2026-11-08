@@ -31,7 +31,7 @@ namespace RType::Systems {
         public:
             static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
                 .stage = Wrecks::ECS::SystemAttributes::RENDER,
-                .order = 2,  // over the sprites
+                .order = 3,  // over the sprites
             };
 
             // Virtual pixels, before the entity's scale

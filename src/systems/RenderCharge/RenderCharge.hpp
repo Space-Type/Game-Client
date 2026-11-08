@@ -28,7 +28,7 @@ namespace RType::Systems {
         public:
             static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
                 .stage = Wrecks::ECS::SystemAttributes::RENDER,
-                .order = 4,  // over the ships, their outline and names
+                .order = 5,  // over the ships, their outline and names
             };
 
             RenderCharge() noexcept;

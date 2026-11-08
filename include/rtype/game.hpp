@@ -14,3 +14,4 @@
 #include "../../src/game/Game/Game.hpp"
 #include "../../src/game/Session/Session.hpp"
 #include "../../src/game/Engine.hpp"
+#include "../../src/game/Starfield/Starfield.hpp"

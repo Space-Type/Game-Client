@@ -22,9 +22,7 @@
 RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                               const Render::Input& input, const Controls& controls, const DisplayOptions& display)
     : m_Resources(resources)
-    , m_Renderer(renderer)
     , m_Audio(audio)
-    , m_Starfield({ .x = static_cast<float>(Game::Game::VIRTUAL_WIDTH), .y = static_cast<float>(Game::Game::VIRTUAL_HEIGHT) })
     , m_PlayerShotSound(audio.loadSound(Render::assetPath("sounds/playershoot.wav")))
     , m_EnemyShotSound(audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav")))
     , m_ExplosionSound(audio.loadSound(Render::assetPath("sounds/enemy_hit.wav")))
@@ -33,7 +31,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_LevelSound(audio.loadSound(Render::assetPath("sounds/level.wav")))
     , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
     , m_WarningSound(audio.loadSound(Render::assetPath("sounds/warning.wav")))
-    , m_Effects()
+    , m_LastComponentAt(std::chrono::steady_clock::now())
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
@@ -45,6 +43,14 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_LastSyncTime()
     , m_Client()
 {
+    constexpr Render::Vec2D SCREEN = { .x = static_cast<float>(Game::Game::VIRTUAL_WIDTH), .y = static_cast<float>(Game::Game::VIRTUAL_HEIGHT) };
+
+    spawnStarfield(m_Engine, SCREEN);
+    m_Engine.get<Systems::ScrollStars>().setArea(SCREEN);
+    m_Engine.get<Systems::RenderStarfield>().setRenderer(renderer);
+    m_Engine.get<Systems::PlayChargeSound>().setAudio(audio);
+    m_Engine.get<Systems::ForgetStale>().setEntityMap(m_EntityMap);
+    m_Engine.get<Systems::ForgetStale>().setLastComponentAt(m_LastComponentAt);
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
     m_Engine.get<Systems::RenderOutline>().setRenderer(renderer);
     m_Engine.get<Systems::RenderOutline>().setResources(resources);
@@ -128,11 +134,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     }
 
     m_Engine.update(dt);
-    m_Clock += std::chrono::duration<float>(dt).count();
-    m_Starfield.update(dt);
-    removeFinishedEffects();
-    updateChargeSound();
-    forgetStaleEntities(std::chrono::duration<float>(dt).count());
 
     if (m_GameOverIn) {
         *m_GameOverIn -= std::chrono::duration<float>(dt).count();
@@ -158,7 +159,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
  */
 void RType::Game::Session::render(Wrecks::DeltaTime dt)
 {
-    m_Starfield.draw(m_Renderer);  // behind every entity
     m_Engine.render(dt);
 }
 
@@ -214,26 +214,10 @@ void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::Netwo
 {
     m_Engine.addComponent(entity, Components::Controllable{});
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
-    if (m_Client.isConnected() && id == m_Client.player())
+    if (m_Client.isConnected() && id == m_Client.player()) {
         m_Engine.addComponent(entity, Components::LocalCharge{});
-}
-
-/**
- * The charge sound plays while the local player charges
- * (not for a quick tap) and stops when the trigger is released.
- */
-void RType::Game::Session::updateChargeSound()
-{
-    bool charging = false;
-
-    for (auto [entity, charge] : m_Engine.get<Components::LocalCharge>())
-        charging = charging || charge.seconds >= Components::CHARGE_SOUND_DELAY;
-
-    if (charging && !m_ChargeSoundPlaying)
-        m_Audio.play(m_ChargeSound);
-    else if (!charging && m_ChargeSoundPlaying)
-        m_Audio.stop(m_ChargeSound);
-    m_ChargeSoundPlaying = charging;
+        m_Engine.addComponent(entity, Components::ChargeSound{ .sound = m_ChargeSound });
+    }
 }
 
 /**
@@ -270,15 +254,28 @@ void RType::Game::Session::explodeAt(const Protecs::Components::Transform& where
 {
     auto effect = m_Engine.createEntity();
 
+    Components::Sprite sprite = explosionSprite(m_Resources);
+
     m_Engine.addComponent(effect, Protecs::Components::Transform{ where });
-    m_Engine.addComponent(effect, explosionSprite(m_Resources));
-    m_Effects.push_back(effect);
+    m_Engine.addComponent(effect, Components::Lifetime{ .remaining = Components::animationDuration(sprite) });
+    m_Engine.addComponent(effect, std::move(sprite));
     m_Audio.play(m_ExplosionSound);
 }
 
+// One announcement at a time: a new one replaces the one on screen
 void RType::Game::Session::announce(std::string text, float duration, bool scores, Render::SoundId sound)
 {
-    m_Announcement = Announcement{ .text = std::move(text), .start = m_Clock, .duration = duration, .scores = scores };
+    std::vector<Wrecks::ECS::Entity> shown;
+
+    for (auto [entity, announcement] : m_Engine.get<Components::Announcement>())
+        shown.push_back(entity);
+    for (auto entity : shown)
+        m_Engine.deleteEntity(entity);
+
+    auto entity = m_Engine.createEntity();
+
+    m_Engine.addComponent(entity, Components::Announcement{ .text = std::move(text), .duration = duration, .scores = scores });
+    m_Engine.addComponent(entity, Components::Lifetime{ .remaining = duration });
     m_Audio.play(sound);
 }
 
@@ -320,9 +317,10 @@ auto RType::Game::Session::findKind(Protecs::Networking::Packets::EntityCreate::
 
 auto RType::Game::Session::announcement() const -> std::optional<std::pair<Announcement, float>>
 {
-    if (!m_Announcement || m_Clock - m_Announcement->start > m_Announcement->duration)
-        return std::nullopt;
-    return std::pair{ *m_Announcement, m_Clock - m_Announcement->start };
+    for (auto [entity, announcement] : m_Engine.get<Components::Announcement>())
+        if (m_Engine.hasComponent<Components::Lifetime>(entity))
+            return std::pair{ announcement, Components::shownFor(announcement, m_Engine.get<Components::Lifetime>()[entity]) };
+    return std::nullopt;
 }
 
 auto RType::Game::Session::bossHealth() const -> std::optional<Protecs::Components::Health>
@@ -368,42 +366,6 @@ void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t liv
         m_Engine.get<Components::Blink>()[player] = Components::Blink{};
     else
         m_Engine.addComponent(player, Components::Blink{});
-}
-
-/**
- * Deletes the entities the server stopped updating (see
- * Components::Freshness). The local player is never forgotten.
- */
-void RType::Game::Session::forgetStaleEntities(float seconds)
-{
-    std::vector<Wrecks::ECS::Entity> stale;
-    std::optional<Wrecks::ECS::Entity> local = localPlayer();
-
-    m_SinceAnyUpdate += seconds;
-
-    for (auto [entity, unused] : m_Engine.get<Components::Freshness>()) {
-        auto& freshness = m_Engine.get<Components::Freshness>()[entity];
-
-        freshness.sinceUpdate += seconds;
-        if (entity != local && Components::isStale(freshness.sinceUpdate, m_SinceAnyUpdate))
-            stale.push_back(entity);
-    }
-
-    // Deleted after the loop: never while iterating over the container
-    for (auto entity : stale) {
-        m_EntityMap.removeNetwork(m_EntityMap.toNetwork(entity));
-        m_Engine.deleteEntity(entity);
-    }
-}
-
-void RType::Game::Session::removeFinishedEffects()
-{
-    std::erase_if(m_Effects, [&](Wrecks::ECS::Entity effect) {
-        if (!Components::finished(m_Engine.get<Components::Sprite>()[effect]))
-            return false;
-        m_Engine.deleteEntity(effect);
-        return true;
-    });
 }
 
 void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)
@@ -488,7 +450,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
 
         // Any component counts: the level entity, for one, has no Transform
-        session.m_SinceAnyUpdate = 0.0F;
+        session.m_LastComponentAt = std::chrono::steady_clock::now();
         if (session.m_Engine.hasComponent<Components::Freshness>(localEntity))
             session.m_Engine.get<Components::Freshness>()[localEntity].sinceUpdate = 0.0F;
 

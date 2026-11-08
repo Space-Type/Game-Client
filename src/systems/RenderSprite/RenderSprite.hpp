@@ -27,7 +27,7 @@ namespace RType::Systems {
         public:
             static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
                 .stage = Wrecks::ECS::SystemAttributes::RENDER,
-                .order = 1,
+                .order = 2,
             };
 
             // Frames of a player ship in its sheet row: tilted down, still, tilted up
