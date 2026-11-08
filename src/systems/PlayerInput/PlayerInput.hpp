@@ -35,7 +35,8 @@ namespace RType::Systems {
             static constexpr Wrecks::Signature signature() noexcept
             {
                 return Wrecks::Signature()
-                    .set(Components::Manager::index<Protecs::Components::PlayerInput>());
+                    .set(Components::Manager::index<Protecs::Components::PlayerInput>())
+                    .set(Components::Manager::index<Components::Controllable>());
             }
 
             inline void setEngine(void* engine) noexcept { m_Engine = engine; }

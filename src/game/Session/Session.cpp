@@ -216,9 +216,10 @@ void RType::Game::Session::handleEvents(Protecs::Tick tick)
  */
 void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id)
 {
-    m_Engine.addComponent(entity, Components::Controllable{});
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
+    // Only this client's ship reads the keyboard: the others move from the inputs the server shares
     if (m_Client.isConnected() && id == m_Client.player()) {
+        m_Engine.addComponent(entity, Components::Controllable{});
         m_Engine.addComponent(entity, Components::LocalCharge{});
         m_Engine.addComponent(entity, Components::ChargeSound{ .sound = m_ChargeSound });
     }
