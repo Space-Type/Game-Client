@@ -1,0 +1,74 @@
+name: Build and test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels its run still going
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      # GoogleTest is downloaded once, then taken from the cache
+      FETCHCONTENT_BASE_DIR: ${{ github.workspace }}/.deps
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      # raylib (GLFW, X11 only) needs OpenGL and X11 headers; the client links them from the system
+      - name: Install system packages (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++-14 libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.FETCHCONTENT_BASE_DIR }}
+          key: deps-${{ runner.os }}-${{ hashFiles('tests/CMakeLists.txt') }}
+
+      # Compiled objects (raylib, Wrecks, Protecs, the client) are reused between runs instead of rebuilt
+      - uses: hendrikmuhs/ccache-action@v1.2
+        if: runner.os == 'Linux'
+        with:
+          key: client-${{ runner.os }}
+
+      - name: Configure (Linux)
+        if: runner.os == 'Linux'
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=DebugTests -DCMAKE_CXX_COMPILER=g++-14 -DGLFW_BUILD_WAYLAND=OFF
+          -DFETCHCONTENT_BASE_DIR="$FETCHCONTENT_BASE_DIR"
+          -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=DebugTests -DFETCHCONTENT_BASE_DIR="$env:FETCHCONTENT_BASE_DIR"
+
+      - name: Build
+        run: cmake --build build --config DebugTests --parallel
+
+      # Headless tests only: nothing opens a window or an audio device
+      - name: Test
+        run: ctest --test-dir build -C DebugTests --output-on-failure
+
+      - name: Check the binary
+        shell: bash
+        run: find build -maxdepth 2 -name 'r-type_client*' -type f | grep .
