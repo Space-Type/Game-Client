@@ -121,6 +121,15 @@ TEST(game_Preferences, badLinesKeepTheDefaults)
     EXPECT_EQ(read.controls.bindings(Action::Shoot), Preferences{}.controls.bindings(Action::Shoot));
 }
 
+TEST(game_Preferences, fileWithoutTheForceKeepsItsDefault)
+{
+    // Saved before the Force action existed
+    Preferences read = RType::Game::fromText("bind.shoot.keyboard=Enter\n", Preferences{});
+
+    EXPECT_EQ(RType::Game::slotBinding(read.controls, Action::Shoot, Slot::Keyboard), Binding(Key::Enter));
+    EXPECT_EQ(read.controls.bindings(Action::Force), Preferences{}.controls.bindings(Action::Force));
+}
+
 TEST(game_Preferences, spacesAndWindowsLineEndings)
 {
     Preferences read = RType::Game::fromText("volume.music = 40\r\nbind.down.keyboard = Left Shift\r\n", Preferences{});

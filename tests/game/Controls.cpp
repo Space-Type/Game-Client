@@ -35,6 +35,9 @@ TEST(game_Controls, defaultSlots)
     EXPECT_EQ(RType::Game::slotBinding(controls, Action::Up, Slot::Gamepad), Binding(GamepadButton::DpadUp));
     EXPECT_EQ(RType::Game::slotBinding(controls, Action::Shoot, Slot::Keyboard), Binding(Key::Space));
     EXPECT_EQ(RType::Game::slotBinding(controls, Action::Shoot, Slot::Gamepad), Binding(GamepadButton::A));
+    EXPECT_EQ(RType::Game::slotBinding(controls, Action::Force, Slot::Keyboard), Binding(Key::F));
+    EXPECT_EQ(RType::Game::slotBinding(controls, Action::Force, Slot::Gamepad), Binding(GamepadButton::B));
+    EXPECT_FALSE(RType::Game::conflicts(controls, Action::Force));
 }
 
 TEST(game_Controls, emptySlot)

@@ -652,16 +652,16 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerInput& 
 
     using Protecs::Networking::Packets::PlayerInput;
 
-    static constexpr std::array<decltype(PlayerInput::input), 5> direction = {
+    static constexpr std::array<decltype(PlayerInput::input), 6> direction = {
         PlayerInput::UP, PlayerInput::DOWN,
         PlayerInput::LEFT, PlayerInput::RIGHT,
-        PlayerInput::TRIGGER,
+        PlayerInput::TRIGGER, PlayerInput::FORCE,
     };
 
-    const std::array<bool, 5> isHoldingKey = {
+    const std::array<bool, 6> isHoldingKey = {
         input.up, input.down,
         input.left, input.right,
-        input.trigger,
+        input.trigger, input.force,
     };
 
     for (std::uint8_t i = 0; i < direction.size(); i++) {
