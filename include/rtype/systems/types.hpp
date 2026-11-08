@@ -12,6 +12,7 @@
 #include "../../../src/systems/Expire/Expire.hpp"
 #include "../../../src/systems/ForgetStale/ForgetStale.hpp"
 #include "../../../src/systems/PlayChargeSound/PlayChargeSound.hpp"
+#include "../../../src/systems/PlayMusic/PlayMusic.hpp"
 #include "../../../src/systems/PlayerInput/PlayerInput.hpp"
 #include "../../../src/systems/ScrollStars/ScrollStars.hpp"
 #include "../../../src/systems/RenderCharge/RenderCharge.hpp"

@@ -19,6 +19,7 @@ namespace RType::Systems {
         std::tuple<PlayerInput,
                    ChargeTimer,
                    PlayChargeSound,
+                   PlayMusic,
                    Expire,
                    ForgetStale,
                    ScrollStars,

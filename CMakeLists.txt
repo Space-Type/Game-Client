@@ -70,6 +70,7 @@ set(SOURCES
     src/components/EntityKind.hpp
     src/components/Freshness.hpp
     src/components/Lifetime.hpp
+    src/components/Music.hpp
     src/components/Popup.hpp
     src/components/Manager.hpp
     src/components/PlayerState.hpp
@@ -148,6 +149,8 @@ set(SOURCES
     src/systems/ChargeTimer/ChargeTimer.hpp
     src/systems/PlayChargeSound/PlayChargeSound.cpp
     src/systems/PlayChargeSound/PlayChargeSound.hpp
+    src/systems/PlayMusic/PlayMusic.cpp
+    src/systems/PlayMusic/PlayMusic.hpp
     src/systems/Expire/Expire.cpp
     src/systems/Expire/Expire.hpp
     src/systems/ForgetStale/ForgetStale.cpp
