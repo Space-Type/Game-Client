@@ -23,6 +23,8 @@ FetchContent_MakeAvailable(googletest)
 
 # Only headless tests: nothing here opens a window or an audio device
 set(TEST_SOURCES
+    components/Charge.cpp
+    components/PlayerState.cpp
     game/Client.cpp
     game/ConnectionInfo.cpp
     game/Controls.cpp
@@ -37,8 +39,10 @@ set(TEST_SOURCES
     scenes/Manager.cpp
     systems/RenderName.cpp
     systems/RenderSprite.cpp
+    systems/RenderStage.cpp
     ui/Checkbox.cpp
     ui/Form.cpp
+    ui/Hud.cpp
     ui/Slider.cpp
     ui/TextField.cpp
     ui/Theme.cpp)

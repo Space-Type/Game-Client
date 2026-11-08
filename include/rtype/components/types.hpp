@@ -9,5 +9,7 @@
 #pragma once
 
 #include "../../../src/components/Sprite.hpp"
+#include "../../../src/components/Charge.hpp"
 #include "../../../src/components/Controllable.hpp"
 #include "../../../src/components/EntityKind.hpp"
+#include "../../../src/components/PlayerState.hpp"
