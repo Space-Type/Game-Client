@@ -45,6 +45,8 @@ RType::Game::Game::Game(ConnectionInfo connection)
         .displayOptions = m_DisplayOptions,
         .session = m_Session,
         .message = {},
+        .outcome = RType::Game::Outcome::Message,
+        .score = 0,
         .connection = std::move(connection),
         .settingsReturn = Scenes::SceneId::Connect,
         .clickSound = {},
@@ -132,10 +134,14 @@ void RType::Game::Game::update(Wrecks::DeltaTime dt)
         m_Session->setControlsEnabled(m_Scenes.current() == Scenes::SceneId::InGame);
         try {
             m_Session->update(dt);
-            if (m_Session->ended())
+            if (m_Session->ended()) {
                 endMessage = m_Session->endReason();
+                m_Context.outcome = m_Session->outcome();
+                m_Context.score = m_Session->finalScore();
+            }
         } catch (const std::exception& err) {
             endMessage = std::string("Network error: ") + err.what();
+            m_Context.outcome = RType::Game::Outcome::Message;
         }
     }
 
