@@ -49,6 +49,7 @@ set(SOURCES
     src/components/Controllable.hpp
     src/components/EntityKind.hpp
     src/components/Freshness.hpp
+    src/components/Lifetime.hpp
     src/components/Manager.hpp
     src/components/PlayerState.hpp
     src/components/Sprite.hpp
@@ -120,6 +121,8 @@ set(SOURCES
     src/systems/PlayerInput/PlayerInput.hpp
     src/systems/ChargeTimer/ChargeTimer.cpp
     src/systems/ChargeTimer/ChargeTimer.hpp
+    src/systems/Expire/Expire.cpp
+    src/systems/Expire/Expire.hpp
     src/systems/RenderCharge/RenderCharge.cpp
     src/systems/RenderCharge/RenderCharge.hpp
     src/systems/RenderName/RenderName.cpp

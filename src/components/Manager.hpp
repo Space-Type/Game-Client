@@ -21,6 +21,7 @@ namespace RType::Components {
                                       LocalCharge,
                                       EntityKind,
                                       Freshness,
+                                      Lifetime,
                                       Sprite>
     >;
 }

@@ -14,3 +14,4 @@
 #include "../../../src/components/EntityKind.hpp"
 #include "../../../src/components/PlayerState.hpp"
 #include "../../../src/components/Freshness.hpp"
+#include "../../../src/components/Lifetime.hpp"

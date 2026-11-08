@@ -33,7 +33,6 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_LevelSound(audio.loadSound(Render::assetPath("sounds/level.wav")))
     , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
     , m_WarningSound(audio.loadSound(Render::assetPath("sounds/warning.wav")))
-    , m_Effects()
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
@@ -130,7 +129,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     m_Engine.update(dt);
     m_Clock += std::chrono::duration<float>(dt).count();
     m_Starfield.update(dt);
-    removeFinishedEffects();
     updateChargeSound();
     forgetStaleEntities(std::chrono::duration<float>(dt).count());
 
@@ -270,9 +268,11 @@ void RType::Game::Session::explodeAt(const Protecs::Components::Transform& where
 {
     auto effect = m_Engine.createEntity();
 
+    Components::Sprite sprite = explosionSprite(m_Resources);
+
     m_Engine.addComponent(effect, Protecs::Components::Transform{ where });
-    m_Engine.addComponent(effect, explosionSprite(m_Resources));
-    m_Effects.push_back(effect);
+    m_Engine.addComponent(effect, Components::Lifetime{ .remaining = Components::animationDuration(sprite) });
+    m_Engine.addComponent(effect, std::move(sprite));
     m_Audio.play(m_ExplosionSound);
 }
 
@@ -394,16 +394,6 @@ void RType::Game::Session::forgetStaleEntities(float seconds)
         m_EntityMap.removeNetwork(m_EntityMap.toNetwork(entity));
         m_Engine.deleteEntity(entity);
     }
-}
-
-void RType::Game::Session::removeFinishedEffects()
-{
-    std::erase_if(m_Effects, [&](Wrecks::ECS::Entity effect) {
-        if (!Components::finished(m_Engine.get<Components::Sprite>()[effect]))
-            return false;
-        m_Engine.deleteEntity(effect);
-        return true;
-    });
 }
 
 void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)

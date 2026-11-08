@@ -18,6 +18,7 @@ namespace RType::Systems {
         Protecs::Systems::Tuple,
         std::tuple<PlayerInput,
                    ChargeTimer,
+                   Expire,
                    RenderStage,
                    RenderSprite,
                    RenderOutline,

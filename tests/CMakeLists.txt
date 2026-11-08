@@ -25,6 +25,7 @@ FetchContent_MakeAvailable(googletest)
 set(TEST_SOURCES
     components/Charge.cpp
     components/Freshness.cpp
+    components/Lifetime.cpp
     components/PlayerState.cpp
     game/Client.cpp
     game/ConnectionInfo.cpp
@@ -38,6 +39,7 @@ set(TEST_SOURCES
     render/Letterbox.cpp
     render/Types.cpp
     scenes/Manager.cpp
+    systems/Expire.cpp
     systems/RenderName.cpp
     systems/RenderSprite.cpp
     systems/RenderStage.cpp
