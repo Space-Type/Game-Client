@@ -30,6 +30,7 @@ set(TEST_SOURCES
     components/Lifetime.cpp
     components/Popup.cpp
     components/PlayerState.cpp
+    game/Bosses.cpp
     game/Client.cpp
     game/ConnectionInfo.cpp
     game/Controls.cpp
@@ -45,6 +46,7 @@ set(TEST_SOURCES
     scenes/Manager.cpp
     systems/Expire.cpp
     systems/ForgetStale.cpp
+    systems/PlayerInput.cpp
     systems/RenderName.cpp
     systems/RenderSprite.cpp
     systems/RenderStage.cpp

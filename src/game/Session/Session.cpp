@@ -216,9 +216,10 @@ void RType::Game::Session::handleEvents(Protecs::Tick tick)
  */
 void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::NetworkEntity id)
 {
-    m_Engine.addComponent(entity, Components::Controllable{});
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
+    // Only this client's ship reads the keyboard: the others move from the inputs the server shares
     if (m_Client.isConnected() && id == m_Client.player()) {
+        m_Engine.addComponent(entity, Components::Controllable{});
         m_Engine.addComponent(entity, Components::LocalCharge{});
         m_Engine.addComponent(entity, Components::ChargeSound{ .sound = m_ChargeSound });
     }
@@ -238,7 +239,7 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
     EntityCreate::EntityType type = m_Engine.get<Components::EntityKind>()[entity].type;
     const auto transform = m_Engine.get<Protecs::Components::Transform>()[entity];
 
-    if (type == EntityCreate::ENEMY_DOBKERATOPS && m_Engine.hasComponent<Components::Sprite>(entity)) {
+    if (isBossBody(type) && m_Engine.hasComponent<Components::Sprite>(entity)) {
         // The boss blows up all over its body
         Render::Vec2D size = Systems::spriteSize(m_Engine.get<Components::Sprite>()[entity], m_Resources);
 
@@ -249,8 +250,7 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
         return;
     }
     if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT
-        && type != EntityCreate::ENEMY_DOBKERATOPS_CORE && type != EntityCreate::ENEMY_DOBKERATOPS_TAIL
-        && type != EntityCreate::ENEMY_POW_ARMOR)
+        && !bossOf(type) && type != EntityCreate::ENEMY_DOBKERATOPS_TAIL && type != EntityCreate::ENEMY_POW_ARMOR)
         return;
     explodeAt(transform);
 }
@@ -303,8 +303,10 @@ void RType::Game::Session::win()
 // The boss gets angry: "WARNING" in big letters (the visual equivalent of the alarm) and its body flashes
 void RType::Game::Session::enrage()
 {
+    auto boss = findBoss();
+
     announce("WARNING", WARNING_ANNOUNCEMENT, false, m_WarningSound);
-    if (auto body = findKind(Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS)) {
+    if (auto body = boss ? findKind(boss->second->body) : std::nullopt) {
         if (m_Engine.hasComponent<Components::Blink>(*body))
             m_Engine.get<Components::Blink>()[*body].remaining = WARNING_BLINK;
         else
@@ -328,13 +330,22 @@ auto RType::Game::Session::announcement() const -> std::optional<std::pair<Annou
     return std::nullopt;
 }
 
-auto RType::Game::Session::bossHealth() const -> std::optional<Protecs::Components::Health>
+// The boss core in the game, and which boss it is
+auto RType::Game::Session::findBoss() const -> std::optional<std::pair<Wrecks::ECS::Entity, const BossKinds*>>
 {
-    std::optional<Wrecks::ECS::Entity> core = findKind(Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE);
+    for (auto [entity, kind] : m_Engine.get<Components::EntityKind>())
+        if (const BossKinds* boss = bossOf(kind.type))
+            return std::pair{ entity, boss };
+    return std::nullopt;
+}
 
-    if (!core || !m_Engine.hasComponent<Protecs::Components::Health>(*core))
+auto RType::Game::Session::bossBar() const -> std::optional<BossBar>
+{
+    auto boss = findBoss();
+
+    if (!boss || !m_Engine.hasComponent<Protecs::Components::Health>(boss->first))
         return std::nullopt;
-    return m_Engine.get<Protecs::Components::Health>()[*core];
+    return BossBar{ .name = boss->second->name, .health = m_Engine.get<Protecs::Components::Health>()[boss->first] };
 }
 
 /**
@@ -432,6 +443,9 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
         case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_TAIL:
             m_Engine.addComponent(entity, tailSprite(m_Resources));
             return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_GOMANDER:
+            m_Engine.addComponent(entity, gomanderSprite(m_Resources));
+            return;
         case Protecs::Networking::Packets::EntityCreate::PICKUP_LIFE:
             m_Engine.addComponent(entity, lifePickupSprite(m_Resources));
             return;
@@ -526,10 +540,10 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
         if constexpr (std::is_same_v<Component, Protecs::Components::Health>) {
             if (hpBefore && session.m_Engine.get<Component>()[localEntity].hp < *hpBefore) {
                 Wrecks::ECS::Entity target = localEntity;
-                bool isCore = session.m_Engine.hasComponent<Components::EntityKind>(localEntity)
-                           && session.m_Engine.get<Components::EntityKind>()[localEntity].type == Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE;
+                const BossKinds* boss = session.m_Engine.hasComponent<Components::EntityKind>(localEntity)
+                                      ? bossOf(session.m_Engine.get<Components::EntityKind>()[localEntity].type) : nullptr;
 
-                if (auto body = isCore ? session.findKind(Packets::EntityCreate::ENEMY_DOBKERATOPS) : std::nullopt)
+                if (auto body = boss ? session.findKind(boss->body) : std::nullopt)
                     target = *body;
                 if (session.m_Engine.hasComponent<Components::Blink>(target))
                     session.m_Engine.get<Components::Blink>()[target].remaining = HIT_BLINK;
@@ -586,7 +600,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete&
 
     auto localEntity = session.m_EntityMap.toLocal(data.id);
     bool isCore = session.m_Engine.hasComponent<Components::EntityKind>(localEntity)
-               && session.m_Engine.get<Components::EntityKind>()[localEntity].type == Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE;
+               && bossOf(session.m_Engine.get<Components::EntityKind>()[localEntity].type);
 
     if (!Components::isEliminated(session.m_Engine, localEntity))  // it already exploded
         session.explode(localEntity);

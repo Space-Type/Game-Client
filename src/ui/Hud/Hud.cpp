@@ -125,9 +125,14 @@ std::string RType::UI::Hud::scoreText(std::uint32_t score)
     return text;
 }
 
-void RType::UI::Hud::drawBossBar(const Render::Renderer& renderer, Render::Vec2D screen, std::uint16_t hp, std::uint16_t max)
+std::string RType::UI::Hud::bossLabel(std::string_view name, std::uint16_t hp, std::uint16_t max)
 {
-    std::string label = "DOBKERATOPS  " + std::to_string(hp) + " / " + std::to_string(max);
+    return std::string(name) + "  " + std::to_string(hp) + " / " + std::to_string(max);
+}
+
+void RType::UI::Hud::drawBossBar(const Render::Renderer& renderer, Render::Vec2D screen, std::string_view name, std::uint16_t hp, std::uint16_t max)
+{
+    std::string label = bossLabel(name, hp, max);
     float labelWidth = renderer.measureText(label, TEXT_SIZE).x;
     float x = (screen.x - BOSS_BAR_WIDTH) / 2.0F;
     float barY = screen.y - ORIGIN - BOSS_BAR_HEIGHT;

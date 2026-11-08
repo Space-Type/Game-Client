@@ -28,8 +28,8 @@ void RType::Scenes::InGame::render(Context& ctx) const
 
     UI::Hud::draw(ctx.renderer, ctx.resources, heart, ctx.session->players(), m_Seconds);
 
-    if (auto boss = ctx.session->bossHealth())
-        UI::Hud::drawBossBar(ctx.renderer, ctx.window.virtualSize(), boss->hp, boss->max);
+    if (auto boss = ctx.session->bossBar())
+        UI::Hud::drawBossBar(ctx.renderer, ctx.window.virtualSize(), boss->name, boss->health.hp, boss->health.max);
 
     if (auto shown = ctx.session->announcement())
         drawAnnouncement(ctx, shown->first, shown->second);

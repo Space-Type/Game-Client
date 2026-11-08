@@ -49,6 +49,11 @@ namespace {
     constexpr std::size_t TAIL_FRAMES = 3;
     constexpr float TAIL_FPS = 10.0F;
 
+    // r-typesheet32: the Gomander with its eye open (last row), 2 frames 260 px apart; its hitboxes are on the server
+    constexpr Rect GOMANDER_FRAME = { .x = 2.0F, .y = 431.0F, .width = 260.0F, .height = 140.0F };
+    constexpr std::size_t GOMANDER_FRAMES = 2;
+    constexpr float GOMANDER_FPS = 3.0F;
+
     constexpr Rect EXPLOSION_FRAME = { .x = 129.0F, .y = 0.0F, .width = 33.0F, .height = 33.0F };      // r-typesheet44: 6 frames
     constexpr std::size_t EXPLOSION_FRAMES = 6;
     constexpr float EXPLOSION_FPS = 15.0F;
@@ -172,4 +177,9 @@ auto RType::Game::forceSprite(Render::Resources& resources, std::uint8_t level) 
     const auto& frames = FORCE_FRAMES[level >= 1 && level <= FORCE_FRAMES.size() ? level - 1 : 0];
 
     return { .texture = sheet(resources, "r-typesheet2.gif"), .frame = frames.frame, .frameCount = frames.count, .framesPerSecond = FORCE_FPS };
+}
+
+auto RType::Game::gomanderSprite(Render::Resources& resources) -> Components::Sprite
+{
+    return { .texture = sheet(resources, "r-typesheet32.gif"), .frame = GOMANDER_FRAME, .frameCount = GOMANDER_FRAMES, .framesPerSecond = GOMANDER_FPS };
 }

@@ -85,6 +85,7 @@ set(SOURCES
     src/game/ConnectionInfo/ConnectionInfo.hpp
     src/game/Controls/Controls.cpp
     src/game/Controls/Controls.hpp
+    src/game/Bosses/Bosses.hpp
     src/game/Client/Client.cpp
     src/game/Client/Client.hpp
     src/game/DisplayOptions/DisplayOptions.hpp
