@@ -8,11 +8,16 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-# Third-party libraries come from vcpkg (submodule lib/vcpkg, manifest
-# vcpkg.json), bootstrapped automatically on the first configure.
+# Third-party libraries come from vcpkg (manifest vcpkg.json), installed by
+# the developer: VCPKG_ROOT points at it, or CMAKE_TOOLCHAIN_FILE is given.
 # OpenGL and X11 stay system libraries, as the subject allows.
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    if (NOT DEFINED ENV{VCPKG_ROOT})
+        message(FATAL_ERROR "vcpkg not found: install it, then set VCPKG_ROOT to its folder "
+                            "(or pass -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake)")
+    endif()
+    file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" RTYPE_VCPKG_ROOT)
+    set(CMAKE_TOOLCHAIN_FILE "${RTYPE_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         CACHE STRING "vcpkg toolchain file")
 endif()
 

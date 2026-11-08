@@ -47,17 +47,27 @@ jobs:
           path: ${{ env.FETCHCONTENT_BASE_DIR }}
           key: deps-${{ runner.os }}-${{ hashFiles('tests/CMakeLists.txt') }}
 
-      - name: Prepare the vcpkg cache
-        id: vcpkg
+      # vcpkg is installed by the developer, not shipped with the client: same here.
+      # A full clone, so that the builtin-baseline commit of vcpkg.json is in its history.
+      - name: Install vcpkg
         shell: bash
         run: |
+          git clone --quiet https://github.com/microsoft/vcpkg.git "$RUNNER_TEMP/vcpkg"
+          echo "VCPKG_ROOT=$RUNNER_TEMP/vcpkg" >> "$GITHUB_ENV"
           mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
-          echo "commit=$(git -C lib/vcpkg rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Bootstrap vcpkg (Linux)
+        if: runner.os == 'Linux'
+        run: '"$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics'
+
+      - name: Bootstrap vcpkg (Windows)
+        if: runner.os == 'Windows'
+        run: '& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics'
 
       - uses: actions/cache@v4
         with:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: vcpkg-${{ runner.os }}-${{ steps.vcpkg.outputs.commit }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-ports/**') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-ports/**') }}
           restore-keys: vcpkg-${{ runner.os }}-
 
       # Compiled objects (Wrecks, Protecs, the client) are reused between runs instead of rebuilt

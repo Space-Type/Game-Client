@@ -4,6 +4,3 @@
 [submodule "lib/protecs"]
 	path = lib/protecs
 	url = https://github.com/Space-Type/Protecs.git
-[submodule "lib/vcpkg"]
-	path = lib/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
