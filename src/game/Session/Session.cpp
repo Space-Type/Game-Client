@@ -134,7 +134,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     }
 
     m_Engine.update(dt);
-    m_Clock += std::chrono::duration<float>(dt).count();
 
     if (m_GameOverIn) {
         *m_GameOverIn -= std::chrono::duration<float>(dt).count();
@@ -263,9 +262,20 @@ void RType::Game::Session::explodeAt(const Protecs::Components::Transform& where
     m_Audio.play(m_ExplosionSound);
 }
 
+// One announcement at a time: a new one replaces the one on screen
 void RType::Game::Session::announce(std::string text, float duration, bool scores, Render::SoundId sound)
 {
-    m_Announcement = Announcement{ .text = std::move(text), .start = m_Clock, .duration = duration, .scores = scores };
+    std::vector<Wrecks::ECS::Entity> shown;
+
+    for (auto [entity, announcement] : m_Engine.get<Components::Announcement>())
+        shown.push_back(entity);
+    for (auto entity : shown)
+        m_Engine.deleteEntity(entity);
+
+    auto entity = m_Engine.createEntity();
+
+    m_Engine.addComponent(entity, Components::Announcement{ .text = std::move(text), .duration = duration, .scores = scores });
+    m_Engine.addComponent(entity, Components::Lifetime{ .remaining = duration });
     m_Audio.play(sound);
 }
 
@@ -307,9 +317,10 @@ auto RType::Game::Session::findKind(Protecs::Networking::Packets::EntityCreate::
 
 auto RType::Game::Session::announcement() const -> std::optional<std::pair<Announcement, float>>
 {
-    if (!m_Announcement || m_Clock - m_Announcement->start > m_Announcement->duration)
-        return std::nullopt;
-    return std::pair{ *m_Announcement, m_Clock - m_Announcement->start };
+    for (auto [entity, announcement] : m_Engine.get<Components::Announcement>())
+        if (m_Engine.hasComponent<Components::Lifetime>(entity))
+            return std::pair{ announcement, Components::shownFor(announcement, m_Engine.get<Components::Lifetime>()[entity]) };
+    return std::nullopt;
 }
 
 auto RType::Game::Session::bossHealth() const -> std::optional<Protecs::Components::Health>

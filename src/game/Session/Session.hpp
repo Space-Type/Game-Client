@@ -32,13 +32,8 @@ namespace RType::Game {
      * Never copied nor moved: the network
      * thread of the client refers to it.
      */
-    // Big text over the game: "LEVEL n" when a stage starts, "STAGE CLEAR" (with the scores) when it is won
-    struct Announcement {
-        std::string text;
-        float start;      // Session clock
-        float duration;   // seconds
-        bool scores;      // also shows every player's score
-    };
+    // Big text over the game (see Components::Announcement)
+    using Announcement = Components::Announcement;
 
     // How a game ended: the GameOver scene shows a victory, a defeat (with the score) or a message
     enum class Outcome : std::uint8_t {
@@ -63,10 +58,8 @@ namespace RType::Game {
         Render::SoundId m_StageClearSound;
         Render::SoundId m_WarningSound;
 
-        float m_Clock = 0.0F;                     // seconds since the session started
         std::optional<std::uint8_t> m_Stage;      // last Level::stage received
         std::optional<std::uint8_t> m_BossPhase;  // last BossPhase::phase received
-        std::optional<Announcement> m_Announcement;
 
         std::chrono::steady_clock::time_point m_LastComponentAt;  // last component received, for any entity (Freshness)
         Engine m_Engine;

@@ -16,4 +16,5 @@
 #include "../../../src/components/PlayerState.hpp"
 #include "../../../src/components/Freshness.hpp"
 #include "../../../src/components/Lifetime.hpp"
+#include "../../../src/components/Announcement.hpp"
 #include "../../../src/components/Star.hpp"

@@ -16,7 +16,8 @@
 namespace RType::Components {
     using Manager = Wrecks::Utils::concat_types_t<
         Protecs::Components::Manager,
-        Wrecks::ECS::ComponentManager<Blink,
+        Wrecks::ECS::ComponentManager<Announcement,
+                                      Blink,
                                       Controllable,
                                       LocalCharge,
                                       ChargeSound,

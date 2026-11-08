@@ -45,6 +45,7 @@ endif()
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
+    src/components/Announcement.hpp
     src/components/Charge.hpp
     src/components/ChargeSound.hpp
     src/components/Controllable.hpp
