@@ -23,8 +23,11 @@ FetchContent_MakeAvailable(googletest)
 
 # Only headless tests: nothing here opens a window or an audio device
 set(TEST_SOURCES
+    components/Announcement.cpp
     components/Charge.cpp
+    components/ChargeSound.cpp
     components/Freshness.cpp
+    components/Lifetime.cpp
     components/PlayerState.cpp
     game/Client.cpp
     game/ConnectionInfo.cpp
@@ -39,6 +42,8 @@ set(TEST_SOURCES
     render/Letterbox.cpp
     render/Types.cpp
     scenes/Manager.cpp
+    systems/Expire.cpp
+    systems/ForgetStale.cpp
     systems/RenderName.cpp
     systems/RenderSprite.cpp
     systems/RenderStage.cpp

@@ -32,13 +32,8 @@ namespace RType::Game {
      * Never copied nor moved: the network
      * thread of the client refers to it.
      */
-    // Big text over the game: "LEVEL n" when a stage starts, "STAGE CLEAR" (with the scores) when it is won
-    struct Announcement {
-        std::string text;
-        float start;      // Session clock
-        float duration;   // seconds
-        bool scores;      // also shows every player's score
-    };
+    // Big text over the game (see Components::Announcement)
+    using Announcement = Components::Announcement;
 
     // How a game ended: the GameOver scene shows a victory, a defeat (with the score) or a message
     enum class Outcome : std::uint8_t {
@@ -51,9 +46,7 @@ namespace RType::Game {
         static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
 
         Render::Resources& m_Resources;
-        const Render::Renderer& m_Renderer;
         Render::Audio& m_Audio;
-        Starfield m_Starfield;
 
         // Sounds of the server's events (Invalid without an audio device: then silent)
         Render::SoundId m_PlayerShotSound;
@@ -61,20 +54,14 @@ namespace RType::Game {
         Render::SoundId m_ExplosionSound;
         Render::SoundId m_ChargeSound;
         Render::SoundId m_BeamSound;
-        bool m_ChargeSoundPlaying = false;
         Render::SoundId m_LevelSound;
         Render::SoundId m_StageClearSound;
         Render::SoundId m_WarningSound;
 
-        float m_Clock = 0.0F;                     // seconds since the session started
         std::optional<std::uint8_t> m_Stage;      // last Level::stage received
         std::optional<std::uint8_t> m_BossPhase;  // last BossPhase::phase received
-        std::optional<Announcement> m_Announcement;
 
-        // Client-only entities (explosions), deleted once their animation is over
-        std::vector<Wrecks::ECS::Entity> m_Effects;
-
-        float m_SinceAnyUpdate = 0.0F;  // seconds since the last component received (Freshness)
+        std::chrono::steady_clock::time_point m_LastComponentAt;  // last component received, for any entity (Freshness)
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 
@@ -145,9 +132,6 @@ namespace RType::Game {
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> localPlayer() const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
-            void removeFinishedEffects();
-            void updateChargeSound();
-            void forgetStaleEntities(float seconds);
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:
