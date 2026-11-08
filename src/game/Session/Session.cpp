@@ -22,9 +22,7 @@
 RType::Game::Session::Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                               const Render::Input& input, const Controls& controls, const DisplayOptions& display)
     : m_Resources(resources)
-    , m_Renderer(renderer)
     , m_Audio(audio)
-    , m_Starfield({ .x = static_cast<float>(Game::Game::VIRTUAL_WIDTH), .y = static_cast<float>(Game::Game::VIRTUAL_HEIGHT) })
     , m_PlayerShotSound(audio.loadSound(Render::assetPath("sounds/playershoot.wav")))
     , m_EnemyShotSound(audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav")))
     , m_ExplosionSound(audio.loadSound(Render::assetPath("sounds/enemy_hit.wav")))
@@ -45,6 +43,11 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_LastSyncTime()
     , m_Client()
 {
+    constexpr Render::Vec2D SCREEN = { .x = static_cast<float>(Game::Game::VIRTUAL_WIDTH), .y = static_cast<float>(Game::Game::VIRTUAL_HEIGHT) };
+
+    spawnStarfield(m_Engine, SCREEN);
+    m_Engine.get<Systems::ScrollStars>().setArea(SCREEN);
+    m_Engine.get<Systems::RenderStarfield>().setRenderer(renderer);
     m_Engine.get<Systems::PlayChargeSound>().setAudio(audio);
     m_Engine.get<Systems::ForgetStale>().setEntityMap(m_EntityMap);
     m_Engine.get<Systems::ForgetStale>().setLastComponentAt(m_LastComponentAt);
@@ -132,7 +135,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
 
     m_Engine.update(dt);
     m_Clock += std::chrono::duration<float>(dt).count();
-    m_Starfield.update(dt);
 
     if (m_GameOverIn) {
         *m_GameOverIn -= std::chrono::duration<float>(dt).count();
@@ -158,7 +160,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
  */
 void RType::Game::Session::render(Wrecks::DeltaTime dt)
 {
-    m_Starfield.draw(m_Renderer);  // behind every entity
     m_Engine.render(dt);
 }
 

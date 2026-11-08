@@ -29,7 +29,7 @@ namespace RType::Systems {
         public:
             static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
                 .stage = Wrecks::ECS::SystemAttributes::RENDER,
-                .order = 3,  // over the sprites and their outline
+                .order = 4,  // over the sprites and their outline
             };
 
             static constexpr float TEXT_SIZE = 18.0F;

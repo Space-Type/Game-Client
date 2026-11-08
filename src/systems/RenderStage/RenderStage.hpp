@@ -31,7 +31,7 @@ namespace RType::Systems {
         public:
             static constexpr Wrecks::ECS::SystemAttributes ATTRIBUTES = {
                 .stage = Wrecks::ECS::SystemAttributes::RENDER,
-                .order = 0,  // behind every entity
+                .order = 1,  // over the starfield, behind every other entity
             };
 
             static constexpr std::uint8_t STAGES = 8;

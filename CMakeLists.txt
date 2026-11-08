@@ -54,6 +54,7 @@ set(SOURCES
     src/components/Manager.hpp
     src/components/PlayerState.hpp
     src/components/Sprite.hpp
+    src/components/Star.hpp
     src/errors/Error/Error.cpp
     src/errors/Error/Error.hpp
     src/errors/GraphicsError/GraphicsError.cpp
@@ -128,6 +129,8 @@ set(SOURCES
     src/systems/Expire/Expire.hpp
     src/systems/ForgetStale/ForgetStale.cpp
     src/systems/ForgetStale/ForgetStale.hpp
+    src/systems/ScrollStars/ScrollStars.cpp
+    src/systems/ScrollStars/ScrollStars.hpp
     src/systems/RenderCharge/RenderCharge.cpp
     src/systems/RenderCharge/RenderCharge.hpp
     src/systems/RenderName/RenderName.cpp
@@ -135,6 +138,8 @@ set(SOURCES
     src/systems/RenderOutline/RenderOutline.cpp
     src/systems/RenderOutline/RenderOutline.hpp
     src/systems/RenderSprite/RenderSprite.cpp
+    src/systems/RenderStarfield/RenderStarfield.cpp
+    src/systems/RenderStarfield/RenderStarfield.hpp
     src/systems/RenderStage/RenderStage.cpp
     src/systems/RenderStage/RenderStage.hpp
     src/systems/RenderSprite/RenderSprite.hpp

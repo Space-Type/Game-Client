@@ -21,6 +21,8 @@ namespace RType::Systems {
                    PlayChargeSound,
                    Expire,
                    ForgetStale,
+                   ScrollStars,
+                   RenderStarfield,
                    RenderStage,
                    RenderSprite,
                    RenderOutline,

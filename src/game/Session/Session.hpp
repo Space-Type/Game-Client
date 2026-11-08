@@ -51,9 +51,7 @@ namespace RType::Game {
         static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
 
         Render::Resources& m_Resources;
-        const Render::Renderer& m_Renderer;
         Render::Audio& m_Audio;
-        Starfield m_Starfield;
 
         // Sounds of the server's events (Invalid without an audio device: then silent)
         Render::SoundId m_PlayerShotSound;
