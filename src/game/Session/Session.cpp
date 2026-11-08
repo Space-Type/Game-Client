@@ -370,7 +370,17 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerId& dat
 
 void RType::Game::Session::EventHandler::operator()(const Packets::PlayerInput& data)
 {
+    // The ship may not be known yet (its EntityCreate was lost): the next request comes in 0.5 s
+    if (!session.m_EntityMap.containsNetwork(session.m_Client.player()))
+        return;
+
     auto player = session.m_EntityMap.toLocal(session.m_Client.player());
+
+    // The server sends PlayerInput once, when the player joins: if that packet was lost,
+    // start from "nothing held" (the PlayerInput system needs the component to send inputs)
+    if (!session.m_Engine.hasComponent<Protecs::Components::PlayerInput>(player))
+        session.m_Engine.addComponent(player, Protecs::Components::PlayerInput{});
+
     auto& input = session.m_Engine.get<Protecs::Components::PlayerInput>()[player];
 
     using Protecs::Networking::Packets::PlayerInput;
