@@ -28,6 +28,11 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_PlayerShotSound(audio.loadSound(Render::assetPath("sounds/playershoot.wav")))
     , m_EnemyShotSound(audio.loadSound(Render::assetPath("sounds/enemy_shoot.wav")))
     , m_ExplosionSound(audio.loadSound(Render::assetPath("sounds/enemy_hit.wav")))
+    , m_ChargeSound(audio.loadSound(Render::assetPath("sounds/charge.wav")))
+    , m_BeamSound(audio.loadSound(Render::assetPath("sounds/beam.wav")))
+    , m_LevelSound(audio.loadSound(Render::assetPath("sounds/level.wav")))
+    , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
+    , m_WarningSound(audio.loadSound(Render::assetPath("sounds/warning.wav")))
     , m_Effects()
     , m_Engine()
     , m_EntityMap()
@@ -36,6 +41,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_AccumulatedDelta()
     , m_Ended(false)
     , m_EndReason()
+    , m_GameOverIn()
     , m_LastSyncTime()
     , m_Client()
 {
@@ -45,6 +51,10 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     m_Engine.get<Systems::RenderOutline>().setOptions(display);
     m_Engine.get<Systems::RenderName>().setRenderer(renderer);
     m_Engine.get<Systems::RenderName>().setResources(resources);
+    m_Engine.get<Systems::RenderStage>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderStage>().setResources(resources);
+    m_Engine.get<Systems::RenderCharge>().setRenderer(renderer);
+    m_Engine.get<Systems::RenderCharge>().setResources(resources);
     m_Engine.get<Systems::PlayerInput>().setInput(input);
     m_Engine.get<Systems::PlayerInput>().setControls(controls);
     m_Engine.get<Systems::PlayerInput>().setInputQueuer([&](Protecs::Networking::Packets::PlayerInput input){
@@ -118,8 +128,17 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     }
 
     m_Engine.update(dt);
+    m_Clock += std::chrono::duration<float>(dt).count();
     m_Starfield.update(dt);
     removeFinishedEffects();
+    updateChargeSound();
+    forgetStaleEntities(std::chrono::duration<float>(dt).count());
+
+    if (m_GameOverIn) {
+        *m_GameOverIn -= std::chrono::duration<float>(dt).count();
+        if (*m_GameOverIn <= 0.0F)
+            m_Ended = true;
+    }
 
     if (needsTickSync) {
         auto timeNow = std::chrono::steady_clock::now();
@@ -141,6 +160,31 @@ void RType::Game::Session::render(Wrecks::DeltaTime dt)
 {
     m_Starfield.draw(m_Renderer);  // behind every entity
     m_Engine.render(dt);
+}
+
+auto RType::Game::Session::players() const -> std::vector<UI::HudLine>
+{
+    std::vector<std::pair<std::uint8_t, UI::HudLine>> players;
+    std::optional<Wrecks::ECS::Entity> local;
+
+    if (m_EntityMap.containsNetwork(m_Client.player()))
+        local = m_EntityMap.toLocal(m_Client.player());
+
+    for (auto [entity, stats] : m_Engine.get<Protecs::Components::PlayerStats>()) {
+        std::string name = m_Engine.hasComponent<Protecs::Components::PlayerName>(entity)
+                         ? std::string(m_Engine.get<Protecs::Components::PlayerName>()[entity].str()) : "Player";
+
+        players.emplace_back(stats.slot, UI::HudLine{ .name = std::move(name), .lives = stats.lives, .score = stats.score, .local = entity == local });
+    }
+    std::ranges::sort(players, [](const auto& a, const auto& b) {
+        return a.second.local != b.second.local ? a.second.local : a.first < b.first;
+    });
+
+    std::vector<UI::HudLine> lines;
+
+    for (auto& [slot, line] : players)
+        lines.push_back(std::move(line));
+    return lines;
 }
 
 void RType::Game::Session::setControlsEnabled(bool enabled) noexcept
@@ -173,6 +217,26 @@ void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::Netwo
 {
     m_Engine.addComponent(entity, Components::Controllable{});
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
+    if (id == m_Client.player())
+        m_Engine.addComponent(entity, Components::LocalCharge{});
+}
+
+/**
+ * The charge sound plays while the local player charges
+ * (not for a quick tap) and stops when the trigger is released.
+ */
+void RType::Game::Session::updateChargeSound()
+{
+    bool charging = false;
+
+    for (auto [entity, charge] : m_Engine.get<Components::LocalCharge>())
+        charging = charging || charge.seconds >= Components::CHARGE_SOUND_DELAY;
+
+    if (charging && !m_ChargeSoundPlaying)
+        m_Audio.play(m_ChargeSound);
+    else if (!charging && m_ChargeSoundPlaying)
+        m_Audio.stop(m_ChargeSound);
+    m_ChargeSoundPlaying = charging;
 }
 
 /**
@@ -187,16 +251,142 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
         return;
 
     EntityCreate::EntityType type = m_Engine.get<Components::EntityKind>()[entity].type;
+    const auto transform = m_Engine.get<Protecs::Components::Transform>()[entity];
 
-    if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT)
+    if (type == EntityCreate::ENEMY_DOBKERATOPS && m_Engine.hasComponent<Components::Sprite>(entity)) {
+        // The boss blows up all over its body
+        Render::Vec2D size = Systems::spriteSize(m_Engine.get<Components::Sprite>()[entity], m_Resources);
+
+        for (float fx : { 0.2F, 0.5F, 0.8F })
+            for (float fy : { 0.2F, 0.5F, 0.8F })
+                explodeAt({ .position = { transform.position.x + size.x * transform.scale * fx, transform.position.y + size.y * transform.scale * fy },
+                            .rotation = 0.0F, .scale = 1.5F });
         return;
+    }
+    if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT
+        && type != EntityCreate::ENEMY_DOBKERATOPS_CORE && type != EntityCreate::ENEMY_DOBKERATOPS_TAIL)
+        return;
+    explodeAt(transform);
+}
 
+void RType::Game::Session::explodeAt(const Protecs::Components::Transform& where)
+{
     auto effect = m_Engine.createEntity();
 
-    m_Engine.addComponent(effect, Protecs::Components::Transform{ m_Engine.get<Protecs::Components::Transform>()[entity] });
+    m_Engine.addComponent(effect, Protecs::Components::Transform{ where });
     m_Engine.addComponent(effect, explosionSprite(m_Resources));
     m_Effects.push_back(effect);
     m_Audio.play(m_ExplosionSound);
+}
+
+void RType::Game::Session::announce(std::string text, float duration, bool scores, Render::SoundId sound)
+{
+    m_Announcement = Announcement{ .text = std::move(text), .start = m_Clock, .duration = duration, .scores = scores };
+    m_Audio.play(sound);
+}
+
+// The boss core is dead: "STAGE CLEAR" with the scores, while the server prepares the next stage
+void RType::Game::Session::clearStage()
+{
+    announce("STAGE CLEAR", STAGE_CLEAR_ANNOUNCEMENT, true, m_StageClearSound);
+}
+
+// The server cleared the last stage (Level::won): the session ends with the victory screen
+void RType::Game::Session::win()
+{
+    for (const auto& line : players())
+        if (line.local)
+            m_FinalScore = line.score;
+    m_Outcome = Outcome::Victory;
+    m_GameOverIn = 0.0F;
+}
+
+// The boss gets angry: "WARNING" in big letters (the visual equivalent of the alarm) and its body flashes
+void RType::Game::Session::enrage()
+{
+    announce("WARNING", WARNING_ANNOUNCEMENT, false, m_WarningSound);
+    if (auto body = findKind(Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS)) {
+        if (m_Engine.hasComponent<Components::Blink>(*body))
+            m_Engine.get<Components::Blink>()[*body].remaining = WARNING_BLINK;
+        else
+            m_Engine.addComponent(*body, Components::Blink{ .remaining = WARNING_BLINK });
+    }
+}
+
+auto RType::Game::Session::findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const -> std::optional<Wrecks::ECS::Entity>
+{
+    for (auto [entity, kind] : m_Engine.get<Components::EntityKind>())
+        if (kind.type == type)
+            return entity;
+    return std::nullopt;
+}
+
+auto RType::Game::Session::announcement() const -> std::optional<std::pair<Announcement, float>>
+{
+    if (!m_Announcement || m_Clock - m_Announcement->start > m_Announcement->duration)
+        return std::nullopt;
+    return std::pair{ *m_Announcement, m_Clock - m_Announcement->start };
+}
+
+auto RType::Game::Session::bossHealth() const -> std::optional<Protecs::Components::Health>
+{
+    std::optional<Wrecks::ECS::Entity> core = findKind(Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE);
+
+    if (!core || !m_Engine.hasComponent<Protecs::Components::Health>(*core))
+        return std::nullopt;
+    return m_Engine.get<Protecs::Components::Health>()[*core];
+}
+
+/**
+ * The server sends the lives before moving the ship back
+ * to its start: the explosion is where the ship was hit.
+ */
+void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft)
+{
+    explode(player);
+    if (livesLeft == 0) {
+        bool isLocal = m_EntityMap.containsNetwork(m_Client.player()) && m_EntityMap.toLocal(m_Client.player()) == player;
+
+        // The game goes on for the others: this client shows its game over, then leaves
+        if (isLocal && !m_GameOverIn) {
+            m_GameOverIn = GAME_OVER_DELAY;
+            m_Outcome = Outcome::Defeat;
+            m_FinalScore = m_Engine.get<Protecs::Components::PlayerStats>()[player].score;
+        }
+        return;
+    }
+    if (m_Engine.hasComponent<Components::Blink>(player))
+        m_Engine.get<Components::Blink>()[player] = Components::Blink{};
+    else
+        m_Engine.addComponent(player, Components::Blink{});
+}
+
+/**
+ * Deletes the entities the server stopped updating (see
+ * Components::Freshness). The local player is never forgotten.
+ */
+void RType::Game::Session::forgetStaleEntities(float seconds)
+{
+    std::vector<Wrecks::ECS::Entity> stale;
+    std::optional<Wrecks::ECS::Entity> local;
+
+    m_SinceAnyUpdate += seconds;
+    if (m_EntityMap.containsNetwork(m_Client.player()))
+        local = m_EntityMap.toLocal(m_Client.player());
+
+    for (auto [entity, unused] : m_Engine.get<Components::Freshness>()) {
+        auto& freshness = m_Engine.get<Components::Freshness>()[entity];
+
+        freshness.sinceUpdate += seconds;
+        if (entity != local && Components::isStale(freshness.sinceUpdate, m_SinceAnyUpdate))
+            stale.push_back(entity);
+    }
+
+    // Deleted after the loop: never while iterating over the container
+    for (auto entity : stale) {
+        m_EntityMap.removeNetwork(m_EntityMap.toNetwork(entity));
+        m_Engine.deleteEntity(entity);
+    }
 }
 
 void RType::Game::Session::removeFinishedEffects()
@@ -223,6 +413,20 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
         case Protecs::Networking::Packets::EntityCreate::ENEMY_MISSILE:
             m_Engine.addComponent(entity, enemyMissileSprite(m_Resources));
             m_Audio.play(m_EnemyShotSound);
+            return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS:
+            m_Engine.addComponent(entity, bossSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_TAIL:
+            m_Engine.addComponent(entity, tailSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_2:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_3:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_4:
+        case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_5:
+            m_Engine.addComponent(entity, beamSprite(m_Resources, static_cast<std::uint8_t>(type - Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1 + 1)));
+            m_Audio.play(m_BeamSound);
             return;
         default:
             return;
@@ -261,14 +465,71 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
                 session.initPlayer(localEntity, networkEntity);
             }
         }
+        std::optional<std::uint8_t> livesBefore;
+        std::optional<std::uint16_t> hpBefore;
+
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
+            if (session.m_Engine.hasComponent<Component>(localEntity))
+                livesBefore = session.m_Engine.get<Component>()[localEntity].lives;
+        if constexpr (std::is_same_v<Component, Protecs::Components::Health>)
+            if (session.m_Engine.hasComponent<Component>(localEntity))
+                hpBefore = session.m_Engine.get<Component>()[localEntity].hp;
+
         if (!session.m_Engine.hasComponent<Component>(localEntity))
             session.m_Engine.addComponent(localEntity, Component{});
 
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
 
-        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>)
+        // Any component counts: the level entity, for one, has no Transform
+        session.m_SinceAnyUpdate = 0.0F;
+        if (session.m_Engine.hasComponent<Components::Freshness>(localEntity))
+            session.m_Engine.get<Components::Freshness>()[localEntity].sinceUpdate = 0.0F;
+
+        if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>) {
+            const auto& stats = session.m_Engine.get<Component>()[localEntity];
+
             if (session.m_Engine.hasComponent<Components::Sprite>(localEntity))
-                setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], session.m_Engine.get<Component>()[localEntity].slot);
+                setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], stats.slot);
+            if (livesBefore && stats.lives < *livesBefore)
+                session.loseLife(localEntity, stats.lives);
+        }
+
+        // An enemy hit but not killed blinks briefly (the boss body when its core is hit)
+        if constexpr (std::is_same_v<Component, Protecs::Components::Health>) {
+            if (hpBefore && session.m_Engine.get<Component>()[localEntity].hp < *hpBefore) {
+                Wrecks::ECS::Entity target = localEntity;
+                bool isCore = session.m_Engine.hasComponent<Components::EntityKind>(localEntity)
+                           && session.m_Engine.get<Components::EntityKind>()[localEntity].type == Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE;
+
+                if (auto body = isCore ? session.findKind(Packets::EntityCreate::ENEMY_DOBKERATOPS) : std::nullopt)
+                    target = *body;
+                if (session.m_Engine.hasComponent<Components::Blink>(target))
+                    session.m_Engine.get<Components::Blink>()[target].remaining = HIT_BLINK;
+                else
+                    session.m_Engine.addComponent(target, Components::Blink{ .remaining = HIT_BLINK });
+            }
+        }
+
+        // "LEVEL n" when a stage starts (the first Level received, then every change)
+        if constexpr (std::is_same_v<Component, Protecs::Components::Level>) {
+            const auto& level = session.m_Engine.get<Component>()[localEntity];
+
+            if (!session.m_Stage || *session.m_Stage != level.stage) {
+                session.m_Stage = level.stage;
+                session.announce("LEVEL " + std::to_string(level.stage), LEVEL_ANNOUNCEMENT, false, session.m_LevelSound);
+            }
+            if (level.won && !session.m_GameOverIn)  // a player already out keeps its game over
+                session.win();
+        }
+
+        // A boss getting angry (its phase goes up): "WARNING", an alarm, and its body flashes
+        if constexpr (std::is_same_v<Component, Protecs::Components::BossPhase>) {
+            std::uint8_t phase = session.m_Engine.get<Component>()[localEntity].phase;
+
+            if (session.m_BossPhase && phase > *session.m_BossPhase)
+                session.enrage();
+            session.m_BossPhase = phase;
+        }
     }, data.component);
 }
 
@@ -280,6 +541,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCreate&
 
     auto entity = session.m_Engine.createEntity();
     session.m_EntityMap.bind(data.id, entity);
+    session.m_Engine.addComponent(entity, Components::Freshness{});
     session.m_Engine.addComponent(entity, Components::EntityKind{ data.type });
 
     if (data.type == Packets::EntityCreate::PLAYER)
@@ -295,7 +557,13 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityDelete&
         return;
 
     auto localEntity = session.m_EntityMap.toLocal(data.id);
-    session.explode(localEntity);
+    bool isCore = session.m_Engine.hasComponent<Components::EntityKind>(localEntity)
+               && session.m_Engine.get<Components::EntityKind>()[localEntity].type == Packets::EntityCreate::ENEMY_DOBKERATOPS_CORE;
+
+    if (!Components::isEliminated(session.m_Engine, localEntity))  // it already exploded
+        session.explode(localEntity);
+    if (isCore && !session.m_GameOverIn)
+        session.clearStage();
     session.m_Engine.deleteEntity(localEntity);
     session.m_EntityMap.removeNetwork(data.id);
 }
@@ -310,6 +578,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityList& d
         } else {
             localEntity = session.m_Engine.createEntity();
             session.m_EntityMap.bind(netEntity, localEntity);
+            session.m_Engine.addComponent(localEntity, Components::Freshness{});
         }
 
         // local components don't matter, only shared ones
@@ -370,7 +639,17 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerId& dat
 
 void RType::Game::Session::EventHandler::operator()(const Packets::PlayerInput& data)
 {
+    // The ship may not be known yet (its EntityCreate was lost): the next request comes in 0.5 s
+    if (!session.m_EntityMap.containsNetwork(session.m_Client.player()))
+        return;
+
     auto player = session.m_EntityMap.toLocal(session.m_Client.player());
+
+    // The server sends PlayerInput once, when the player joins: if that packet was lost,
+    // start from "nothing held" (the PlayerInput system needs the component to send inputs)
+    if (!session.m_Engine.hasComponent<Protecs::Components::PlayerInput>(player))
+        session.m_Engine.addComponent(player, Protecs::Components::PlayerInput{});
+
     auto& input = session.m_Engine.get<Protecs::Components::PlayerInput>()[player];
 
     using Protecs::Networking::Packets::PlayerInput;

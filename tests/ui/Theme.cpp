@@ -58,3 +58,10 @@ TEST(ui_Theme, sliderFillIsVisible)
     EXPECT_GE(contrast(FILL_COLOR, TRACK_COLOR), 3.0);
     EXPECT_GE(contrast(FILL_COLOR, BACKGROUND), 3.0);
 }
+
+// Non-text contrast (WCAG 1.4.11): every heart colour shows on the dark background
+TEST(ui_Theme, heartsAreVisible)
+{
+    for (Color heart : {HEART_HIGH, HEART_MEDIUM, HEART_LOW})
+        EXPECT_GE(contrast(heart, BACKGROUND), 3.0);
+}

@@ -32,7 +32,7 @@ void RType::Systems::RenderName::operator()(Wrecks::ECS::Entity entity, Wrecks::
     Game::Engine& engine = *reinterpret_cast<Game::Engine*>(m_Engine);
     std::string name = printableName(engine.get<Protecs::Components::PlayerName>()[entity].str());
 
-    if (name.empty())
+    if (name.empty() || Components::isEliminated(engine, entity))
         return;
 
     auto& transform = engine.get<Protecs::Components::Transform>()[entity];

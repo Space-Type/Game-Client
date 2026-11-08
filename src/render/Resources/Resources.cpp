@@ -9,6 +9,8 @@
 #include "../Error.hpp"
 #include "Resources.hpp"
 #include "ResourcesImpl.hpp"
+#include "../Convert.hpp"
+#include <string>
 #include <algorithm>
 
 RType::Render::Resources::Resources(const Window&)
@@ -37,6 +39,38 @@ RType::Render::TextureId RType::Render::Resources::loadTexture(const std::string
     try {
         m_Impl->textures.emplace(id, texture);
         m_Impl->texturePaths.emplace(path, id);
+    } catch (...) {
+        m_Impl->textures.erase(id);
+        UnloadTexture(texture);
+        throw;
+    }
+    ++m_Impl->nextId;
+    return static_cast<TextureId>(id);
+}
+
+RType::Render::TextureId RType::Render::Resources::loadTexture(const std::string& path, Color transparent)
+{
+    std::string key = path + "#" + std::to_string(transparent.r) + "," + std::to_string(transparent.g) + "," + std::to_string(transparent.b);
+
+    if (auto cached = m_Impl->texturePaths.find(key); cached != m_Impl->texturePaths.end())
+        return static_cast<TextureId>(cached->second);
+
+    Image image = LoadImage(path.c_str());
+    if (!IsImageValid(image))
+        throw Error("Resources: cannot load texture '" + path + "'");
+
+    ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+    ImageColorReplace(&image, Convert::toRaylib(transparent), ::Color{ 0, 0, 0, 0 });
+
+    Texture2D texture = LoadTextureFromImage(image);
+    UnloadImage(image);
+    if (!IsTextureValid(texture))
+        throw Error("Resources: cannot load texture '" + path + "'");
+
+    std::uint32_t id = m_Impl->nextId;
+    try {
+        m_Impl->textures.emplace(id, texture);
+        m_Impl->texturePaths.emplace(key, id);
     } catch (...) {
         m_Impl->textures.erase(id);
         UnloadTexture(texture);

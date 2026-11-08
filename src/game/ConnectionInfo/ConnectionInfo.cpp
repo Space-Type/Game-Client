@@ -134,7 +134,7 @@ auto RType::Game::parseArguments(int argc, const char* const* argv) -> Connectio
         std::string_view option = argv[i];
 
         if (!isOption(option))
-            throw Errors::Error("unknown option: " + std::string(option) + " (usage: -h <host> -p <port> -n <name>)");
+            throw Errors::Error("unknown option: " + std::string(option) + " (usage: -h <host> -p <port> -n <name>, or --help)");
         if (i + 1 >= argc || isOption(argv[i + 1]))
             throw Errors::Error("missing value for option " + std::string(option));
 
@@ -147,4 +147,12 @@ auto RType::Game::parseArguments(int argc, const char* const* argv) -> Connectio
             info.name = argv[i];
     }
     return info;
+}
+
+bool RType::Game::wantsHelp(int argc, const char* const* argv) noexcept
+{
+    for (int i = 1; i < argc; ++i)
+        if (std::string_view(argv[i]) == "--help")
+            return true;
+    return false;
 }

@@ -19,6 +19,11 @@ void unsafeMain(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    if (RType::Game::wantsHelp(argc, argv)) {
+        std::cout << RType::Game::USAGE;
+        return 0;
+    }
+
     try {
         unsafeMain(argc, argv);
     } catch (const RType::Errors::Error& err) {
