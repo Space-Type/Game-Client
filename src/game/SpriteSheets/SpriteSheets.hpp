@@ -28,6 +28,7 @@ namespace RType::Game {
     Components::Sprite chargeSprite(Render::Resources& resources);  // in front of a charging ship
     Components::Sprite bossSprite(Render::Resources& resources);    // stage 1 boss body (its core is drawn in it)
     Components::Sprite tailSprite(Render::Resources& resources);    // a segment of the stage 1 boss tail
+    Components::Sprite gomanderSprite(Render::Resources& resources);  // stage 2 boss (its eye, the core, is drawn in it)
     Components::Sprite lifePickupSprite(Render::Resources& resources);  // a bonus life dropped by an enemy
     Components::Sprite powArmorSprite(Render::Resources& resources);    // the enemy carrying a Force item
     Components::Sprite forcePickupSprite(Render::Resources& resources); // the Force item

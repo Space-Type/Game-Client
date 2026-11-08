@@ -442,6 +442,9 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
         case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_TAIL:
             m_Engine.addComponent(entity, tailSprite(m_Resources));
             return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_GOMANDER:
+            m_Engine.addComponent(entity, gomanderSprite(m_Resources));
+            return;
         case Protecs::Networking::Packets::EntityCreate::PICKUP_LIFE:
             m_Engine.addComponent(entity, lifePickupSprite(m_Resources));
             return;
