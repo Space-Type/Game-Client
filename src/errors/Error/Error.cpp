@@ -78,7 +78,8 @@ auto RType::Errors::Error::generateMessage(unsigned int depth) const -> std::str
             .append("\n");
     }
 
-    auto filepath = std::filesystem::relative(m_Location.file_name());
+    // generic_string(): a path holds wchar_t on Windows
+    std::string filepath = std::filesystem::relative(m_Location.file_name()).generic_string();
 
     if (depth == 0)
         message.append("\033[35;1mError\033[0m:\n  ");
@@ -86,7 +87,7 @@ auto RType::Errors::Error::generateMessage(unsigned int depth) const -> std::str
         message.append("\033[35;1mCaused by\033[0m:\n  ");
 
     message
-        .append(filepath.c_str()[0] == '\0' ? "<?>" : filepath.c_str())
+        .append(filepath.empty() ? "<?>" : filepath)
         .append(":")
         .append(std::to_string(m_Location.line()))
         .append(":")
