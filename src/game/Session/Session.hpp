@@ -143,6 +143,7 @@ namespace RType::Game {
             void enrage();
             void win();
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
+            [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> localPlayer() const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void removeFinishedEffects();
             void updateChargeSound();
