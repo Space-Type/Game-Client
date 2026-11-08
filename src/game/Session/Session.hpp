@@ -91,7 +91,7 @@ namespace RType::Game {
             static constexpr float GAME_OVER_DELAY = 1.5F;  // lets the last explosion play
             static constexpr float HIT_BLINK = 0.2F;         // an enemy hit but not killed blinks as long
             static constexpr float LEVEL_ANNOUNCEMENT = 2.5F;
-            static constexpr float STAGE_CLEAR_ANNOUNCEMENT = 4.0F;  // then the victory screen
+            static constexpr float STAGE_CLEAR_ANNOUNCEMENT = 4.0F;  // as long as the server waits before the next stage (Server: STAGE_CLEAR_DELAY)
 
             Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
                     const Render::Input& input, const Controls& controls, const DisplayOptions& display);
@@ -134,6 +134,7 @@ namespace RType::Game {
             void explodeAt(const Protecs::Components::Transform& where);
             void announce(std::string text, float duration, bool scores, Render::SoundId sound);
             void clearStage();
+            void win();
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void removeFinishedEffects();

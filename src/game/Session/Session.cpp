@@ -283,21 +283,20 @@ void RType::Game::Session::announce(std::string text, float duration, bool score
     m_Audio.play(sound);
 }
 
-/**
- * The boss core is dead: "STAGE CLEAR" with the scores, then
- * the victory screen (the game over timer ends the session).
- */
+// The boss core is dead: "STAGE CLEAR" with the scores, while the server prepares the next stage
 void RType::Game::Session::clearStage()
 {
-    std::uint32_t score = 0;
+    announce("STAGE CLEAR", STAGE_CLEAR_ANNOUNCEMENT, true, m_StageClearSound);
+}
 
+// The server cleared the last stage (Level::won): the session ends with the victory screen
+void RType::Game::Session::win()
+{
     for (const auto& line : players())
         if (line.local)
-            score = line.score;
-    announce("STAGE CLEAR", STAGE_CLEAR_ANNOUNCEMENT, true, m_StageClearSound);
-    m_GameOverIn = STAGE_CLEAR_ANNOUNCEMENT;
+            m_FinalScore = line.score;
     m_Outcome = Outcome::Victory;
-    m_FinalScore = score;
+    m_GameOverIn = 0.0F;
 }
 
 auto RType::Game::Session::findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const -> std::optional<Wrecks::ECS::Entity>
@@ -463,12 +462,14 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
 
         // "LEVEL n" when a stage starts (the first Level received, then every change)
         if constexpr (std::is_same_v<Component, Protecs::Components::Level>) {
-            std::uint8_t stage = session.m_Engine.get<Component>()[localEntity].stage;
+            const auto& level = session.m_Engine.get<Component>()[localEntity];
 
-            if (!session.m_Stage || *session.m_Stage != stage) {
-                session.m_Stage = stage;
-                session.announce("LEVEL " + std::to_string(stage), LEVEL_ANNOUNCEMENT, false, session.m_LevelSound);
+            if (!session.m_Stage || *session.m_Stage != level.stage) {
+                session.m_Stage = level.stage;
+                session.announce("LEVEL " + std::to_string(level.stage), LEVEL_ANNOUNCEMENT, false, session.m_LevelSound);
             }
+            if (level.won && !session.m_GameOverIn)  // a player already out keeps its game over
+                session.win();
         }
     }, data.component);
 }
