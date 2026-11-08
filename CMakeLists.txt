@@ -8,22 +8,18 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-# Third-party libraries come from vcpkg (manifest vcpkg.json), installed by
-# the developer: VCPKG_ROOT points at it, or CMAKE_TOOLCHAIN_FILE is given.
-# OpenGL and X11 stay system libraries, as the subject allows.
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    if (NOT DEFINED ENV{VCPKG_ROOT})
-        message(FATAL_ERROR "vcpkg not found: install it, then set VCPKG_ROOT to its folder "
-                            "(or pass -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake)")
-    endif()
+# VCPKG support
+if (DEFINED ENV{VCPKG_ROOT})
+    message("setting up vcpkg")
+
     file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" RTYPE_VCPKG_ROOT)
     set(CMAKE_TOOLCHAIN_FILE "${RTYPE_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         CACHE STRING "vcpkg toolchain file")
-endif()
 
-# Static libraries on Windows: no raylib DLL to ship next to the client
-if (WIN32 AND NOT DEFINED VCPKG_TARGET_TRIPLET)
-    set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "vcpkg triplet")
+    # Static libraries on Windows: no raylib DLL to ship next to the client
+    if (WIN32 AND NOT DEFINED VCPKG_TARGET_TRIPLET)
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "vcpkg triplet")
+    endif()
 endif()
 
 project(RType-Client VERSION 1.0
