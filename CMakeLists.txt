@@ -8,6 +8,19 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+# Third-party libraries come from vcpkg (submodule lib/vcpkg, manifest
+# vcpkg.json), bootstrapped automatically on the first configure.
+# OpenGL and X11 stay system libraries, as the subject allows.
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lib/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "vcpkg toolchain file")
+endif()
+
+# Static libraries on Windows: no raylib DLL to ship next to the client
+if (WIN32 AND NOT DEFINED VCPKG_TARGET_TRIPLET)
+    set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "vcpkg triplet")
+endif()
+
 project(RType-Client VERSION 1.0
                      DESCRIPTION "R-Type Game Client - R-Type project"
                      HOMEPAGE_URL "https://github.com/Space-Type/Game-Client"
@@ -26,7 +39,10 @@ if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     enable_testing()
 endif()
 
-add_subdirectory(lib/raylib)
+# DebugTests uses the Debug build of the vcpkg libraries
+set(CMAKE_MAP_IMPORTED_CONFIG_DEBUGTESTS Debug Release)
+
+find_package(raylib CONFIG REQUIRED)
 
 # Wrecks and Protecs build their own tests (with coverage) in DebugTests:
 # they belong to their repositories, not to this build
@@ -163,8 +179,7 @@ endif()
 
 target_include_directories(rtype_client_core PUBLIC  include
                                              PUBLIC  lib/wrecks/include
-                                             PUBLIC  lib/protecs/include
-                                             PRIVATE lib/raylib/src)
+                                             PUBLIC  lib/protecs/include)
 
 target_link_libraries(rtype_client_core PUBLIC wrecks
                                         PUBLIC protecs
