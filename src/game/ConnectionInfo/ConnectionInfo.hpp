@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <string_view>
 
 
 namespace RType::Game {
@@ -34,6 +35,21 @@ namespace RType::Game {
         // Throws Errors::NetworkError if the host or the port is invalid
         [[ nodiscard ]] Protecs::Networking::Address address() const;
     };
+
+    inline constexpr std::string_view USAGE =
+        "USAGE: r-type_client [options]\n"
+        "\n"
+        "Opens the R-Type client. The connection screen is filled\n"
+        "with these values, which can still be changed there.\n"
+        "\n"
+        "Options:\n"
+        "  -h <host>    server IP address (default: 127.0.0.1)\n"
+        "  -p <port>    server port (default: 5432)\n"
+        "  -n <name>    nickname (default: Player)\n"
+        "  --help       display this help and exit\n";
+
+    // True if one of the arguments is --help (-h is the host)
+    bool wantsHelp(int argc, const char* const* argv) noexcept;
 
     /**
      * Reads -h <host>, -p <port> and -n <name>. Values are
