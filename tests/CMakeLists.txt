@@ -28,6 +28,7 @@ set(TEST_SOURCES
     components/ChargeSound.cpp
     components/Freshness.cpp
     components/Lifetime.cpp
+    components/Popup.cpp
     components/PlayerState.cpp
     game/Client.cpp
     game/ConnectionInfo.cpp

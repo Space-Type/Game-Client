@@ -53,6 +53,9 @@ namespace {
     constexpr std::size_t EXPLOSION_FRAMES = 6;
     constexpr float EXPLOSION_FPS = 15.0F;
 
+    // heart.png is a white outline (the HUD tints it too): a red heart, its shape tells what it is
+    constexpr RType::Render::Color LIFE_PICKUP_TINT = { .r = 235, .g = 60, .b = 60, .a = 255 };
+
     RType::Render::TextureId sheet(RType::Render::Resources& resources, const char* name)
     {
         return resources.loadTexture(RType::Render::assetPath(std::string("sprites/") + name));
@@ -124,4 +127,9 @@ void RType::Game::setPlayerColour(Components::Sprite& sprite, std::size_t slot) 
 auto RType::Game::tailSprite(Render::Resources& resources) -> Components::Sprite
 {
     return { .texture = sheet(resources, "r-typesheet30a.gif"), .frame = TAIL_FRAME, .frameCount = TAIL_FRAMES, .framesPerSecond = TAIL_FPS };
+}
+
+auto RType::Game::lifePickupSprite(Render::Resources& resources) -> Components::Sprite
+{
+    return { .texture = resources.loadTexture(Render::assetPath("heart.png")), .tint = LIFE_PICKUP_TINT };
 }

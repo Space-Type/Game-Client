@@ -27,6 +27,7 @@ namespace RType::Systems {
                    RenderSprite,
                    RenderOutline,
                    RenderName,
-                   RenderCharge>
+                   RenderCharge,
+                   RenderPopup>
     >;
 }

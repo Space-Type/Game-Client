@@ -17,4 +17,5 @@
 #include "../../../src/components/Freshness.hpp"
 #include "../../../src/components/Lifetime.hpp"
 #include "../../../src/components/Announcement.hpp"
+#include "../../../src/components/Popup.hpp"
 #include "../../../src/components/Star.hpp"
