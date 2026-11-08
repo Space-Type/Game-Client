@@ -12,6 +12,7 @@
 #include <rtype/errors.hpp>
 #include <rtype/game.hpp>
 #include "../SpriteSheets/SpriteSheets.hpp"
+#include "../../ui/Theme.hpp"
 #include <algorithm>
 #include <exception>
 #include <iostream>
@@ -31,6 +32,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_LevelSound(audio.loadSound(Render::assetPath("sounds/level.wav")))
     , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
     , m_WarningSound(audio.loadSound(Render::assetPath("sounds/warning.wav")))
+    , m_LifeSound(audio.loadSound(Render::assetPath("sounds/life.wav")))
     , m_LastComponentAt(std::chrono::steady_clock::now())
     , m_Engine()
     , m_EntityMap()
@@ -61,6 +63,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     m_Engine.get<Systems::RenderStage>().setResources(resources);
     m_Engine.get<Systems::RenderCharge>().setRenderer(renderer);
     m_Engine.get<Systems::RenderCharge>().setResources(resources);
+    m_Engine.get<Systems::RenderPopup>().setRenderer(renderer);
     m_Engine.get<Systems::PlayerInput>().setInput(input);
     m_Engine.get<Systems::PlayerInput>().setControls(controls);
     m_Engine.get<Systems::PlayerInput>().setInputQueuer([&](Protecs::Networking::Packets::PlayerInput input){
@@ -368,6 +371,25 @@ void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t liv
         m_Engine.addComponent(player, Components::Blink{});
 }
 
+/**
+ * A bonus life taken: a sound, and "+1 LIFE" rising over
+ * the ship so it is seen without the sound (accessibility).
+ */
+void RType::Game::Session::gainLife(Wrecks::ECS::Entity player)
+{
+    m_Audio.play(m_LifeSound);
+    if (!m_Engine.hasComponent<Protecs::Components::Transform>(player))
+        return;
+
+    auto popup = m_Engine.createEntity();
+    auto where = m_Engine.get<Protecs::Components::Transform>()[player];
+
+    where.position.x += Protecs::PLAYER_WIDTH / 2.0F;  // above the middle of the ship
+    m_Engine.addComponent(popup, Protecs::Components::Transform{ where });
+    m_Engine.addComponent(popup, Components::Popup{ .text = "+1 LIFE", .color = UI::Theme::HEART_HIGH, .duration = LIFE_POPUP });
+    m_Engine.addComponent(popup, Components::Lifetime{ .remaining = LIFE_POPUP });
+}
+
 void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)
 {
     switch (type) {
@@ -388,6 +410,9 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
             return;
         case Protecs::Networking::Packets::EntityCreate::ENEMY_DOBKERATOPS_TAIL:
             m_Engine.addComponent(entity, tailSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::PICKUP_LIFE:
+            m_Engine.addComponent(entity, lifePickupSprite(m_Resources));
             return;
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1:
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_2:
@@ -461,6 +486,8 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
                 setPlayerColour(session.m_Engine.get<Components::Sprite>()[localEntity], stats.slot);
             if (livesBefore && stats.lives < *livesBefore)
                 session.loseLife(localEntity, stats.lives);
+            else if (livesBefore && stats.lives > *livesBefore)
+                session.gainLife(localEntity);
         }
 
         // An enemy hit but not killed blinks briefly (the boss body when its core is hit)

@@ -70,6 +70,7 @@ set(SOURCES
     src/components/EntityKind.hpp
     src/components/Freshness.hpp
     src/components/Lifetime.hpp
+    src/components/Popup.hpp
     src/components/Manager.hpp
     src/components/PlayerState.hpp
     src/components/Sprite.hpp
@@ -156,6 +157,8 @@ set(SOURCES
     src/systems/RenderCharge/RenderCharge.hpp
     src/systems/RenderName/RenderName.cpp
     src/systems/RenderName/RenderName.hpp
+    src/systems/RenderPopup/RenderPopup.cpp
+    src/systems/RenderPopup/RenderPopup.hpp
     src/systems/RenderOutline/RenderOutline.cpp
     src/systems/RenderOutline/RenderOutline.hpp
     src/systems/RenderSprite/RenderSprite.cpp

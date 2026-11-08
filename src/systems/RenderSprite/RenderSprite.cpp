@@ -54,6 +54,7 @@ void RType::Systems::RenderSprite::operator()(Wrecks::ECS::Entity entity, Wrecks
         .source = Components::frameAt(sprite, frame),
         .rotation = transform.rotation,
         .scale = { .x = scale, .y = scale },
+        .tint = sprite.tint,
     });
 }
 

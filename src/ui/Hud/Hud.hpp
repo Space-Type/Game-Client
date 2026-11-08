@@ -26,9 +26,10 @@ namespace RType::UI {
     /**
      * Compact HUD in the top-left corner, one line per
      * player: marker, name, one heart per life, score.
-     * Hearts are green, then orange, then red and blinking
-     * on the last life; their number carries the lives,
-     * so colour is never the only cue.
+     * Above HEART_STACK_LIMIT lives, one heart and "xN"
+     * keep the line short. Hearts are green, then orange,
+     * then red and blinking on the last life; their number
+     * carries the lives, so colour is never the only cue.
      */
     class Hud {
         public:
@@ -38,6 +39,7 @@ namespace RType::UI {
             static constexpr float PADDING = 6.0F;
             static constexpr float GAP = 12.0F;
             static constexpr float HEART_SCALE = 2.0F;
+            static constexpr std::uint8_t HEART_STACK_LIMIT = 5;  // above it: one heart and "xN"
             static constexpr std::size_t NAME_MAX_LENGTH = 12;
             static constexpr float LAST_LIFE_BLINK_PERIOD = 0.5F;  // 2 blinks per second
             static constexpr float BOSS_BAR_WIDTH = 600.0F;
@@ -57,6 +59,8 @@ namespace RType::UI {
             static float announcementOpacity(float elapsed, float duration) noexcept;
 
             static Render::Color heartColor(std::uint8_t lives) noexcept;
+            static std::uint8_t heartCount(std::uint8_t lives) noexcept;  // hearts drawn
+            static std::string livesLabel(std::uint8_t lives);            // "xN" after them, empty up to HEART_STACK_LIMIT
             static bool heartsVisible(std::uint8_t lives, float seconds) noexcept;
             static std::string scoreText(std::uint32_t score);
     };

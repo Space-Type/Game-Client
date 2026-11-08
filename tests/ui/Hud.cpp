@@ -21,6 +21,24 @@ TEST(ui_Hud, heartColourFollowsTheLives)
     EXPECT_EQ(Hud::heartColor(1), HEART_LOW);
 }
 
+TEST(ui_Hud, oneHeartPerLifeUpToTheLimit)
+{
+    EXPECT_EQ(Hud::heartCount(0), 0);
+    EXPECT_EQ(Hud::heartCount(1), 1);
+    EXPECT_EQ(Hud::heartCount(Hud::HEART_STACK_LIMIT), Hud::HEART_STACK_LIMIT);
+    EXPECT_EQ(Hud::livesLabel(1), "");
+    EXPECT_EQ(Hud::livesLabel(Hud::HEART_STACK_LIMIT), "");
+}
+
+TEST(ui_Hud, oneHeartAndACountAboveTheLimit)
+{
+    EXPECT_EQ(Hud::heartCount(6), 1);
+    EXPECT_EQ(Hud::livesLabel(6), "x6");
+    EXPECT_EQ(Hud::heartCount(10), 1);
+    EXPECT_EQ(Hud::livesLabel(10), "x10");
+    EXPECT_EQ(Hud::livesLabel(255), "x255");  // never above the server's MAX_LIVES (10), but still drawn
+}
+
 TEST(ui_Hud, onlyTheLastLifeBlinks)
 {
     for (float t : { 0.0F, 0.2F, 0.4F, 0.45F }) {

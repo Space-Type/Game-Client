@@ -44,14 +44,16 @@ void RType::UI::Hud::draw(const Render::Renderer& renderer, const Render::Resour
     float markerWidth = renderer.measureText(Theme::FOCUS_MARKER, TEXT_SIZE).x;
     float nameWidth = 0.0F;
     float scoreWidth = renderer.measureText(scoreText(0), TEXT_SIZE).x;
-    std::uint8_t mostLives = 1;
+    float heartsWidth = std::max(heartWidth + HEART_GAP, renderer.measureText(OUT_TEXT, TEXT_SIZE).x);
 
     for (const HudLine& line : lines) {
+        float lineHearts = static_cast<float>(heartCount(line.lives)) * (heartWidth + HEART_GAP)
+                         + renderer.measureText(livesLabel(line.lives), TEXT_SIZE).x;
+
         nameWidth = std::max(nameWidth, renderer.measureText(displayName(line.name), TEXT_SIZE).x);
-        mostLives = std::max(mostLives, line.lives);
+        heartsWidth = std::max(heartsWidth, lineHearts);
     }
 
-    float heartsWidth = std::max(static_cast<float>(mostLives) * (heartWidth + HEART_GAP), renderer.measureText(OUT_TEXT, TEXT_SIZE).x);
     float nameX = ORIGIN + PADDING + markerWidth + PADDING;
     float heartsX = nameX + nameWidth + GAP;
     float scoreX = heartsX + heartsWidth + GAP;
@@ -71,13 +73,17 @@ void RType::UI::Hud::draw(const Render::Renderer& renderer, const Render::Resour
         if (line.lives == 0) {
             renderer.drawText(OUT_TEXT, { .x = heartsX, .y = textY }, TEXT_SIZE, Theme::BORDER_COLOR);
         } else if (heartsVisible(line.lives, seconds)) {
-            for (std::uint8_t i = 0; i < line.lives; ++i)
+            std::uint8_t count = heartCount(line.lives);
+
+            for (std::uint8_t i = 0; i < count; ++i)
                 renderer.drawSprite(heart, {
                     .position = { .x = heartsX + static_cast<float>(i) * (heartWidth + HEART_GAP),
                                   .y = y + (ROW_HEIGHT - heartSize.y * HEART_SCALE) / 2.0F },
                     .scale = { .x = HEART_SCALE, .y = HEART_SCALE },
                     .tint = heartColor(line.lives),
                 });
+            renderer.drawText(livesLabel(line.lives), { .x = heartsX + static_cast<float>(count) * (heartWidth + HEART_GAP), .y = textY },
+                              TEXT_SIZE, Theme::FOREGROUND);
         }
         renderer.drawText(scoreText(line.score), { .x = scoreX, .y = textY }, TEXT_SIZE, Theme::FOREGROUND);
     }
@@ -90,6 +96,18 @@ auto RType::UI::Hud::heartColor(std::uint8_t lives) noexcept -> Render::Color
     if (lives == 2)
         return Theme::HEART_MEDIUM;
     return Theme::HEART_LOW;
+}
+
+std::uint8_t RType::UI::Hud::heartCount(std::uint8_t lives) noexcept
+{
+    return lives > HEART_STACK_LIMIT ? 1 : lives;
+}
+
+std::string RType::UI::Hud::livesLabel(std::uint8_t lives)
+{
+    if (lives <= HEART_STACK_LIMIT)
+        return {};
+    return "x" + std::to_string(lives);
 }
 
 bool RType::UI::Hud::heartsVisible(std::uint8_t lives, float seconds) noexcept
