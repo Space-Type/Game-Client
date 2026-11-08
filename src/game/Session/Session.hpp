@@ -70,7 +70,7 @@ namespace RType::Game {
         std::optional<std::uint8_t> m_BossPhase;  // last BossPhase::phase received
         std::optional<Announcement> m_Announcement;
 
-        float m_SinceAnyUpdate = 0.0F;  // seconds since the last component received (Freshness)
+        std::chrono::steady_clock::time_point m_LastComponentAt;  // last component received, for any entity (Freshness)
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 
@@ -141,7 +141,6 @@ namespace RType::Game {
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> localPlayer() const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
-            void forgetStaleEntities(float seconds);
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:

@@ -126,6 +126,8 @@ set(SOURCES
     src/systems/PlayChargeSound/PlayChargeSound.hpp
     src/systems/Expire/Expire.cpp
     src/systems/Expire/Expire.hpp
+    src/systems/ForgetStale/ForgetStale.cpp
+    src/systems/ForgetStale/ForgetStale.hpp
     src/systems/RenderCharge/RenderCharge.cpp
     src/systems/RenderCharge/RenderCharge.hpp
     src/systems/RenderName/RenderName.cpp

@@ -41,6 +41,7 @@ set(TEST_SOURCES
     render/Types.cpp
     scenes/Manager.cpp
     systems/Expire.cpp
+    systems/ForgetStale.cpp
     systems/RenderName.cpp
     systems/RenderSprite.cpp
     systems/RenderStage.cpp

@@ -33,6 +33,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_LevelSound(audio.loadSound(Render::assetPath("sounds/level.wav")))
     , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
     , m_WarningSound(audio.loadSound(Render::assetPath("sounds/warning.wav")))
+    , m_LastComponentAt(std::chrono::steady_clock::now())
     , m_Engine()
     , m_EntityMap()
     , m_SimulationTick(0)
@@ -45,6 +46,8 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_Client()
 {
     m_Engine.get<Systems::PlayChargeSound>().setAudio(audio);
+    m_Engine.get<Systems::ForgetStale>().setEntityMap(m_EntityMap);
+    m_Engine.get<Systems::ForgetStale>().setLastComponentAt(m_LastComponentAt);
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
     m_Engine.get<Systems::RenderOutline>().setRenderer(renderer);
     m_Engine.get<Systems::RenderOutline>().setResources(resources);
@@ -130,7 +133,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     m_Engine.update(dt);
     m_Clock += std::chrono::duration<float>(dt).count();
     m_Starfield.update(dt);
-    forgetStaleEntities(std::chrono::duration<float>(dt).count());
 
     if (m_GameOverIn) {
         *m_GameOverIn -= std::chrono::duration<float>(dt).count();
@@ -354,32 +356,6 @@ void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t liv
         m_Engine.addComponent(player, Components::Blink{});
 }
 
-/**
- * Deletes the entities the server stopped updating (see
- * Components::Freshness). The local player is never forgotten.
- */
-void RType::Game::Session::forgetStaleEntities(float seconds)
-{
-    std::vector<Wrecks::ECS::Entity> stale;
-    std::optional<Wrecks::ECS::Entity> local = localPlayer();
-
-    m_SinceAnyUpdate += seconds;
-
-    for (auto [entity, unused] : m_Engine.get<Components::Freshness>()) {
-        auto& freshness = m_Engine.get<Components::Freshness>()[entity];
-
-        freshness.sinceUpdate += seconds;
-        if (entity != local && Components::isStale(freshness.sinceUpdate, m_SinceAnyUpdate))
-            stale.push_back(entity);
-    }
-
-    // Deleted after the loop: never while iterating over the container
-    for (auto entity : stale) {
-        m_EntityMap.removeNetwork(m_EntityMap.toNetwork(entity));
-        m_Engine.deleteEntity(entity);
-    }
-}
-
 void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)
 {
     switch (type) {
@@ -462,7 +438,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
 
         // Any component counts: the level entity, for one, has no Transform
-        session.m_SinceAnyUpdate = 0.0F;
+        session.m_LastComponentAt = std::chrono::steady_clock::now();
         if (session.m_Engine.hasComponent<Components::Freshness>(localEntity))
             session.m_Engine.get<Components::Freshness>()[localEntity].sinceUpdate = 0.0F;
 

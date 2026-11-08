@@ -20,6 +20,7 @@ namespace RType::Systems {
                    ChargeTimer,
                    PlayChargeSound,
                    Expire,
+                   ForgetStale,
                    RenderStage,
                    RenderSprite,
                    RenderOutline,
