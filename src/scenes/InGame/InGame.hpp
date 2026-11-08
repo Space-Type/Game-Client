@@ -15,10 +15,15 @@
 
 
 namespace RType::Scenes {
-    // Playing: the session draws itself, this scene only handles pausing
+    // Playing: the session draws itself, this scene handles pausing and draws the HUD
     class InGame {
+        float m_Seconds = 0.0F;  // drives the HUD blinking
+
         public:
             std::optional<SceneId> update(Context& ctx, Wrecks::DeltaTime dt);
             void render(Context& ctx) const;
+
+        private:
+            static void drawAnnouncement(Context& ctx, const Game::Announcement& announcement, float elapsed);
     };
 }

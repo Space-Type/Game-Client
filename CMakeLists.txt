@@ -45,10 +45,12 @@ endif()
 set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
+    src/components/Charge.hpp
     src/components/Controllable.hpp
     src/components/EntityKind.hpp
     src/components/Freshness.hpp
     src/components/Manager.hpp
+    src/components/PlayerState.hpp
     src/components/Sprite.hpp
     src/errors/Error/Error.cpp
     src/errors/Error/Error.hpp
@@ -116,11 +118,17 @@ set(SOURCES
     src/scenes/Text.hpp
     src/systems/PlayerInput/PlayerInput.cpp
     src/systems/PlayerInput/PlayerInput.hpp
+    src/systems/ChargeTimer/ChargeTimer.cpp
+    src/systems/ChargeTimer/ChargeTimer.hpp
+    src/systems/RenderCharge/RenderCharge.cpp
+    src/systems/RenderCharge/RenderCharge.hpp
     src/systems/RenderName/RenderName.cpp
     src/systems/RenderName/RenderName.hpp
     src/systems/RenderOutline/RenderOutline.cpp
     src/systems/RenderOutline/RenderOutline.hpp
     src/systems/RenderSprite/RenderSprite.cpp
+    src/systems/RenderStage/RenderStage.cpp
+    src/systems/RenderStage/RenderStage.hpp
     src/systems/RenderSprite/RenderSprite.hpp
     src/systems/Tuple.hpp
     src/ui/Button/Button.cpp
@@ -131,6 +139,8 @@ set(SOURCES
     src/ui/Form/Form.hpp
     src/ui/FrameInput/FrameInput.cpp
     src/ui/FrameInput/FrameInput.hpp
+    src/ui/Hud/Hud.cpp
+    src/ui/Hud/Hud.hpp
     src/ui/MenuControls/MenuControls.cpp
     src/ui/MenuControls/MenuControls.hpp
     src/ui/Slider/Slider.cpp

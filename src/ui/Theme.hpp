@@ -38,6 +38,11 @@ namespace RType::UI::Theme {
     inline constexpr float TRACK_HEIGHT = 12.0F;
     inline constexpr float VALUE_WIDTH = 100.0F;  // room on the right of the track for the value
 
+    // HUD hearts, by lives left: they stand out from the background (non-text contrast)
+    inline constexpr Render::Color HEART_HIGH = { .r = 80, .g = 200, .b = 90, .a = 255 };
+    inline constexpr Render::Color HEART_MEDIUM = { .r = 255, .g = 160, .b = 40, .a = 255 };
+    inline constexpr Render::Color HEART_LOW = { .r = 235, .g = 60, .b = 60, .a = 255 };
+
     // Checkbox: a square, crossed when checked
     inline constexpr float CHECK_SIZE = 28.0F;
     inline constexpr float CHECK_INSET = 6.0F;

@@ -16,6 +16,7 @@
 #include "../game/Session/Session.hpp"
 #include "SceneId.hpp"
 #include <wrecks/common.hpp>
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -33,6 +34,8 @@ namespace RType::Scenes {
         Game::DisplayOptions& displayOptions;     // changed by Settings
         std::unique_ptr<Game::Session>& session;  // null outside of a game
         std::string message;                      // shown by GameOver and Connect
+        Game::Outcome outcome;                    // how the last game ended, for GameOver
+        std::uint32_t score;                      // its score, for a victory or a defeat
         Game::ConnectionInfo connection;          // prefills Connect
         SceneId settingsReturn;                   // where Settings goes back to
         Render::SoundId clickSound;               // played on every Form event
