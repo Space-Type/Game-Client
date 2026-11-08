@@ -7,6 +7,8 @@
 */
 
 #include "Game.hpp"
+#include "../Gamepads/Gamepads.hpp"
+#include "../Preferences/Preferences.hpp"
 #include <rtype/errors.hpp>
 #include <algorithm>
 #include <exception>
@@ -32,6 +34,7 @@ RType::Game::Game::Game(ConnectionInfo connection)
     , m_Controls(defaultControls())
     , m_MenuControls(UI::defaultMenuControls())
     , m_DisplayOptions()
+    , m_Gamepad()
     , m_TargetDuration()
     , m_Session()
     , m_Context{
@@ -43,6 +46,7 @@ RType::Game::Game::Game(ConnectionInfo connection)
         .controls = m_Controls,
         .menuControls = m_MenuControls,
         .displayOptions = m_DisplayOptions,
+        .gamepad = m_Gamepad,
         .session = m_Session,
         .message = {},
         .outcome = RType::Game::Outcome::Message,
@@ -66,8 +70,9 @@ RType::Game::Game::Game(ConnectionInfo connection)
 
     m_Context.clickSound = m_Audio.loadSound(Render::assetPath("sounds/click.wav"));
 
-    applyPreferences(loadPreferences(currentPreferences(m_Audio, m_Window, m_Controls, m_DisplayOptions)),
-                     m_Audio, m_Window, m_Controls, m_DisplayOptions);
+    loadGamepadMappings(m_Input);
+    applyPreferences(loadPreferences(currentPreferences(m_Audio, m_Window, m_Controls, m_DisplayOptions, m_Gamepad)),
+                     m_Audio, m_Window, m_Controls, m_DisplayOptions, m_Gamepad);
 }
 
 /**
@@ -128,6 +133,8 @@ void RType::Game::Game::update(Wrecks::DeltaTime dt)
 {
     std::optional<std::string> endMessage;
 
+    // Gamepads come and go: the chosen one if connected, else the first one found
+    m_Controls.setGamepad(chooseGamepad(connectedGamepads(m_Input), m_Gamepad));
     m_MenuControls.setGamepad(m_Controls.gamepad());
 
     if (m_Session) {

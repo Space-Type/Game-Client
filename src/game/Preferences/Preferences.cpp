@@ -121,6 +121,8 @@ namespace {
             preferences.fullscreen = value == "true";
         else if (key == "accessibility.high_contrast" && (value == "true" || value == "false"))
             preferences.highContrast = value == "true";
+        else if (key == "gamepad")
+            preferences.gamepad = std::string(value);
         else
             readBindingLine(preferences, key, value);
     }
@@ -140,7 +142,7 @@ namespace {
 
 
 auto RType::Game::currentPreferences(const Render::Audio& audio, const Render::Window& window, const Controls& controls,
-                                     const DisplayOptions& display) -> Preferences
+                                     const DisplayOptions& display, const std::string& gamepad) -> Preferences
 {
     return Preferences{
         .master = toPercent(audio.volume(Render::Channel::Master)),
@@ -149,13 +151,14 @@ auto RType::Game::currentPreferences(const Render::Audio& audio, const Render::W
         .fullscreen = window.isFullscreen(),
         .highContrast = display.highContrast,
         .controls = controls,
+        .gamepad = gamepad,
     };
 }
 
 void RType::Game::applyPreferences(const Preferences& preferences, Render::Audio& audio, Render::Window& window, Controls& controls,
-                                   DisplayOptions& display)
+                                   DisplayOptions& display, std::string& gamepad)
 {
-    int gamepad = controls.gamepad();
+    int selected = controls.gamepad();
 
     audio.setVolume(Render::Channel::Master, static_cast<float>(preferences.master) / PERCENT);
     audio.setVolume(Render::Channel::Music, static_cast<float>(preferences.music) / PERCENT);
@@ -163,8 +166,9 @@ void RType::Game::applyPreferences(const Preferences& preferences, Render::Audio
     if (preferences.fullscreen != window.isFullscreen())
         window.toggleFullscreen();
     controls = preferences.controls;
-    controls.setGamepad(gamepad);
+    controls.setGamepad(selected);
     display.highContrast = preferences.highContrast;
+    gamepad = preferences.gamepad;
 }
 
 std::string RType::Game::toText(const Preferences& preferences)
@@ -175,7 +179,8 @@ std::string RType::Game::toText(const Preferences& preferences)
          << "volume.music=" << preferences.music << '\n'
          << "volume.effects=" << preferences.effects << '\n'
          << "fullscreen=" << (preferences.fullscreen ? "true" : "false") << '\n'
-         << "accessibility.high_contrast=" << (preferences.highContrast ? "true" : "false") << '\n';
+         << "accessibility.high_contrast=" << (preferences.highContrast ? "true" : "false") << '\n'
+         << "gamepad=" << preferences.gamepad << '\n';
 
     for (Action action : ACTIONS) {
         for (Slot slot : { Slot::Keyboard, Slot::Gamepad }) {

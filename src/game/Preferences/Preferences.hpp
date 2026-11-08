@@ -28,6 +28,7 @@ namespace RType::Game {
  *     accessibility.high_contrast=false
      *     bind.shoot.keyboard=Space
      *     bind.shoot.gamepad=A
+     *     gamepad=Xbox Wireless Controller
      *
      * Inputs are stored by name, never by enum value.
      */
@@ -43,14 +44,15 @@ namespace RType::Game {
         bool fullscreen = false;
         bool highContrast = false;
         Controls controls = defaultControls();
+        std::string gamepad;        // name of the chosen gamepad, empty for the first one found
     };
 
     Preferences currentPreferences(const Render::Audio& audio, const Render::Window& window, const Controls& controls,
-                                   const DisplayOptions& display);
+                                   const DisplayOptions& display, const std::string& gamepad);
 
-    // Keeps the gamepad selected in `controls`
+    // Keeps the gamepad selected in `controls` (the Game picks it from `gamepad` every frame)
     void applyPreferences(const Preferences& preferences, Render::Audio& audio, Render::Window& window, Controls& controls,
-                          DisplayOptions& display);
+                          DisplayOptions& display, std::string& gamepad);
 
     std::string toText(const Preferences& preferences);
 

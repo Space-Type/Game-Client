@@ -79,6 +79,14 @@ TEST(game_Preferences, roundTrip)
             EXPECT_EQ(slot(read, action, s), slot(preferences, action, s)) << RType::Game::actionName(action);
 }
 
+TEST(game_Preferences, chosenGamepadRoundTrip)
+{
+    Preferences chosen{ .gamepad = "Xbox Wireless Controller" };
+
+    EXPECT_EQ(RType::Game::fromText(RType::Game::toText(chosen), Preferences{}).gamepad, "Xbox Wireless Controller");
+    EXPECT_EQ(RType::Game::fromText(RType::Game::toText(Preferences{}), Preferences{ .gamepad = "Old" }).gamepad, "");
+}
+
 TEST(game_Preferences, emptySlotRoundTrip)
 {
     Preferences preferences;

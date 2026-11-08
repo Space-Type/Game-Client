@@ -44,6 +44,7 @@ namespace RType::Game {
         Controls m_Controls;
         UI::MenuControls m_MenuControls;
         DisplayOptions m_DisplayOptions;
+        std::string m_Gamepad;  // name of the chosen gamepad, empty for the first one found
 
         Wrecks::DeltaTime m_TargetDuration;
 

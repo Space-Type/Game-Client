@@ -84,6 +84,8 @@ set(SOURCES
     src/game/DisplayOptions/DisplayOptions.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
+    src/game/Gamepads/Gamepads.cpp
+    src/game/Gamepads/Gamepads.hpp
     src/game/Preferences/Preferences.cpp
     src/game/Preferences/Preferences.hpp
     src/game/Session/Session.cpp
