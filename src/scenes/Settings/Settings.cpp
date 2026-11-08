@@ -8,6 +8,7 @@
 
 #include "Settings.hpp"
 #include "../Text.hpp"
+#include "../../game/Gamepads/Gamepads.hpp"
 #include "../../game/Preferences/Preferences.hpp"
 #include <algorithm>
 #include <array>
@@ -211,6 +212,64 @@ namespace {
             RType::Scenes::drawCenteredText(ctx.renderer, ctx.window, "(!) Same input on: " + conflicts, CONFLICT_Y, HINT_SIZE, RType::UI::Theme::ERROR_COLOR);
     }
 
+    // Gamepad: which one plays (the first one found, or one chosen by name), and the ones the game cannot read
+    constexpr std::size_t GAMEPAD_BUTTON = 0;
+    constexpr float GAMEPADS_Y = FIRST_ROW_Y + ROW_STEP * 2.0F;
+    constexpr float GAMEPAD_LINE = 34.0F;
+    constexpr float GAMEPAD_TEXT_X = 130.0F;
+
+    std::string gamepadLabel(const Context& ctx)
+    {
+        return "Gamepad: " + (ctx.gamepad.empty() ? std::string("First found") : ctx.gamepad);
+    }
+
+    Form buildGamepad(const Context& ctx)
+    {
+        return Form(std::vector<RType::UI::Widget>{
+            RType::UI::Button(gamepadLabel(ctx), field(GAMEPAD_BUTTON)),
+            RType::UI::Button("Back", button(GAMEPAD_BUTTON + 1)),
+        });
+    }
+
+    bool applyGamepad(Context& ctx, const Form&, FormEvent event)
+    {
+        if (event != FormEvent{ .kind = FormEvent::Kind::Activated, .index = GAMEPAD_BUTTON })
+            return false;
+        ctx.gamepad = RType::Game::nextGamepadChoice(RType::Game::connectedGamepads(ctx.input), ctx.gamepad);
+        return true;
+    }
+
+    // Read every frame: plugging or unplugging a gamepad shows at once
+    void drawGamepad(const Context& ctx)
+    {
+        using RType::UI::Theme::HINT_SIZE;
+
+        std::vector<RType::Game::ConnectedGamepad> gamepads = RType::Game::connectedGamepads(ctx.input);
+        std::vector<std::string> unknown = RType::Game::unknownControllers(ctx.input);
+        float y = GAMEPADS_Y;
+        auto line = [&](const std::string& text, RType::Render::Color color) {
+            ctx.renderer.drawText(text, { .x = GAMEPAD_TEXT_X, .y = y }, HINT_SIZE, color);
+            y += GAMEPAD_LINE;
+        };
+
+        line(gamepads.empty() ? "No gamepad found: plug one in, or turn it on" : "Gamepads found:", RType::UI::Theme::FOREGROUND);
+        for (const auto& gamepad : gamepads)
+            line((gamepad.index == ctx.controls.gamepad() ? "> " : "   ") + gamepad.name + (gamepad.index == ctx.controls.gamepad() ? "   (in use)" : ""),
+                 RType::UI::Theme::FOREGROUND);
+        if (unknown.empty())
+            return;
+
+        // Not only a colour: the "(!)" says it too
+        y += GAMEPAD_LINE / 2.0F;
+        for (const auto& name : unknown)
+            line("(!) Not recognised: " + name, RType::UI::Theme::ERROR_COLOR);
+
+        std::optional<std::filesystem::path> file = RType::Game::playerMappingsPath();
+
+        line("To use it, add its mapping (SDL_GameControllerDB format) to", RType::UI::Theme::FOREGROUND);
+        line(file ? file->string() : std::string("gamecontrollerdb.txt in the settings folder"), RType::UI::Theme::FOREGROUND);
+    }
+
     // Accessibility (#44): options that change how the game is displayed
     constexpr std::size_t HIGH_CONTRAST_BOX = 0;
 
@@ -233,6 +292,7 @@ namespace {
     constexpr std::array SECTIONS = {
         Section{ .title = "Audio & display", .build = buildAudioDisplay, .apply = applyAudioDisplay },
         Section{ .title = "Controls", .build = buildControls, .apply = applyControls, .capture = controlAt, .draw = drawControls },
+        Section{ .title = "Gamepad", .build = buildGamepad, .apply = applyGamepad, .draw = drawGamepad },
         Section{ .title = "Accessibility", .build = buildAccessibility, .apply = applyAccessibility },
     };
 
@@ -321,7 +381,7 @@ auto RType::Scenes::Settings::update(Context& ctx, Wrecks::DeltaTime) -> std::op
             ctx.audio.play(ctx.clickSound);
         if (!m_Page) {
             // A failure is reported on stderr: the changes still hold until the game is closed
-            Game::savePreferences(Game::currentPreferences(ctx.audio, ctx.window, ctx.controls, ctx.displayOptions));
+            Game::savePreferences(Game::currentPreferences(ctx.audio, ctx.window, ctx.controls, ctx.displayOptions, ctx.gamepad));
             return ctx.settingsReturn;
         }
         open(ctx, std::nullopt);

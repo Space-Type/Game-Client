@@ -22,4 +22,7 @@ namespace RType::Render {
      * Example: assetPath("spaceship.png")
      */
     std::string assetPath(std::string_view name);
+
+    // Full path of a file next to the executable (gamecontrollerdb.txt)
+    std::string applicationPath(std::string_view name);
 }

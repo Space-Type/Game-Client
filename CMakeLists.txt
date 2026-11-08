@@ -8,6 +8,20 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+# VCPKG support
+if (DEFINED ENV{VCPKG_ROOT})
+    message("setting up vcpkg")
+
+    file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" RTYPE_VCPKG_ROOT)
+    set(CMAKE_TOOLCHAIN_FILE "${RTYPE_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "vcpkg toolchain file")
+
+    # Static libraries on Windows: no raylib DLL to ship next to the client
+    if (WIN32 AND NOT DEFINED VCPKG_TARGET_TRIPLET)
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "vcpkg triplet")
+    endif()
+endif()
+
 project(RType-Client VERSION 1.0
                      DESCRIPTION "R-Type Game Client - R-Type project"
                      HOMEPAGE_URL "https://github.com/Space-Type/Game-Client"
@@ -26,7 +40,11 @@ if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     enable_testing()
 endif()
 
-add_subdirectory(lib/raylib)
+# DebugTests uses the Debug build of the vcpkg libraries
+set(CMAKE_MAP_IMPORTED_CONFIG_DEBUGTESTS Debug Release)
+
+find_package(raylib CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)  # raylib's backend: the input wrapper asks it which gamepads are mapped
 
 # Wrecks and Protecs build their own tests (with coverage) in DebugTests:
 # they belong to their repositories, not to this build
@@ -71,6 +89,8 @@ set(SOURCES
     src/game/DisplayOptions/DisplayOptions.hpp
     src/game/Game/Game.cpp
     src/game/Game/Game.hpp
+    src/game/Gamepads/Gamepads.cpp
+    src/game/Gamepads/Gamepads.hpp
     src/game/Preferences/Preferences.cpp
     src/game/Preferences/Preferences.hpp
     src/game/Session/Session.cpp
@@ -177,16 +197,21 @@ endif()
 
 target_include_directories(rtype_client_core PUBLIC  include
                                              PUBLIC  lib/wrecks/include
-                                             PUBLIC  lib/protecs/include
-                                             PRIVATE lib/raylib/src)
+                                             PUBLIC  lib/protecs/include)
 
 target_link_libraries(rtype_client_core PUBLIC wrecks
                                         PUBLIC protecs
-                                        PUBLIC raylib)
+                                        PUBLIC raylib
+                                        PRIVATE glfw)
 
 add_executable(r-type_client src/main.cpp)
 
 target_link_libraries(r-type_client PRIVATE rtype_client_core)
+
+# Gamepad mappings (vcpkg port sdl-gamecontrollerdb), read next to the client at startup
+set(RTYPE_GAMEPAD_MAPPINGS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/sdl-gamecontrollerdb/gamecontrollerdb.txt")
+add_custom_command(TARGET r-type_client POST_BUILD
+                   COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${RTYPE_GAMEPAD_MAPPINGS}" "$<TARGET_FILE_DIR:r-type_client>/gamecontrollerdb.txt")
 
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     add_subdirectory(tests)

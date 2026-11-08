@@ -166,12 +166,22 @@ for systems that draw or play sounds.
 
 | Dependency | Provided by |
 |---|---|
-| raylib, Wrecks | git submodules (`lib/raylib`, `lib/wrecks`) |
-| GoogleTest | vcpkg (`lib/vcpkg` submodule, `tests` feature of `vcpkg.json`), DebugTests builds only |
+| raylib (and its GLFW), SDL gamepad database | vcpkg (manifest `vcpkg.json`) |
+| Wrecks, Protecs | git submodules (`lib/wrecks`, `lib/protecs`) |
+| GoogleTest | CMake `FetchContent`, DebugTests builds only |
 | OpenGL, X11 | the system |
 
-vcpkg needs no installation: the first `cmake` bootstraps it from the submodule and
-installs the manifest dependencies (cached in `~/.cache/vcpkg` afterwards).
+vcpkg is installed once per machine, then CMake finds it through `VCPKG_ROOT`:
+
+```sh
+git clone https://github.com/microsoft/vcpkg.git ~/vcpkg
+~/vcpkg/bootstrap-vcpkg.sh -disableMetrics      # bootstrap-vcpkg.bat on Windows
+export VCPKG_ROOT=~/vcpkg                        # in your shell profile
+```
+
+The first `cmake` installs the manifest dependencies (cached in `~/.cache/vcpkg`
+afterwards). Without `VCPKG_ROOT`, pass
+`-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake` instead.
 
 OpenGL and X11 stay system libraries, as the subject allows for low-level
 platform libraries. OpenGL is the graphics driver itself, and raylib's GLFW loads

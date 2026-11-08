@@ -32,6 +32,7 @@ set(TEST_SOURCES
     game/Client.cpp
     game/ConnectionInfo.cpp
     game/Controls.cpp
+    game/Gamepads.cpp
     game/Preferences.cpp
     game/Starfield.cpp
     render/ActionMap.cpp

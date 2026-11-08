@@ -1,3 +1,6 @@
+# VCPKG
+vcpkg_installed/
+
 # CMake build directory
 build/
 build-*/
