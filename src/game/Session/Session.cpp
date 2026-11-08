@@ -165,10 +165,7 @@ void RType::Game::Session::render(Wrecks::DeltaTime dt)
 auto RType::Game::Session::players() const -> std::vector<UI::HudLine>
 {
     std::vector<std::pair<std::uint8_t, UI::HudLine>> players;
-    std::optional<Wrecks::ECS::Entity> local;
-
-    if (m_EntityMap.containsNetwork(m_Client.player()))
-        local = m_EntityMap.toLocal(m_Client.player());
+    std::optional<Wrecks::ECS::Entity> local = localPlayer();
 
     for (auto [entity, stats] : m_Engine.get<Protecs::Components::PlayerStats>()) {
         std::string name = m_Engine.hasComponent<Protecs::Components::PlayerName>(entity)
@@ -217,7 +214,7 @@ void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::Netwo
 {
     m_Engine.addComponent(entity, Components::Controllable{});
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
-    if (id == m_Client.player())
+    if (m_Client.isConnected() && id == m_Client.player())
         m_Engine.addComponent(entity, Components::LocalCharge{});
 }
 
@@ -338,6 +335,18 @@ auto RType::Game::Session::bossHealth() const -> std::optional<Protecs::Componen
 }
 
 /**
+ * The ship of this client, once the server has accepted it and
+ * created it. Nothing while connecting (the session is updated
+ * before the join answer is read) or after the session ended.
+ */
+auto RType::Game::Session::localPlayer() const -> std::optional<Wrecks::ECS::Entity>
+{
+    if (!m_Client.isConnected() || !m_EntityMap.containsNetwork(m_Client.player()))
+        return std::nullopt;
+    return m_EntityMap.toLocal(m_Client.player());
+}
+
+/**
  * The server sends the lives before moving the ship back
  * to its start: the explosion is where the ship was hit.
  */
@@ -345,7 +354,7 @@ void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t liv
 {
     explode(player);
     if (livesLeft == 0) {
-        bool isLocal = m_EntityMap.containsNetwork(m_Client.player()) && m_EntityMap.toLocal(m_Client.player()) == player;
+        bool isLocal = localPlayer() == player;
 
         // The game goes on for the others: this client shows its game over, then leaves
         if (isLocal && !m_GameOverIn) {
@@ -368,11 +377,9 @@ void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t liv
 void RType::Game::Session::forgetStaleEntities(float seconds)
 {
     std::vector<Wrecks::ECS::Entity> stale;
-    std::optional<Wrecks::ECS::Entity> local;
+    std::optional<Wrecks::ECS::Entity> local = localPlayer();
 
     m_SinceAnyUpdate += seconds;
-    if (m_EntityMap.containsNetwork(m_Client.player()))
-        local = m_EntityMap.toLocal(m_Client.player());
 
     for (auto [entity, unused] : m_Engine.get<Components::Freshness>()) {
         auto& freshness = m_Engine.get<Components::Freshness>()[entity];
@@ -640,10 +647,12 @@ void RType::Game::Session::EventHandler::operator()(const Packets::PlayerId& dat
 void RType::Game::Session::EventHandler::operator()(const Packets::PlayerInput& data)
 {
     // The ship may not be known yet (its EntityCreate was lost): the next request comes in 0.5 s
-    if (!session.m_EntityMap.containsNetwork(session.m_Client.player()))
+    auto local = session.localPlayer();
+
+    if (!local)
         return;
 
-    auto player = session.m_EntityMap.toLocal(session.m_Client.player());
+    auto player = *local;
 
     // The server sends PlayerInput once, when the player joins: if that packet was lost,
     // start from "nothing held" (the PlayerInput system needs the component to send inputs)
