@@ -38,3 +38,8 @@ std::string RType::Render::assetPath(std::string_view name)
 
     return (assetsDirectory / name).string();
 }
+
+std::string RType::Render::applicationPath(std::string_view name)
+{
+    return (std::filesystem::path(GetApplicationDirectory()) / name).string();
+}

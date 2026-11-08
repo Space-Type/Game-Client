@@ -32,6 +32,7 @@ namespace RType::Scenes {
         Game::Controls& controls;                 // changed by Settings
         const UI::MenuControls& menuControls;
         Game::DisplayOptions& displayOptions;     // changed by Settings
+        std::string& gamepad;                     // name of the chosen gamepad, "" for the first one found (changed by Settings)
         std::unique_ptr<Game::Session>& session;  // null outside of a game
         std::string message;                      // shown by GameOver and Connect
         Game::Outcome outcome;                    // how the last game ended, for GameOver
