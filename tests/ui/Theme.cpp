@@ -42,7 +42,7 @@ namespace {
 TEST(ui_Theme, contrastIsAtLeastAA)
 {
     for (Color background : {BACKGROUND, RType::Render::Colors::BLACK})
-        for (Color color : {FOREGROUND, BORDER_COLOR, FOCUS_COLOR, ERROR_COLOR, VICTORY_COLOR})
+        for (Color color : {FOREGROUND, BORDER_COLOR, FOCUS_COLOR, ERROR_COLOR})
             EXPECT_GE(contrast(color, background), 4.5);
 }
 

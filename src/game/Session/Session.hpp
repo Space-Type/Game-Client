@@ -40,6 +40,13 @@ namespace RType::Game {
         bool scores;      // also shows every player's score
     };
 
+    // How a game ended: the GameOver scene shows a victory, a defeat (with the score) or a message
+    enum class Outcome : std::uint8_t {
+        Message,
+        Victory,
+        Defeat,
+    };
+
     class Session {
         static constexpr unsigned int MAX_EVENTS_PER_UPDATE = 100;
 
@@ -72,7 +79,9 @@ namespace RType::Game {
         Wrecks::DeltaTime m_AccumulatedDelta;
 
         bool m_Ended;
-        std::string m_EndReason;
+        std::string m_EndReason;            // Outcome::Message only
+        Outcome m_Outcome = Outcome::Message;
+        std::uint32_t m_FinalScore = 0;     // local player's score, for a victory or a defeat
         std::optional<float> m_GameOverIn;  // seconds left before ending, once the local player is out
 
         Client m_Client;  // last: its network thread stops first
@@ -114,6 +123,8 @@ namespace RType::Game {
 
             [[ nodiscard ]] inline bool ended() const noexcept { return m_Ended; }
             [[ nodiscard ]] inline std::string_view endReason() const noexcept { return m_EndReason; }
+            [[ nodiscard ]] inline Outcome outcome() const noexcept { return m_Outcome; }
+            [[ nodiscard ]] inline std::uint32_t finalScore() const noexcept { return m_FinalScore; }
 
         private:
             void handleEvents(Protecs::Tick tick);

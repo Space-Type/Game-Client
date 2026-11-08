@@ -20,5 +20,8 @@ namespace RType::Scenes {
         public:
             std::optional<SceneId> update(Context& ctx, Wrecks::DeltaTime dt);
             void render(Context& ctx) const;
+
+        private:
+            static void drawResult(const Context& ctx, Wrecks::cstring_view title, Render::Color color);
     };
 }
