@@ -111,8 +111,8 @@ namespace {
     constexpr std::size_t SLOT_COUNT = 2;
     constexpr std::size_t RESET_BUTTON = RType::Game::ACTIONS.size() * SLOT_COUNT;
 
-    constexpr float CONTROL_HEIGHT = 52.0F;
-    constexpr float CONTROL_STEP = 62.0F;
+    constexpr float CONTROL_HEIGHT = 48.0F;  // still a big target (accessibility), 6 actions fit above the hint
+    constexpr float CONTROL_STEP = 56.0F;
     constexpr float HEADER_Y = 110.0F;
     constexpr float FIRST_CONTROL_Y = 145.0F;
     constexpr float ACTION_X = 130.0F;

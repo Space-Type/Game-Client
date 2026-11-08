@@ -29,6 +29,9 @@ namespace RType::Game {
     Components::Sprite bossSprite(Render::Resources& resources);    // stage 1 boss body (its core is drawn in it)
     Components::Sprite tailSprite(Render::Resources& resources);    // a segment of the stage 1 boss tail
     Components::Sprite lifePickupSprite(Render::Resources& resources);  // a bonus life dropped by an enemy
+    Components::Sprite powArmorSprite(Render::Resources& resources);    // the enemy carrying a Force item
+    Components::Sprite forcePickupSprite(Render::Resources& resources); // the Force item
+    Components::Sprite forceSprite(Render::Resources& resources, std::uint8_t level);  // the Force, level 1 to 3
 
     // Moves a player sprite to the row of its colour (slot modulo PLAYER_COLOURS)
     void setPlayerColour(Components::Sprite& sprite, std::size_t slot) noexcept;

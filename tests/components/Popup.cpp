@@ -27,3 +27,10 @@ TEST(components_Popup, risesWithTime)
     EXPECT_NEAR(popupRise(0.2F, 1.2F), POPUP_RISE, 0.001F);
     EXPECT_EQ(popupRise(1.5F, 1.2F), 0.0F);  // never below its start
 }
+
+TEST(components_Popup, noAnchorByDefault)
+{
+    Popup popup{ .text = "+1 LIFE" };
+
+    EXPECT_FALSE(popup.anchor.has_value());
+}

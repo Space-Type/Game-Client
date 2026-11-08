@@ -41,6 +41,7 @@ void RType::Systems::PlayerInput::operator()(Wrecks::ECS::Entity entity, Wrecks:
     input.left    = isDown(Left);
     input.right   = isDown(Right);
     input.trigger = isDown(Shoot);
+    input.force   = isDown(Force);
     #undef isDown
 
     #define isHeldDown(key) (input.key ? Packets::PlayerInput::HOLD_DOWN : Packets::PlayerInput::RELEASE)
@@ -55,6 +56,8 @@ void RType::Systems::PlayerInput::operator()(Wrecks::ECS::Entity entity, Wrecks:
         queue(0, RIGHT, right);
     if (input.trigger != prevInput.trigger)
         queue(0, TRIGGER, trigger);
+    if (input.force != prevInput.force)
+        queue(0, FORCE, force);
     #undef queue
     #undef isHeldDown
 }

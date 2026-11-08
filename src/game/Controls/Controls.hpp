@@ -21,9 +21,10 @@ namespace RType::Game {
         Left,
         Right,
         Shoot,
+        Force,  // launches or recalls the Force
     };
 
-    inline constexpr std::array ACTIONS = { Action::Up, Action::Down, Action::Left, Action::Right, Action::Shoot };
+    inline constexpr std::array ACTIONS = { Action::Up, Action::Down, Action::Left, Action::Right, Action::Shoot, Action::Force };
 
     // Remappable at runtime (accessibility): bind / unbind / clear
     using Controls = Render::ActionMap<Action>;
@@ -38,10 +39,10 @@ namespace RType::Game {
         Gamepad,
     };
 
-    // Arrows + Space on the keyboard, D-pad / left stick + A on a gamepad
+    // Arrows + Space + F on the keyboard, D-pad / left stick + A + B on a gamepad
     Controls defaultControls();
 
-    // "Up", ..., "Shoot"
+    // "Up", ..., "Shoot", "Force"
     std::string_view actionName(Action action) noexcept;
 
     // Name of a key, mouse or gamepad button ("Space", "Mouse Left", "A"), "Axis" for an axis
