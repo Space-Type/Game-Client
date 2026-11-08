@@ -44,6 +44,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_LastSyncTime()
     , m_Client()
 {
+    m_Engine.get<Systems::PlayChargeSound>().setAudio(audio);
     m_Engine.get<Systems::RenderSprite>().setRenderer(renderer);
     m_Engine.get<Systems::RenderOutline>().setRenderer(renderer);
     m_Engine.get<Systems::RenderOutline>().setResources(resources);
@@ -129,7 +130,6 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     m_Engine.update(dt);
     m_Clock += std::chrono::duration<float>(dt).count();
     m_Starfield.update(dt);
-    updateChargeSound();
     forgetStaleEntities(std::chrono::duration<float>(dt).count());
 
     if (m_GameOverIn) {
@@ -212,26 +212,10 @@ void RType::Game::Session::initPlayer(Wrecks::ECS::Entity entity, Protecs::Netwo
 {
     m_Engine.addComponent(entity, Components::Controllable{});
     m_Engine.addComponent(entity, playerSprite(m_Resources, static_cast<std::size_t>(id % PLAYER_COLOURS)));
-    if (m_Client.isConnected() && id == m_Client.player())
+    if (m_Client.isConnected() && id == m_Client.player()) {
         m_Engine.addComponent(entity, Components::LocalCharge{});
-}
-
-/**
- * The charge sound plays while the local player charges
- * (not for a quick tap) and stops when the trigger is released.
- */
-void RType::Game::Session::updateChargeSound()
-{
-    bool charging = false;
-
-    for (auto [entity, charge] : m_Engine.get<Components::LocalCharge>())
-        charging = charging || charge.seconds >= Components::CHARGE_SOUND_DELAY;
-
-    if (charging && !m_ChargeSoundPlaying)
-        m_Audio.play(m_ChargeSound);
-    else if (!charging && m_ChargeSoundPlaying)
-        m_Audio.stop(m_ChargeSound);
-    m_ChargeSoundPlaying = charging;
+        m_Engine.addComponent(entity, Components::ChargeSound{ .sound = m_ChargeSound });
+    }
 }
 
 /**

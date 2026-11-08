@@ -61,7 +61,6 @@ namespace RType::Game {
         Render::SoundId m_ExplosionSound;
         Render::SoundId m_ChargeSound;
         Render::SoundId m_BeamSound;
-        bool m_ChargeSoundPlaying = false;
         Render::SoundId m_LevelSound;
         Render::SoundId m_StageClearSound;
         Render::SoundId m_WarningSound;
@@ -142,7 +141,6 @@ namespace RType::Game {
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> localPlayer() const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
-            void updateChargeSound();
             void forgetStaleEntities(float seconds);
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 

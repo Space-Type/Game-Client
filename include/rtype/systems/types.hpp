@@ -10,6 +10,7 @@
 
 #include "../../../src/systems/ChargeTimer/ChargeTimer.hpp"
 #include "../../../src/systems/Expire/Expire.hpp"
+#include "../../../src/systems/PlayChargeSound/PlayChargeSound.hpp"
 #include "../../../src/systems/PlayerInput/PlayerInput.hpp"
 #include "../../../src/systems/RenderCharge/RenderCharge.hpp"
 #include "../../../src/systems/RenderName/RenderName.hpp"

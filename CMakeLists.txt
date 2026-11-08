@@ -46,6 +46,7 @@ set(CMAKE_BUILD_TYPE "${RTYPE_BUILD_TYPE}")
 
 set(SOURCES
     src/components/Charge.hpp
+    src/components/ChargeSound.hpp
     src/components/Controllable.hpp
     src/components/EntityKind.hpp
     src/components/Freshness.hpp
@@ -121,6 +122,8 @@ set(SOURCES
     src/systems/PlayerInput/PlayerInput.hpp
     src/systems/ChargeTimer/ChargeTimer.cpp
     src/systems/ChargeTimer/ChargeTimer.hpp
+    src/systems/PlayChargeSound/PlayChargeSound.cpp
+    src/systems/PlayChargeSound/PlayChargeSound.hpp
     src/systems/Expire/Expire.cpp
     src/systems/Expire/Expire.hpp
     src/systems/RenderCharge/RenderCharge.cpp

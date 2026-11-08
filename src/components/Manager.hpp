@@ -19,6 +19,7 @@ namespace RType::Components {
         Wrecks::ECS::ComponentManager<Blink,
                                       Controllable,
                                       LocalCharge,
+                                      ChargeSound,
                                       EntityKind,
                                       Freshness,
                                       Lifetime,
