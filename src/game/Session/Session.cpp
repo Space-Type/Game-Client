@@ -330,6 +330,13 @@ auto RType::Game::Session::announcement() const -> std::optional<std::pair<Annou
     return std::nullopt;
 }
 
+auto RType::Game::Session::music() const -> std::string
+{
+    if (!m_Stage)
+        return std::string(TITLE_MUSIC);
+    return "musics/stage-" + std::to_string(*m_Stage) + ".ogg";
+}
+
 // The boss core in the game, and which boss it is
 auto RType::Game::Session::findBoss() const -> std::optional<std::pair<Wrecks::ECS::Entity, const BossKinds*>>
 {

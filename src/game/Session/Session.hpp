@@ -87,6 +87,7 @@ namespace RType::Game {
             static constexpr float LEVEL_ANNOUNCEMENT = 2.5F;
             static constexpr float WARNING_ANNOUNCEMENT = 2.0F;  // a boss gets angry
             static constexpr float WARNING_BLINK = 1.0F;
+            static constexpr std::string_view TITLE_MUSIC = "musics/title.ogg";  // menus, and a game until its stage is known
             static constexpr float LIFE_POPUP = 1.2F;        // "+1 LIFE" over a ship that took a bonus life
             static constexpr float FORCE_POPUP = 1.2F;       // "FORCE", "FORCE LV2"... over a Force taken
             static constexpr Render::Color FORCE_POPUP_COLOR = { .r = 255, .g = 170, .b = 40, .a = 255 };  // the orange of the Force
@@ -125,6 +126,9 @@ namespace RType::Game {
             };
 
             [[ nodiscard ]] std::optional<BossBar> bossBar() const;
+
+            // The music of the current stage ("musics/stage-<n>.ogg"), the title one until the first stage is known
+            [[ nodiscard ]] std::string music() const;
 
             [[ nodiscard ]] inline bool ended() const noexcept { return m_Ended; }
             [[ nodiscard ]] inline std::string_view endReason() const noexcept { return m_EndReason; }
