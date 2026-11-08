@@ -58,6 +58,7 @@ namespace RType::Game {
         Render::SoundId m_StageClearSound;
         Render::SoundId m_WarningSound;
         Render::SoundId m_LifeSound;
+        Render::SoundId m_ForceSound;
 
         std::optional<std::uint8_t> m_Stage;      // last Level::stage received
         std::optional<std::uint8_t> m_BossPhase;  // last BossPhase::phase received
@@ -86,6 +87,8 @@ namespace RType::Game {
             static constexpr float WARNING_ANNOUNCEMENT = 2.0F;  // a boss gets angry
             static constexpr float WARNING_BLINK = 1.0F;
             static constexpr float LIFE_POPUP = 1.2F;        // "+1 LIFE" over a ship that took a bonus life
+            static constexpr float FORCE_POPUP = 1.2F;       // "FORCE", "FORCE LV2"... over a Force taken
+            static constexpr Render::Color FORCE_POPUP_COLOR = { .r = 255, .g = 170, .b = 40, .a = 255 };  // the orange of the Force
             static constexpr float STAGE_CLEAR_ANNOUNCEMENT = 4.0F;  // as long as the server waits before the next stage (Server: STAGE_CLEAR_DELAY)
 
             Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
@@ -135,6 +138,7 @@ namespace RType::Game {
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> localPlayer() const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void gainLife(Wrecks::ECS::Entity player);
+            void takeForce(Wrecks::ECS::Entity force, std::uint8_t level);
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:

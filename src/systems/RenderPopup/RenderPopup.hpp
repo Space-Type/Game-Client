@@ -14,7 +14,7 @@
 
 
 namespace RType::Systems {
-    // Draws the popups, centred on their position, rising and fading
+    // Draws the popups, centred over their position (or their anchor's), rising and fading
     class RenderPopup {
         void* m_Engine;
         const Render::Renderer* m_Renderer;
@@ -32,7 +32,6 @@ namespace RType::Systems {
             static constexpr Wrecks::Signature signature() noexcept
             {
                 return Wrecks::Signature()
-                    .set(Components::Manager::index<Protecs::Components::Transform>())
                     .set(Components::Manager::index<Components::Popup>())
                     .set(Components::Manager::index<Components::Lifetime>());
             }

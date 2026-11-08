@@ -33,6 +33,7 @@ RType::Game::Session::Session(Render::Resources& resources, const Render::Render
     , m_StageClearSound(audio.loadSound(Render::assetPath("sounds/stage_clear.wav")))
     , m_WarningSound(audio.loadSound(Render::assetPath("sounds/warning.wav")))
     , m_LifeSound(audio.loadSound(Render::assetPath("sounds/life.wav")))
+    , m_ForceSound(audio.loadSound(Render::assetPath("sounds/force.wav")))
     , m_LastComponentAt(std::chrono::steady_clock::now())
     , m_Engine()
     , m_EntityMap()
@@ -248,7 +249,8 @@ void RType::Game::Session::explode(Wrecks::ECS::Entity entity)
         return;
     }
     if (type != EntityCreate::PLAYER && type != EntityCreate::ENEMY_PATA_PATA && type != EntityCreate::ENEMY_SCANT
-        && type != EntityCreate::ENEMY_DOBKERATOPS_CORE && type != EntityCreate::ENEMY_DOBKERATOPS_TAIL)
+        && type != EntityCreate::ENEMY_DOBKERATOPS_CORE && type != EntityCreate::ENEMY_DOBKERATOPS_TAIL
+        && type != EntityCreate::ENEMY_POW_ARMOR)
         return;
     explodeAt(transform);
 }
@@ -390,6 +392,25 @@ void RType::Game::Session::gainLife(Wrecks::ECS::Entity player)
     m_Engine.addComponent(popup, Components::Lifetime{ .remaining = LIFE_POPUP });
 }
 
+/**
+ * A Force appears when a player takes it, and again one
+ * level up: a sound, and "FORCE" (with its level) over it.
+ */
+void RType::Game::Session::takeForce(Wrecks::ECS::Entity force, std::uint8_t level)
+{
+    auto popup = m_Engine.createEntity();
+
+    m_Engine.addComponent(force, forceSprite(m_Resources, level));
+    m_Audio.play(m_ForceSound);
+    m_Engine.addComponent(popup, Components::Popup{
+        .text = level > 1 ? "FORCE LV" + std::to_string(level) : "FORCE",
+        .color = FORCE_POPUP_COLOR,
+        .duration = FORCE_POPUP,
+        .anchor = force,
+    });
+    m_Engine.addComponent(popup, Components::Lifetime{ .remaining = FORCE_POPUP });
+}
+
 void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type)
 {
     switch (type) {
@@ -413,6 +434,17 @@ void RType::Game::Session::initSprite(Wrecks::ECS::Entity entity, Protecs::Netwo
             return;
         case Protecs::Networking::Packets::EntityCreate::PICKUP_LIFE:
             m_Engine.addComponent(entity, lifePickupSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::ENEMY_POW_ARMOR:
+            m_Engine.addComponent(entity, powArmorSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::PICKUP_FORCE:
+            m_Engine.addComponent(entity, forcePickupSprite(m_Resources));
+            return;
+        case Protecs::Networking::Packets::EntityCreate::FORCE_1:
+        case Protecs::Networking::Packets::EntityCreate::FORCE_2:
+        case Protecs::Networking::Packets::EntityCreate::FORCE_3:
+            takeForce(entity, static_cast<std::uint8_t>(type - Protecs::Networking::Packets::EntityCreate::FORCE_1 + 1));
             return;
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_1:
         case Protecs::Networking::Packets::EntityCreate::PLAYER_BEAM_2:

@@ -53,6 +53,28 @@ namespace {
     constexpr std::size_t EXPLOSION_FRAMES = 6;
     constexpr float EXPLOSION_FPS = 15.0F;
 
+    // r-typesheet7: the POW Armor walking, 6 frames 33 px apart
+    constexpr Rect POW_ARMOR_FRAME = { .x = 1.0F, .y = 1.0F, .width = 33.0F, .height = 33.0F };
+    constexpr std::size_t POW_ARMOR_FRAMES = 6;
+    constexpr float POW_ARMOR_FPS = 8.0F;
+
+    // r-typesheet3: the Force item spinning, 12 frames 17 px apart
+    constexpr Rect FORCE_PICKUP_FRAME = { .x = 1.0F, .y = 1.0F, .width = 17.0F, .height = 16.0F };
+    constexpr std::size_t FORCE_PICKUP_FRAMES = 12;
+    constexpr float FORCE_PICKUP_FPS = 12.0F;
+
+    // r-typesheet2: the Force by level; the frames are its hitbox on the server (Rules::FORCE_SIZES)
+    struct ForceFrames {
+        Rect frame;
+        std::size_t count;
+    };
+    constexpr std::array<ForceFrames, 3> FORCE_FRAMES = {{
+        { .frame = { .x = 212.0F, .y = 69.0F, .width = 30.0F, .height = 22.0F }, .count = 2 },  // an orb with two arms
+        { .frame = { .x = 164.0F, .y = 377.0F, .width = 34.0F, .height = 28.0F }, .count = 2 }, // with spikes
+        { .frame = { .x = 173.0F, .y = 342.0F, .width = 32.0F, .height = 32.0F }, .count = 3 }, // the big spiked one
+    }};
+    constexpr float FORCE_FPS = 10.0F;
+
     // heart.png is a white outline (the HUD tints it too): a red heart, its shape tells what it is
     constexpr RType::Render::Color LIFE_PICKUP_TINT = { .r = 235, .g = 60, .b = 60, .a = 255 };
 
@@ -132,4 +154,22 @@ auto RType::Game::tailSprite(Render::Resources& resources) -> Components::Sprite
 auto RType::Game::lifePickupSprite(Render::Resources& resources) -> Components::Sprite
 {
     return { .texture = resources.loadTexture(Render::assetPath("heart.png")), .tint = LIFE_PICKUP_TINT };
+}
+
+auto RType::Game::powArmorSprite(Render::Resources& resources) -> Components::Sprite
+{
+    return { .texture = sheet(resources, "r-typesheet7.gif"), .frame = POW_ARMOR_FRAME, .frameCount = POW_ARMOR_FRAMES, .framesPerSecond = POW_ARMOR_FPS };
+}
+
+auto RType::Game::forcePickupSprite(Render::Resources& resources) -> Components::Sprite
+{
+    return { .texture = sheet(resources, "r-typesheet3.gif"), .frame = FORCE_PICKUP_FRAME, .frameCount = FORCE_PICKUP_FRAMES,
+             .framesPerSecond = FORCE_PICKUP_FPS };
+}
+
+auto RType::Game::forceSprite(Render::Resources& resources, std::uint8_t level) -> Components::Sprite
+{
+    const auto& frames = FORCE_FRAMES[level >= 1 && level <= FORCE_FRAMES.size() ? level - 1 : 0];
+
+    return { .texture = sheet(resources, "r-typesheet2.gif"), .frame = frames.frame, .frameCount = frames.count, .framesPerSecond = FORCE_FPS };
 }
