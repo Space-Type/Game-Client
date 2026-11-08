@@ -189,6 +189,11 @@ add_executable(r-type_client src/main.cpp)
 
 target_link_libraries(r-type_client PRIVATE rtype_client_core)
 
+# Gamepad mappings (vcpkg port sdl-gamecontrollerdb), read next to the client at startup
+set(RTYPE_GAMEPAD_MAPPINGS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/share/sdl-gamecontrollerdb/gamecontrollerdb.txt")
+add_custom_command(TARGET r-type_client POST_BUILD
+                   COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${RTYPE_GAMEPAD_MAPPINGS}" "$<TARGET_FILE_DIR:r-type_client>/gamecontrollerdb.txt")
+
 if (CMAKE_BUILD_TYPE STREQUAL "DebugTests")
     add_subdirectory(tests)
 endif()
