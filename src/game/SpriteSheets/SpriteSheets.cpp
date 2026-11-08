@@ -44,6 +44,11 @@ namespace {
     constexpr std::size_t BOSS_FRAMES = 4;
     constexpr float BOSS_FPS = 4.0F;
 
+    // r-typesheet30a: a spinning ball, 3 frames: a segment of the Dobkeratops tail
+    constexpr Rect TAIL_FRAME = { .x = 0.0F, .y = 0.0F, .width = 34.0F, .height = 34.0F };
+    constexpr std::size_t TAIL_FRAMES = 3;
+    constexpr float TAIL_FPS = 10.0F;
+
     constexpr Rect EXPLOSION_FRAME = { .x = 129.0F, .y = 0.0F, .width = 33.0F, .height = 33.0F };      // r-typesheet44: 6 frames
     constexpr std::size_t EXPLOSION_FRAMES = 6;
     constexpr float EXPLOSION_FPS = 15.0F;
@@ -114,4 +119,9 @@ void RType::Game::setPlayerColour(Components::Sprite& sprite, std::size_t slot) 
 {
     if (sprite.frame)
         sprite.frame->y = SHIP_HEIGHT * static_cast<float>(slot % PLAYER_COLOURS);
+}
+
+auto RType::Game::tailSprite(Render::Resources& resources) -> Components::Sprite
+{
+    return { .texture = sheet(resources, "r-typesheet30a.gif"), .frame = TAIL_FRAME, .frameCount = TAIL_FRAMES, .framesPerSecond = TAIL_FPS };
 }

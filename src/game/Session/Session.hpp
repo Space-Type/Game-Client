@@ -64,9 +64,11 @@ namespace RType::Game {
         bool m_ChargeSoundPlaying = false;
         Render::SoundId m_LevelSound;
         Render::SoundId m_StageClearSound;
+        Render::SoundId m_WarningSound;
 
         float m_Clock = 0.0F;                     // seconds since the session started
         std::optional<std::uint8_t> m_Stage;      // last Level::stage received
+        std::optional<std::uint8_t> m_BossPhase;  // last BossPhase::phase received
         std::optional<Announcement> m_Announcement;
 
         // Client-only entities (explosions), deleted once their animation is over
@@ -91,6 +93,8 @@ namespace RType::Game {
             static constexpr float GAME_OVER_DELAY = 1.5F;  // lets the last explosion play
             static constexpr float HIT_BLINK = 0.2F;         // an enemy hit but not killed blinks as long
             static constexpr float LEVEL_ANNOUNCEMENT = 2.5F;
+            static constexpr float WARNING_ANNOUNCEMENT = 2.0F;  // a boss gets angry
+            static constexpr float WARNING_BLINK = 1.0F;
             static constexpr float STAGE_CLEAR_ANNOUNCEMENT = 4.0F;  // as long as the server waits before the next stage (Server: STAGE_CLEAR_DELAY)
 
             Session(Render::Resources& resources, const Render::Renderer& renderer, Render::Audio& audio,
@@ -134,6 +138,7 @@ namespace RType::Game {
             void explodeAt(const Protecs::Components::Transform& where);
             void announce(std::string text, float duration, bool scores, Render::SoundId sound);
             void clearStage();
+            void enrage();
             void win();
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
