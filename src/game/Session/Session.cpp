@@ -132,6 +132,7 @@ void RType::Game::Session::update(Wrecks::DeltaTime dt)
     m_Starfield.update(dt);
     removeFinishedEffects();
     updateChargeSound();
+    forgetStaleEntities(std::chrono::duration<float>(dt).count());
 
     if (m_GameOverIn) {
         *m_GameOverIn -= std::chrono::duration<float>(dt).count();
@@ -360,6 +361,34 @@ void RType::Game::Session::loseLife(Wrecks::ECS::Entity player, std::uint8_t liv
         m_Engine.addComponent(player, Components::Blink{});
 }
 
+/**
+ * Deletes the entities the server stopped updating (see
+ * Components::Freshness). The local player is never forgotten.
+ */
+void RType::Game::Session::forgetStaleEntities(float seconds)
+{
+    std::vector<Wrecks::ECS::Entity> stale;
+    std::optional<Wrecks::ECS::Entity> local;
+
+    m_SinceAnyUpdate += seconds;
+    if (m_EntityMap.containsNetwork(m_Client.player()))
+        local = m_EntityMap.toLocal(m_Client.player());
+
+    for (auto [entity, unused] : m_Engine.get<Components::Freshness>()) {
+        auto& freshness = m_Engine.get<Components::Freshness>()[entity];
+
+        freshness.sinceUpdate += seconds;
+        if (entity != local && Components::isStale(freshness.sinceUpdate, m_SinceAnyUpdate))
+            stale.push_back(entity);
+    }
+
+    // Deleted after the loop: never while iterating over the container
+    for (auto entity : stale) {
+        m_EntityMap.removeNetwork(m_EntityMap.toNetwork(entity));
+        m_Engine.deleteEntity(entity);
+    }
+}
+
 void RType::Game::Session::removeFinishedEffects()
 {
     std::erase_if(m_Effects, [&](Wrecks::ECS::Entity effect) {
@@ -451,6 +480,11 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCompone
 
         session.m_Engine.get<Component>()[localEntity] = std::move(data);
 
+        // Any component counts: the level entity, for one, has no Transform
+        session.m_SinceAnyUpdate = 0.0F;
+        if (session.m_Engine.hasComponent<Components::Freshness>(localEntity))
+            session.m_Engine.get<Components::Freshness>()[localEntity].sinceUpdate = 0.0F;
+
         if constexpr (std::is_same_v<Component, Protecs::Components::PlayerStats>) {
             const auto& stats = session.m_Engine.get<Component>()[localEntity];
 
@@ -507,6 +541,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityCreate&
 
     auto entity = session.m_Engine.createEntity();
     session.m_EntityMap.bind(data.id, entity);
+    session.m_Engine.addComponent(entity, Components::Freshness{});
     session.m_Engine.addComponent(entity, Components::EntityKind{ data.type });
 
     if (data.type == Packets::EntityCreate::PLAYER)
@@ -543,6 +578,7 @@ void RType::Game::Session::EventHandler::operator()(const Packets::EntityList& d
         } else {
             localEntity = session.m_Engine.createEntity();
             session.m_EntityMap.bind(netEntity, localEntity);
+            session.m_Engine.addComponent(localEntity, Components::Freshness{});
         }
 
         // local components don't matter, only shared ones

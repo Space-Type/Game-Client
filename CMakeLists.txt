@@ -48,6 +48,7 @@ set(SOURCES
     src/components/Charge.hpp
     src/components/Controllable.hpp
     src/components/EntityKind.hpp
+    src/components/Freshness.hpp
     src/components/Manager.hpp
     src/components/PlayerState.hpp
     src/components/Sprite.hpp
