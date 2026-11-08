@@ -27,13 +27,15 @@ jobs:
     env:
       # GoogleTest is downloaded once, then taken from the cache
       FETCHCONTENT_BASE_DIR: ${{ github.workspace }}/.deps
+      # Packages built by vcpkg (raylib, GLFW...) are reused between runs instead of rebuilt
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/.vcpkg-cache
 
     steps:
       - uses: actions/checkout@v5
         with:
           submodules: recursive
 
-      # raylib (GLFW, X11 only) needs OpenGL and X11 headers; the client links them from the system
+      # GLFW (from vcpkg, X11 only) needs the OpenGL and X11 headers: the client links them from the system
       - name: Install system packages (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -45,7 +47,20 @@ jobs:
           path: ${{ env.FETCHCONTENT_BASE_DIR }}
           key: deps-${{ runner.os }}-${{ hashFiles('tests/CMakeLists.txt') }}
 
-      # Compiled objects (raylib, Wrecks, Protecs, the client) are reused between runs instead of rebuilt
+      - name: Prepare the vcpkg cache
+        id: vcpkg
+        shell: bash
+        run: |
+          mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
+          echo "commit=$(git -C lib/vcpkg rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: vcpkg-${{ runner.os }}-${{ steps.vcpkg.outputs.commit }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-ports/**') }}
+          restore-keys: vcpkg-${{ runner.os }}-
+
+      # Compiled objects (Wrecks, Protecs, the client) are reused between runs instead of rebuilt
       - uses: hendrikmuhs/ccache-action@v1.2
         if: runner.os == 'Linux'
         with:
@@ -54,7 +69,7 @@ jobs:
       - name: Configure (Linux)
         if: runner.os == 'Linux'
         run: >
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=DebugTests -DCMAKE_CXX_COMPILER=g++-14 -DGLFW_BUILD_WAYLAND=OFF
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=DebugTests -DCMAKE_CXX_COMPILER=g++-14
           -DFETCHCONTENT_BASE_DIR="$FETCHCONTENT_BASE_DIR"
           -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
