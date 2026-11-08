@@ -20,6 +20,7 @@ namespace RType::Components {
                                       Controllable,
                                       LocalCharge,
                                       EntityKind,
+                                      Freshness,
                                       Sprite>
     >;
 }

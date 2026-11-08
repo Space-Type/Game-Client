@@ -73,6 +73,8 @@ namespace RType::Game {
 
         // Client-only entities (explosions), deleted once their animation is over
         std::vector<Wrecks::ECS::Entity> m_Effects;
+
+        float m_SinceAnyUpdate = 0.0F;  // seconds since the last component received (Freshness)
         Engine m_Engine;
         Utils::EntityMap m_EntityMap;
 
@@ -144,6 +146,7 @@ namespace RType::Game {
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void removeFinishedEffects();
             void updateChargeSound();
+            void forgetStaleEntities(float seconds);
             void initSprite(Wrecks::ECS::Entity entity, Protecs::Networking::Packets::EntityCreate::EntityType type);
 
         private:

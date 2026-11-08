@@ -24,6 +24,7 @@ FetchContent_MakeAvailable(googletest)
 # Only headless tests: nothing here opens a window or an audio device
 set(TEST_SOURCES
     components/Charge.cpp
+    components/Freshness.cpp
     components/PlayerState.cpp
     game/Client.cpp
     game/ConnectionInfo.cpp
