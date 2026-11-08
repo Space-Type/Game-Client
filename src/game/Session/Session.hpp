@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../Engine.hpp"
+#include "../Bosses/Bosses.hpp"
 #include "../Client/Client.hpp"
 #include "../Controls/Controls.hpp"
 #include "../DisplayOptions/DisplayOptions.hpp"
@@ -117,7 +118,13 @@ namespace RType::Game {
             [[ nodiscard ]] std::optional<std::pair<Announcement, float>> announcement() const;
 
             // Health of the boss core, while a boss is there
-            [[ nodiscard ]] std::optional<Protecs::Components::Health> bossHealth() const;
+            // The boss in the game: its name and the health of its core
+            struct BossBar {
+                std::string_view name;
+                Protecs::Components::Health health;
+            };
+
+            [[ nodiscard ]] std::optional<BossBar> bossBar() const;
 
             [[ nodiscard ]] inline bool ended() const noexcept { return m_Ended; }
             [[ nodiscard ]] inline std::string_view endReason() const noexcept { return m_EndReason; }
@@ -135,6 +142,7 @@ namespace RType::Game {
             void enrage();
             void win();
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> findKind(Protecs::Networking::Packets::EntityCreate::EntityType type) const;
+            [[ nodiscard ]] std::optional<std::pair<Wrecks::ECS::Entity, const BossKinds*>> findBoss() const;
             [[ nodiscard ]] std::optional<Wrecks::ECS::Entity> localPlayer() const;
             void loseLife(Wrecks::ECS::Entity player, std::uint8_t livesLeft);
             void gainLife(Wrecks::ECS::Entity player);

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "../../src/game/Bosses/Bosses.hpp"
 #include "../../src/game/Client/Client.hpp"
 #include "../../src/game/ConnectionInfo/ConnectionInfo.hpp"
 #include "../../src/game/Controls/Controls.hpp"

@@ -11,6 +11,7 @@
 #include <rtype/render.hpp>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 
@@ -52,7 +53,8 @@ namespace RType::UI {
                              const std::vector<HudLine>& lines, float seconds);
 
             // Boss health at the bottom of the screen: name, bar and "hp / max" (not only the bar)
-            static void drawBossBar(const Render::Renderer& renderer, Render::Vec2D screen, std::uint16_t hp, std::uint16_t max);
+            static void drawBossBar(const Render::Renderer& renderer, Render::Vec2D screen, std::string_view name, std::uint16_t hp, std::uint16_t max);
+            static std::string bossLabel(std::string_view name, std::uint16_t hp, std::uint16_t max);  // "NAME  hp / max"
             static float bossBarFill(std::uint16_t hp, std::uint16_t max, float width) noexcept;
 
             // Announcements fade in, stay, then fade out: their opacity from 0 to 1

@@ -75,3 +75,9 @@ TEST(ui_Hud, bossBarFollowsTheHealth)
     EXPECT_EQ(Hud::bossBarFill(90, 60, 600.0F), 600.0F);  // never past the full bar
     EXPECT_EQ(Hud::bossBarFill(10, 0, 600.0F), 0.0F);
 }
+
+TEST(ui_Hud, bossLabelNamesTheBoss)
+{
+    EXPECT_EQ(Hud::bossLabel("DOBKERATOPS", 60, 60), "DOBKERATOPS  60 / 60");
+    EXPECT_EQ(Hud::bossLabel("GOMANDER", 7, 50), "GOMANDER  7 / 50");
+}
