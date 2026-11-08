@@ -43,6 +43,7 @@ endif()
 set(CMAKE_MAP_IMPORTED_CONFIG_DEBUGTESTS Debug Release)
 
 find_package(raylib CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)  # raylib's backend: the input wrapper asks it which gamepads are mapped
 
 # Wrecks and Protecs build their own tests (with coverage) in DebugTests:
 # they belong to their repositories, not to this build
@@ -183,7 +184,8 @@ target_include_directories(rtype_client_core PUBLIC  include
 
 target_link_libraries(rtype_client_core PUBLIC wrecks
                                         PUBLIC protecs
-                                        PUBLIC raylib)
+                                        PUBLIC raylib
+                                        PRIVATE glfw)
 
 add_executable(r-type_client src/main.cpp)
 

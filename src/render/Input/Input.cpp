@@ -9,6 +9,11 @@
 #include "Input.hpp"
 #include "../Window/Window.hpp"
 #include "KeyMap.hpp"
+#define GLFW_INCLUDE_NONE  // no OpenGL header: only the joystick API is used
+#include <GLFW/glfw3.h>
+#include <fstream>
+#include <iterator>
+#include <system_error>
 
 namespace {
 
@@ -115,9 +120,43 @@ float RType::Render::Input::mouseWheel() const noexcept
 //                                                     //
 /////////////////////////////////////////////////////////
 
+bool RType::Render::Input::addGamepadMappings(const std::string& mappings) noexcept
+{
+    return !mappings.empty() && SetGamepadMappings(mappings.c_str()) == GLFW_TRUE;
+}
+
+bool RType::Render::Input::loadGamepadMappings(const std::filesystem::path& file)
+{
+    std::error_code error;
+
+    if (!std::filesystem::is_regular_file(file, error) || std::filesystem::file_size(file, error) > MAPPINGS_FILE_MAX || error)
+        return false;
+
+    std::ifstream stream(file, std::ios::binary);
+    std::string text((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+    return stream.good() || stream.eof() ? addGamepadMappings(text) : false;
+}
+
+// raylib counts any joystick as available, mapped or not: GLFW tells them apart
 bool RType::Render::Input::isGamepadAvailable(int gamepad) const noexcept
 {
-    return gamepad >= 0 && IsGamepadAvailable(gamepad);
+    return gamepad >= 0 && gamepad < MAX_GAMEPADS && IsGamepadAvailable(gamepad) && glfwJoystickIsGamepad(gamepad) == GLFW_TRUE;
+}
+
+bool RType::Render::Input::isUnmappedJoystick(int gamepad) const noexcept
+{
+    return gamepad >= 0 && gamepad < MAX_GAMEPADS && glfwJoystickPresent(gamepad) == GLFW_TRUE && glfwJoystickIsGamepad(gamepad) != GLFW_TRUE;
+}
+
+std::string RType::Render::Input::gamepadName(int gamepad) const
+{
+    if (gamepad < 0 || gamepad >= MAX_GAMEPADS || glfwJoystickPresent(gamepad) != GLFW_TRUE)
+        return {};
+
+    const char* name = glfwGetJoystickName(gamepad);
+
+    return name ? name : "";
 }
 
 bool RType::Render::Input::isDown(int gamepad, GamepadButton button) const noexcept
@@ -137,7 +176,7 @@ bool RType::Render::Input::isReleased(int gamepad, GamepadButton button) const n
 
 float RType::Render::Input::axis(int gamepad, GamepadAxis axis) const noexcept
 {
-    if (!isValid(gamepad, axis) || !IsGamepadAvailable(gamepad))
+    if (!isValid(gamepad, axis) || !isGamepadAvailable(gamepad))
         return 0.0F;
     return Detail::normalizeAxis(axis, GetGamepadAxisMovement(gamepad, Detail::toRaylib(axis)));
 }
