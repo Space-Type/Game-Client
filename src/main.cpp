@@ -6,7 +6,9 @@
 */
 
 #include <rtype.hpp>
+#include "radar/Radar.hpp"
 #include <iostream>
+#include <string_view>
 
 
 void unsafeMain(int argc, char *argv[])
@@ -19,6 +21,19 @@ void unsafeMain(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    if (argc >= 2 && std::string_view(argv[1]) == "--radar") {
+        if (argc != 3) {
+            std::cerr << argv[0] << " --radar: bad arguments: " << argc - 2
+                      << " given but 1 is required" << std::endl << "retry with -h" << std::endl;
+            return 84;
+        }
+        try {
+            return RType::Radar::run(argv[2]);
+        } catch (const std::exception& err) {
+            std::cerr << err.what() << std::endl;
+            return 84;
+        }
+    }
     try {
         unsafeMain(argc, argv);
     } catch (const RType::Errors::Error& err) {

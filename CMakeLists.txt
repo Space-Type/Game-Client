@@ -73,6 +73,8 @@ set(SOURCES
     src/game/Starfield/Starfield.hpp
     src/game/Session/Session.hpp
     src/game/Engine.hpp
+    src/radar/Radar.cpp
+    src/radar/Radar.hpp
     src/render/Assets/Assets.cpp
     src/render/Assets/Assets.hpp
     src/render/Audio/Audio.cpp
